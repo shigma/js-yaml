@@ -1,7 +1,7 @@
 env:
   node:     true
   browser:  true
-  es6:      false
+  es6:      true
 
 globals:
   Uint8Array: false
