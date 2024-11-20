@@ -16,6 +16,10 @@ module.exports = withMeta({
     Clark: 'Evans',
     Brian: 'Ingerson',
     Oren: 'Ben-Kiki'
+  }, {
+    Clark: { line: 5, column: 27, position: 137 },
+    Brian: { line: 5, column: 41, position: 151 },
+    Oren: { line: 5, column: 57, position: 167 }
   }),
   'foo,bar': 'baz'
 }, {

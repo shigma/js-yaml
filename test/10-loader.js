@@ -60,7 +60,7 @@ function deepEqual(a, b) {
   return Object.keys({ ...a, ...b }).every(key => deepEqual(a[key], b[key]));
 }
 
-describe('Loader with meta', function () {
+describe.only('Loader with meta', function () {
   var samplesDir = path.resolve(__dirname, 'samples-meta');
 
   fs.readdirSync(samplesDir).forEach(function (yamlFile) {

@@ -34,7 +34,17 @@ module.exports = withMeta({
     'Uranus',
     'Neptune',
     'Pluto'
-  ], [])
+  ], [
+    { line: 11, column: 20, position: 363 },
+    { line: 11, column: 29, position: 372 },
+    { line: 11, column: 36, position: 379 },
+    { line: 11, column: 43, position: 386 },
+    { line: 12, column: 20, position: 425 },
+    { line: 12, column: 29, position: 434 },
+    { line: 12, column: 37, position: 442 },
+    { line: 12, column: 45, position: 450 },
+    { line: 13, column: 20, position: 485 }
+  ])
 }, {
   'Block style': { line: 1, column: 13, position: 41 },
   'Flow style': { line: 11, column: 12, position: 355 }
