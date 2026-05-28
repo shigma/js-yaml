@@ -7,25 +7,22 @@ on:
     - cron: '0 0 * * 3'
 
 permissions:
-  contents: read #  to fetch code (actions/checkout)
+  contents: read
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [ '24' ]
 
     steps:
     - uses: actions/checkout@v5
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js LTS
       uses: actions/setup-node@v6
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: lts/*
 
-    - run: npm install
+    - run: npm i
 
-    - run: npm test
+    - name: Test
+      run: npm test
