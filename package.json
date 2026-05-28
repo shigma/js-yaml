@@ -35,8 +35,9 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "npm run lint && mocha",
-    "coverage": "npm run lint && c8 -r html mocha",
+    "test": "npm run lint && npm run test:core",
+    "test:core": "mocha test/core/*.test.*",
+    "coverage": "npm run lint && c8 -r html mocha test/core/*.test.*",
     "demo": "npm run lint && node support/build_demo.js",
     "gh-demo": "npm run demo && gh-pages -d demo -f",
     "browserify": "rollup -c support/rollup.config.js",
