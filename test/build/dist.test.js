@@ -52,6 +52,18 @@ function loadGlobal(filename) {
 
 
 describe('dist build', function () {
+  it('keeps Vite proxy exports in sync with the CommonJS entry', async function () {
+    const yaml = require('../../index.js');
+    const proxy = await import('../../lib/index_vite_proxy.tmp.mjs');
+
+    assert.deepStrictEqual(Object.keys(proxy).sort(), Object.keys(yaml).concat('default').sort());
+    assert.strictEqual(proxy.default, yaml);
+
+    Object.keys(yaml).forEach(function (key) {
+      assert.strictEqual(proxy[key], yaml[key]);
+    });
+  });
+
   it('exports the expected UMD API from js-yaml.js', function () {
     checkExports(require('../../dist/js-yaml.js'), { checkEsModule: true });
   });
