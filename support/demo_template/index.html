@@ -7,10 +7,8 @@
     <meta name="keywords" content="yaml,parser,javascript">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.css">
-    <link rel="stylesheet" href="codemirror.css">
-    <link rel="stylesheet" href="demo.css">
 
-    <script src="demo.js"></script>
+    <script type="module" src="./index.mjs"></script>
 
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -197,7 +195,7 @@ timestamp:
 
 
 # JS-YAML allows you to specify a custom YAML types for your structures.
-# This is a simple example of custom constructor defined in `js/demo.js` for
+# This is a simple example of custom constructor defined in `index.mjs` for
 # custom `!sexy` type:
 #
 # var SexyYamlType = new jsyaml.Type('!sexy', {

@@ -23,12 +23,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-
 // Based on original artworks of base64 encoder/decoder by [Mozilla][1]
 // [1]: http://lxr.mozilla.org/mozilla/source/extensions/xml-rpc/src/nsXmlRpcClient.js
-
-
-'use strict';
 
 /* eslint-env browser */
 /* eslint-disable no-bitwise */
@@ -105,7 +101,7 @@ function utf8Decode(bytes) {
 
 // public api ////////////////////////////////////////////////////////////////
 
-function encode(str) {
+export function encode(str) {
   var result = '',
       bytes = utf8Encode(str),
       length = bytes.length,
@@ -136,7 +132,7 @@ function encode(str) {
   return result;
 }
 
-function decode(data) {
+export function decode(data) {
   var value, code, idx = 0,
       bytes = [],
       leftbits = 0, // number of bits decoded, but yet to be appended
@@ -175,6 +171,3 @@ function decode(data) {
 
   return utf8Decode(bytes);
 }
-
-exports.encode = encode;
-exports.decode = decode;

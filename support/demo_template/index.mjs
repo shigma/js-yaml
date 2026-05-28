@@ -1,16 +1,14 @@
-'use strict';
-
 /* eslint-env browser */
 
-var jsyaml     = require('../../index.js');
-var codemirror = require('codemirror');
-var base64     = require('./base64');
-var inspect    = require('util').inspect;
+import jsyaml from '../../lib/index_vite_proxy.tmp.mjs'
+import codemirror from 'codemirror'
+import { inspect } from 'util'
+import * as base64 from './base64.mjs'
 
-
-require('codemirror/mode/yaml/yaml.js');
-require('codemirror/mode/javascript/javascript.js');
-
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/mode/yaml/yaml.js'
+import 'codemirror/mode/javascript/javascript.js'
+import './demo.css'
 
 var source, result, permalink, default_text;
 
