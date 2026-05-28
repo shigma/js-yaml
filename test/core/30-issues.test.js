@@ -1,5 +1,6 @@
 'use strict';
 
+const { describe } = require('node:test');
 
 var path = require('path');
 var fs   = require('fs');

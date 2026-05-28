@@ -1,5 +1,7 @@
 'use strict';
 
+const { it } = require('node:test');
+
 /* eslint-disable no-use-before-define, new-cap */
 
 

@@ -1,5 +1,7 @@
 'use strict';
 
+const { describe, it } = require('node:test');
+
 /* eslint-disable max-len */
 
 const assert = require('assert');

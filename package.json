@@ -36,8 +36,8 @@
   "scripts": {
     "lint": "eslint .",
     "test": "npm run lint && npm run test:core",
-    "test:core": "mocha test/core/*.test.*",
-    "coverage": "npm run lint && c8 -r html mocha test/core/*.test.*",
+    "test:core": "node --test test/core/*.test.*",
+    "coverage": "npm run lint && c8 -r html node --test test/core/*.test.*",
     "demo": "npm run lint && node support/build_demo.js",
     "gh-demo": "npm run demo && gh-pages -d demo -f",
     "browserify": "rollup -c support/rollup.config.js",
@@ -55,7 +55,6 @@
     "eslint": "^7.0.0",
     "fast-check": "^2.8.0",
     "gh-pages": "^3.1.0",
-    "mocha": "^8.2.1",
     "c8": "^11.0.0",
     "rollup": "^2.34.1",
     "rollup-plugin-node-polyfills": "^0.2.1",

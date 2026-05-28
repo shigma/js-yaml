@@ -1,5 +1,6 @@
 'use strict';
 
+const { describe, it } = require('node:test');
 
 const assert = require('assert');
 const yaml   = require('js-yaml');

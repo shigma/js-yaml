@@ -1,5 +1,7 @@
 'use strict';
 
+const { describe, it } = require('node:test');
+
 var assert = require('assert');
 var fc     = require('fast-check');
 var yaml   = require('js-yaml');
