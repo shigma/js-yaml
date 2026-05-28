@@ -12,6 +12,7 @@ body {
   padding: 1px 0 30px;
   white-space: nowrap;
   overflow: hidden;
+  position: relative;
 }
 
 .subheader {
@@ -66,33 +67,18 @@ body {
   color: #baa;
 }
 
-.gh-ribbon {
-    -webkit-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    transform: rotate(45deg);
-    background-color: #686868;
-    box-shadow: 0 0 2px rgba(102, 102, 102, 0.4);
-    display: block;
-    padding: 1px 0;
-    position: fixed;
-    right: -60px;
-    top: 44px;
-    width: 230px;
-    z-index: 10000;
+.github-link {
+  color: #333;
+  position: absolute;
+  right: 0;
+  top: 18px;
 }
-.gh-ribbon a {
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 13px;
-    border: 1px solid #AAAAAA;
-    color: #FFFFFF;
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    outline: medium none;
-    padding: 4px 50px 2px;
-    text-align: center;
-    text-decoration: none;
+.github-link:hover {
+  color: #000;
 }
-.csstransforms .gh-ribbon {
-    display: block;
+.github-link svg {
+  display: block;
+  fill: currentColor;
+  height: 32px;
+  width: 32px;
 }

@@ -3,14 +3,24 @@
 import jsyaml from '../../lib/index_vite_proxy.tmp.mjs'
 import codemirror from 'codemirror'
 import { inspect } from 'util'
-import * as base64 from './base64.mjs'
+import default_text from './sample.mjs'
 
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/mode/yaml/yaml.js'
 import 'codemirror/mode/javascript/javascript.js'
 import './demo.css'
 
-var source, result, permalink, default_text;
+var source, result, permalink;
+
+function encodeBase64(str) {
+  return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+}
+
+function decodeBase64(str) {
+  return new TextDecoder().decode(Uint8Array.from(atob(str), function (char) {
+    return char.charCodeAt(0);
+  }));
+}
 
 var SexyYamlType = new jsyaml.Type('!sexy', {
   kind: 'sequence', // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
@@ -25,7 +35,7 @@ function parse() {
   var str, obj;
 
   str = source.getValue();
-  permalink.href = '#yaml=' + base64.encode(str);
+  permalink.href = '#yaml=' + encodeBase64(str);
 
   try {
     obj = jsyaml.load(str, { schema: SEXY_SCHEMA });
@@ -42,7 +52,7 @@ function updateSource() {
   var yaml;
 
   if (location.hash && location.hash.toString().slice(0, 6) === '#yaml=') {
-    yaml = base64.decode(location.hash.slice(6));
+    yaml = decodeBase64(location.hash.slice(6));
   }
 
   source.setValue(yaml || default_text);
@@ -50,8 +60,7 @@ function updateSource() {
 }
 
 window.onload = function () {
-  permalink    = document.getElementById('permalink');
-  default_text = document.getElementById('source').value || '';
+  permalink = document.getElementById('permalink');
 
   source = codemirror.fromTextArea(document.getElementById('source'), {
     mode: 'yaml',
