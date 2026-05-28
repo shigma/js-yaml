@@ -35,14 +35,15 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "npm run lint && npm run test:core",
+    "test": "npm run lint && npm run test:core && npm run test:build",
     "test:core": "node --test test/core/*.test.*",
-    "test:build": "npm run browserify && node --test test/build/*.test.*",
-    "coverage": "npm run lint && c8 -r html node --test test/core/*.test.*",
-    "demo": "npm run lint && node support/build_demo.js",
-    "gh-demo": "npm run demo && gh-pages -d demo -f",
-    "browserify": "rollup -c support/rollup.config.js",
-    "prepublishOnly": "npm run gh-demo"
+    "test:build": "npm run build && node --test test/build/*.test.*",
+    "coverage": "npm run build && c8 --include 'lib/**' -r text -r html -r lcov node --test test/core/*.test.*",
+    "build": "rollup -c support/rollup.config.js",
+    "build:demo": "npm run lint && node support/build_demo.js",
+    "gh-demo": "npm run build:demo && gh-pages -d demo -f",
+    "prepack": "npm test && npm run build && npm run build:demo",
+    "postpublish": "npm run gh-demo"
   },
   "unpkg": "dist/js-yaml.min.js",
   "jsdelivr": "dist/js-yaml.min.js",
