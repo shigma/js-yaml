@@ -7,7 +7,7 @@ var fc     = require('fast-check');
 var yaml   = require('js-yaml');
 
 // Generate valid YAML instances for yaml.safeDump
-var key = fc.string16bits();
+var key = fc.string({ unit: fc.nat({ max: 0xffff }).map(n => String.fromCharCode(n)) });
 var values = [
   key, fc.boolean(), fc.integer(), fc.double(),
   fc.constantFrom(null, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
@@ -21,15 +21,15 @@ var dumpOptionsArbitrary = fc.record({
   noRefs: fc.boolean(),
   noCompatMode: fc.boolean(),
   condenseFlow: fc.boolean(),
-  indent: fc.integer(1, 80),
-  flowLevel: fc.integer(-1, 10),
+  indent: fc.integer({ min: 1, max: 80 }),
+  flowLevel: fc.integer({ min: -1, max: 10 }),
   styles: fc.record({
     '!!null': fc.constantFrom('lowercase', 'canonical', 'uppercase', 'camelcase'),
     '!!int': fc.constantFrom('decimal', 'binary', 'octal', 'hexadecimal'),
     '!!bool': fc.constantFrom('lowercase', 'uppercase', 'camelcase'),
     '!!float': fc.constantFrom('lowercase', 'uppercase', 'camelcase')
-  }, { with_deleted_keys: true })
-}, { with_deleted_keys: true })
+  }, { requiredKeys: [] })
+}, { requiredKeys: [] })
   .map(function (instance) {
     if (instance.condenseFlow === true && instance.flowLevel !== undefined) { instance.flowLevel = -1; }
     return instance;
