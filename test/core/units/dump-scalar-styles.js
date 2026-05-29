@@ -185,8 +185,8 @@ describe('Scalar style dump:', function () {
     })
 
     it('preserves consecutive spaces', function () {
-      var alphabet = 'a bc  def  ghi' + repeat(' ', 70) + 'jk  lmn o\n'
-        + ' p  qrstu     v' + repeat(' ', 80) + '\nw x\n' + 'yz  '
+      var alphabet = 'a bc  def  ghi' + repeat(' ', 70) + 'jk  lmn o\n' +
+        ' p  qrstu     v' + repeat(' ', 80) + '\nw x\n' + 'yz  '
       assert.strictEqual(dump(alphabet),
         '>-\n' + indent(
           'a bc  def \n' +
@@ -211,10 +211,10 @@ describe('Scalar style dump:', function () {
             .join('\n') + '\n'))
     })
 
-    var story = 'Call me Ishmael. Some years ago—never mind how long precisely—'
-    + 'having little or no money in my purse, '
-    + 'and nothing particular to interest me on shore, '
-    + 'I thought I would sail about a little and see the watery part of the world...'
+    var story = 'Call me Ishmael. Some years ago—never mind how long precisely—' +
+      'having little or no money in my purse, ' +
+      'and nothing particular to interest me on shore, ' +
+      'I thought I would sail about a little and see the watery part of the world...'
     var prefix = 'var short_story = "",'
     var line = 'longer_story = "' + story + '";'
 

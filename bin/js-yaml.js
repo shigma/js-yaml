@@ -76,7 +76,7 @@ readFile(options.file, 'utf8', function (error, input) {
     }
 
     console.error(
-      options.trace && error.stack ||
+      (options.trace && error.stack) ||
       error.message ||
       String(error))
 
@@ -103,7 +103,7 @@ readFile(options.file, 'utf8', function (error, input) {
       }
     } else {
       console.error(
-        options.trace && err.stack ||
+        (options.trace && err.stack) ||
         err.message ||
         String(err))
 
