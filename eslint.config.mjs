@@ -16,7 +16,6 @@ export default [
       'no-var': 'off',
       '@stylistic/indent': 'off',
       '@stylistic/operator-linebreak': 'off',
-      'one-var': 'off',
       '@stylistic/key-spacing': 'off',
       'prefer-const': 'off',
       'no-useless-escape': 'off',

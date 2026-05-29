@@ -6,9 +6,9 @@ var util = require('util')
 var yaml = require('../')
 
 try {
-  var filename = path.join(__dirname, 'sample_document.yml'),
-      contents = fs.readFileSync(filename, 'utf8'),
-      data = yaml.load(contents)
+  var filename = path.join(__dirname, 'sample_document.yml')
+  var contents = fs.readFileSync(filename, 'utf8')
+  var data = yaml.load(contents)
 
   console.log(util.inspect(data, false, 10, true))
 } catch (err) {

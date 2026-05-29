@@ -8,15 +8,19 @@ var fs = require('fs')
 var snippet = require('../../../lib/snippet')
 
 it('Snippet', function () {
-  let filepath = path.join(__dirname, 'snippet.txt'),
-      filedata = fs.readFileSync(filepath, 'utf8')
+  let filepath = path.join(__dirname, 'snippet.txt')
+  let filedata = fs.readFileSync(filepath, 'utf8')
 
   let data = filedata.split(/(---[ \d]*\n)/).slice(1)
 
   for (let i = 0; i < data.length; i += 4) {
-    let index = 0, line = 0, column = 0, input = data[i + 1],
-        expected = data[i + 3].replace(/\n$/, ''),
-        mark, code
+    let index = 0
+    let line = 0
+    let column = 0
+    let input = data[i + 1]
+    let expected = data[i + 3].replace(/\n$/, '')
+    let mark
+    let code
 
     assert(input.indexOf('*') >= 0)
 

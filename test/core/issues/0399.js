@@ -6,7 +6,8 @@ var assert = require('assert')
 var yaml = require('js-yaml')
 
 it('should properly dump negative ints in different styles', function () {
-  var dump, src = { integer: -100 }
+  var dump
+  var src = { integer: -100 }
 
   dump = yaml.dump(src, { styles: { '!!int': 'binary' } })
   assert.deepStrictEqual(yaml.load(dump), src)

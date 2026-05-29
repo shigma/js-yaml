@@ -10,8 +10,9 @@ it('Timestamps are incorrectly parsed in local time', function () {
 date1: 2010-10-20T20:45:00Z
 date2: 2010-10-20T20:45:00+01:00
 `
-  var data = yaml.load(src),
-      date1, date2
+  var data = yaml.load(src)
+  var date1
+  var date2
 
   date1 = data.date1 // date1: 2010-10-20T20:45:00Z
   assert.strictEqual(date1.getUTCFullYear(), 2010, 'year')

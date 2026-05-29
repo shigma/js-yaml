@@ -17,9 +17,9 @@ describe('Dumper', function () {
 
     it(path.basename(jsFile, '.js'), function () {
       var sample = require(path.resolve(samplesDir, jsFile))
-      var data = typeof sample === 'function' ? sample.expected : sample,
-          serialized = yaml.dump(data, { schema: TEST_SCHEMA }),
-          deserialized = yaml.load(serialized, { schema: TEST_SCHEMA })
+      var data = typeof sample === 'function' ? sample.expected : sample
+      var serialized = yaml.dump(data, { schema: TEST_SCHEMA })
+      var deserialized = yaml.load(serialized, { schema: TEST_SCHEMA })
 
       if (typeof sample === 'function') {
         sample.call(this, deserialized)

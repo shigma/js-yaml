@@ -11,8 +11,8 @@ foo: {
     bar: true
 }
 `
-  var warnings = [],
-      data
+  var warnings = []
+  var data
 
   data = yaml.load(src)
 

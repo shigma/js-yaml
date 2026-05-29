@@ -69,8 +69,8 @@ module.exports = {
 }
 
 // now indent the long multi really far
-var obj = module.exports,
-    i
+var obj = module.exports
+var i
 
 for (i = 0; i < 5; i++) {
   obj.indent = {}

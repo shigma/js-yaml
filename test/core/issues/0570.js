@@ -6,7 +6,8 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 it('should dump null in different styles', function () {
-  let dump, src = { foo: null, bar: 1 }
+  let dump
+  let src = { foo: null, bar: 1 }
 
   let tests = {
     lowercase: 'null',

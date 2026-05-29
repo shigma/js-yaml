@@ -11,7 +11,9 @@ const yaml = require('../')
 let options = Object.assign({}, yaml.types.int.options)
 
 options.construct = data => {
-  let value = data, sign = 1n, ch
+  let value = data
+  let sign = 1n
+  let ch
 
   if (value.indexOf('_') !== -1) {
     value = value.replace(/_/g, '')

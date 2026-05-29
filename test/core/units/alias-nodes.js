@@ -38,8 +38,8 @@ describe('Alias nodes', function () {
     })
 
     it('Simple custom objects', function () {
-      var expected = new TestClass({ a: 'b', c: 'd' }),
-          actual = yaml.load('[&1 !test {a: b, c: d}, *1]', { schema: TEST_SCHEMA })[1]
+      var expected = new TestClass({ a: 'b', c: 'd' })
+      var actual = yaml.load('[&1 !test {a: b, c: d}, *1]', { schema: TEST_SCHEMA })[1]
 
       assert(actual instanceof TestClass)
       assert.deepStrictEqual(actual, expected)

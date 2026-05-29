@@ -76,7 +76,8 @@ describe('Scalar style dump:', function () {
   })
 
   describe('Literal style', function () {
-    var content = 'a\nb \n\n c\n  d', indented = indent(content)
+    var content = 'a\nb \n\n c\n  d'
+    var indented = indent(content)
 
     it('preserves trailing newlines using chomping', function () {
       assert.strictEqual(yaml.dump({ a: '\n', b: '\n\n', c: 'c\n', d: 'd\nd' }),

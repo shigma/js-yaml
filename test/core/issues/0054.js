@@ -49,8 +49,8 @@ it("Incorrect utf-8 handling on require('file.yaml')", function () {
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 `)
-  var expected = '',
-      index
+  var expected = ''
+  var index
 
   //
   // document is an array of 40 elements
