@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 
 it('Should check kind type when resolving !<?> tag', function () {
   try {

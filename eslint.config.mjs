@@ -14,7 +14,6 @@ export default [
     rules: {
       camelcase: 'off',
       'no-var': 'off',
-      '@stylistic/no-multi-spaces': 'off',
       '@stylistic/indent': 'off',
       '@stylistic/operator-linebreak': 'off',
       'one-var': 'off',

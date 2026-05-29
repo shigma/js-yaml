@@ -3,7 +3,7 @@
 const { describe } = require('node:test')
 
 var path = require('path')
-var fs   = require('fs')
+var fs = require('fs')
 
 describe('Issues', function () {
   var issues = path.resolve(__dirname, 'issues')

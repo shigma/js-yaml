@@ -2,8 +2,8 @@
 
 module.exports = {
   Bestiary: [
-    { aardvark : 'African pig-like ant eater. Ugly.'        },
-    { anteater : 'South-American ant eater. Two species.'   },
+    { aardvark : 'African pig-like ant eater. Ugly.' },
+    { anteater : 'South-American ant eater. Two species.' },
     { anaconda : 'South-American constrictor snake. Scaly.' }
   ],
   Numbers: [

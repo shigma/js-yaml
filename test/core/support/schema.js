@@ -20,7 +20,7 @@ function Tag3 () {
 util.inherits(Tag3, Tag2)
 
 function Foo (parameters) {
-  this.myParameter        = parameters.myParameter
+  this.myParameter = parameters.myParameter
   this.myAnotherParameter = parameters.myAnotherParameter
 }
 

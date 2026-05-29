@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 var readFileSync = require('fs').readFileSync
 
 it('Should not allow nested arrays in map keys (explicit syntax)', function () {

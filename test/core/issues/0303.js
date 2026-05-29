@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 
 it('Loader should not strip quotes before newlines', function () {
   var with_space = yaml.load("'''foo'' '")

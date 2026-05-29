@@ -3,8 +3,8 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var fc     = require('fast-check')
-var yaml   = require('js-yaml')
+var fc = require('fast-check')
+var yaml = require('js-yaml')
 
 // Generate valid YAML instances for yaml.safeDump
 var key = fc.string({ unit: fc.nat({ max: 0xffff }).map(n => String.fromCharCode(n)) })

@@ -5,7 +5,7 @@ const { it } = require('node:test')
 /* global BigInt */
 
 const assert = require('assert')
-const yaml   = require('js-yaml')
+const yaml = require('js-yaml')
 
 it('Should allow int override', function () {
   let options = Object.assign({}, yaml.types.int.options)

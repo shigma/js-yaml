@@ -3,11 +3,11 @@
 const { describe, it } = require('node:test')
 
 const assert = require('assert')
-const yaml   = require('js-yaml')
+const yaml = require('js-yaml')
 
 describe('Custom tags', function () {
   let tag_names = ['tag', '!tag', '!!tag', '!<!tag>', 'tag*-!< >{\n}', '!tagαβγ']
-  let encoded   = ['!<tag>', '!tag', '!%21tag', '!%3C%21tag%3E',
+  let encoded = ['!<tag>', '!tag', '!%21tag', '!%3C%21tag%3E',
     '!<tag*-%21%3C%20%3E%7B%0A%7D>', '!tag%CE%B1%CE%B2%CE%B3']
 
   let tags = tag_names.map(tag =>

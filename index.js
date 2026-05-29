@@ -10,16 +10,16 @@ function renamed (from, to) {
   }
 }
 
-module.exports.Type                = require('./lib/type')
-module.exports.Schema              = require('./lib/schema')
-module.exports.FAILSAFE_SCHEMA     = require('./lib/schema/failsafe')
-module.exports.JSON_SCHEMA         = require('./lib/schema/json')
-module.exports.CORE_SCHEMA         = require('./lib/schema/core')
-module.exports.DEFAULT_SCHEMA      = require('./lib/schema/default')
-module.exports.load                = loader.load
-module.exports.loadAll             = loader.loadAll
-module.exports.dump                = dumper.dump
-module.exports.YAMLException       = require('./lib/exception')
+module.exports.Type = require('./lib/type')
+module.exports.Schema = require('./lib/schema')
+module.exports.FAILSAFE_SCHEMA = require('./lib/schema/failsafe')
+module.exports.JSON_SCHEMA = require('./lib/schema/json')
+module.exports.CORE_SCHEMA = require('./lib/schema/core')
+module.exports.DEFAULT_SCHEMA = require('./lib/schema/default')
+module.exports.load = loader.load
+module.exports.loadAll = loader.loadAll
+module.exports.dump = dumper.dump
+module.exports.YAMLException = require('./lib/exception')
 
 // Re-export all types in case user wants to create custom schema
 module.exports.types = {
@@ -39,6 +39,6 @@ module.exports.types = {
 }
 
 // Removed functions from JS-YAML 3.0.x
-module.exports.safeLoad            = renamed('safeLoad', 'load')
-module.exports.safeLoadAll         = renamed('safeLoadAll', 'loadAll')
-module.exports.safeDump            = renamed('safeDump', 'dump')
+module.exports.safeLoad = renamed('safeLoad', 'load')
+module.exports.safeLoadAll = renamed('safeLoadAll', 'loadAll')
+module.exports.safeDump = renamed('safeDump', 'dump')

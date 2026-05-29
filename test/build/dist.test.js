@@ -3,9 +3,9 @@
 const { describe, it } = require('node:test')
 
 const assert = require('assert')
-const fs     = require('fs')
-const path   = require('path')
-const vm     = require('vm')
+const fs = require('fs')
+const path = require('path')
+const vm = require('vm')
 
 const distDir = path.resolve(__dirname, '../../dist')
 

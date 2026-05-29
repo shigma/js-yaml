@@ -3,7 +3,7 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 
 // Indents lines by 2 spaces. Empty lines (\n only) are not indented.
 function indent (string) {
@@ -81,12 +81,12 @@ describe('Scalar style dump:', function () {
     it('preserves trailing newlines using chomping', function () {
       assert.strictEqual(yaml.dump({ a: '\n', b: '\n\n', c: 'c\n', d: 'd\nd' }),
         'a: |+\n\nb: |+\n\n\nc: |\n  c\nd: |-\n  d\n  d\n')
-      assert.strictEqual(yaml.dump('\n'),               '|+\n' + '\n')
-      assert.strictEqual(yaml.dump('\n\n'),             '|+\n' + '\n\n')
+      assert.strictEqual(yaml.dump('\n'), '|+\n' + '\n')
+      assert.strictEqual(yaml.dump('\n\n'), '|+\n' + '\n\n')
 
-      assert.strictEqual(yaml.dump(content),            '|-\n' + indented + '\n')
-      assert.strictEqual(yaml.dump(content + '\n'),     '|\n'  + indented + '\n')
-      assert.strictEqual(yaml.dump(content + '\n\n'),   '|+\n' + indented + '\n\n')
+      assert.strictEqual(yaml.dump(content), '|-\n' + indented + '\n')
+      assert.strictEqual(yaml.dump(content + '\n'), '|\n' + indented + '\n')
+      assert.strictEqual(yaml.dump(content + '\n\n'), '|+\n' + indented + '\n\n')
       assert.strictEqual(yaml.dump(content + '\n\n\n'), '|+\n' + indented + '\n\n\n')
     })
 
@@ -155,12 +155,12 @@ describe('Scalar style dump:', function () {
       }
 
       it('wraps lines and ignores more-indented lines ', function () {
-        assert.strictEqual(dumpNarrow(content),            '>-\n' + indented + '\n')
+        assert.strictEqual(dumpNarrow(content), '>-\n' + indented + '\n')
       })
 
       it('preserves trailing newlines using chomping', function () {
-        assert.strictEqual(dumpNarrow(content + '\n'),     '>\n'  + indented + '\n')
-        assert.strictEqual(dumpNarrow(content + '\n\n'),   '>+\n' + indented + '\n\n')
+        assert.strictEqual(dumpNarrow(content + '\n'), '>\n' + indented + '\n')
+        assert.strictEqual(dumpNarrow(content + '\n\n'), '>+\n' + indented + '\n\n')
         assert.strictEqual(dumpNarrow(content + '\n\n\n'), '>+\n' + indented + '\n\n\n')
       })
     }())

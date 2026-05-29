@@ -3,9 +3,9 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var path   = require('path')
-var fs     = require('fs')
-var yaml   = require('js-yaml')
+var path = require('path')
+var fs = require('fs')
+var yaml = require('js-yaml')
 
 var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 

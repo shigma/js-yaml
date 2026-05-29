@@ -1,6 +1,6 @@
 'use strict'
 
-var fs   = require('fs')
+var fs = require('fs')
 var path = require('path')
 var util = require('util')
 var yaml = require('../')
@@ -9,9 +9,9 @@ var yaml = require('../')
 
 function Point (x, y, z) {
   this.klass = 'Point'
-  this.x     = x
-  this.y     = y
-  this.z     = z
+  this.x = x
+  this.y = y
+  this.z = z
 }
 
 function Space (height, width, points) {
@@ -21,9 +21,9 @@ function Space (height, width, points) {
     }
   }
 
-  this.klass  = 'Space'
+  this.klass = 'Space'
   this.height = height
-  this.width  = width
+  this.width = width
   this.points = points
 }
 
@@ -88,8 +88,8 @@ if (require.main === module) {
 }
 
 // There are some exports to play with this example interactively.
-module.exports.Point         = Point
-module.exports.Space         = Space
+module.exports.Point = Point
+module.exports.Space = Space
 module.exports.PointYamlType = PointYamlType
 module.exports.SpaceYamlType = SpaceYamlType
-module.exports.SPACE_SCHEMA  = SPACE_SCHEMA
+module.exports.SPACE_SCHEMA = SPACE_SCHEMA

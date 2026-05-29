@@ -7,7 +7,7 @@ var yaml = require('js-yaml')
 
 describe('loader parameters', function () {
   var testStr = 'test: 1 \ntest: 2'
-  var expected =  [{ test: 2 }]
+  var expected = [{ test: 2 }]
   var result
 
   it('loadAll(input, options)', function () {

@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 
 var DEPRECATED_BOOLEANS_SYNTAX = [
   'y', 'Y', 'yes', 'Yes', 'YES', 'on', 'On', 'ON',

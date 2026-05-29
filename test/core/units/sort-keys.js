@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 
 var sample = { b: 1, a: 2, c: 3 }
 var unsortedExpected = 'b: 1\na: 2\nc: 3\n'

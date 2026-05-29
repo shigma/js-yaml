@@ -3,9 +3,9 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var path   = require('path')
-var fs     = require('fs')
-var yaml   = require('js-yaml')
+var path = require('path')
+var fs = require('fs')
+var yaml = require('js-yaml')
 
 var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
@@ -16,9 +16,9 @@ describe('Dumper', function () {
     if (path.extname(jsFile) !== '.js') return // continue
 
     it(path.basename(jsFile, '.js'), function () {
-      var sample       = require(path.resolve(samplesDir, jsFile))
-      var data         = typeof sample === 'function' ? sample.expected : sample,
-          serialized   = yaml.dump(data,       { schema: TEST_SCHEMA }),
+      var sample = require(path.resolve(samplesDir, jsFile))
+      var data = typeof sample === 'function' ? sample.expected : sample,
+          serialized = yaml.dump(data, { schema: TEST_SCHEMA }),
           deserialized = yaml.load(serialized, { schema: TEST_SCHEMA })
 
       if (typeof sample === 'function') {

@@ -2,9 +2,9 @@
 
 'use strict'
 
-var fs       = require('fs')
+var fs = require('fs')
 var argparse = require('argparse')
-var yaml     = require('..')
+var yaml = require('..')
 
 /// /////////////////////////////////////////////////////////////////////////////
 

@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 const assert = require('assert')
-const yaml   = require('js-yaml')
+const yaml = require('js-yaml')
 
 it('Should throw exception on extra comma in flow mappings', function () {
   assert.throws(function () {

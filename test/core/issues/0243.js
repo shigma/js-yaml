@@ -3,7 +3,7 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var yaml   = require('js-yaml')
+var yaml = require('js-yaml')
 var readFileSync = require('fs').readFileSync
 
 describe('Duplicated mapping key errors throw at beginning of key', function () {

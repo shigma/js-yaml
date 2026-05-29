@@ -2,9 +2,9 @@
 
 const { it } = require('node:test')
 
-var assert  = require('assert')
-var path    = require('path')
-var fs      = require('fs')
+var assert = require('assert')
+var path = require('path')
+var fs = require('fs')
 var snippet = require('../../../lib/snippet')
 
 it('Snippet', function () {

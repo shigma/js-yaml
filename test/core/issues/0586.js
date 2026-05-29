@@ -3,7 +3,7 @@
 const { it } = require('node:test')
 
 const assert = require('assert')
-const yaml   = require('js-yaml')
+const yaml = require('js-yaml')
 
 it('Should allow custom formatting through implicit custom tags', function () {
   function CustomDump (data, opts) {

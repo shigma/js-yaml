@@ -3,9 +3,9 @@
 const { describe, it } = require('node:test')
 
 var assert = require('assert')
-var path   = require('path')
-var fs     = require('fs')
-var yaml   = require('js-yaml')
+var path = require('path')
+var fs = require('fs')
+var yaml = require('js-yaml')
 
 var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
@@ -19,7 +19,7 @@ describe('Loader', function () {
 
     it(path.basename(jsFile, '.js'), function () {
       var expected = require(path.resolve(samplesDir, jsFile))
-      var actual   = []
+      var actual = []
 
       yaml.loadAll(fs.readFileSync(yamlFile, { encoding: 'utf8' }), function (doc) { actual.push(doc) }, {
         filename: yamlFile,
