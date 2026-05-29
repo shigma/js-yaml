@@ -53,9 +53,10 @@
   "devDependencies": {
     "c8": "^11.0.0",
     "codemirror": "^5.65.21",
-    "eslint": "^7.0.0",
+    "eslint": "^9.39.4",
     "fast-check": "^4.8.0",
     "gh-pages": "^6.3.0",
+    "neostandard": "^0.13.0",
     "tinybench": "^6.0.2",
     "vite": "^8.0.14",
     "vite-plugin-node-polyfills": "^0.28.0",
