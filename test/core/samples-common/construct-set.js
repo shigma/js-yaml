@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   'baseball players': {
@@ -11,4 +11,4 @@ module.exports = {
     'Detroit Tigers': null,
     'New York Yankees': null
   }
-};
+}

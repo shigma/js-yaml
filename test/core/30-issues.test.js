@@ -1,17 +1,16 @@
-'use strict';
+'use strict'
 
-const { describe } = require('node:test');
+const { describe } = require('node:test')
 
-var path = require('path');
-var fs   = require('fs');
-
+var path = require('path')
+var fs   = require('fs')
 
 describe('Issues', function () {
-  var issues = path.resolve(__dirname, 'issues');
+  var issues = path.resolve(__dirname, 'issues')
 
   fs.readdirSync(issues).forEach(function (file) {
     if (path.extname(file) === '.js') {
-      require(path.resolve(issues, file));
+      require(path.resolve(issues, file))
     }
-  });
-});
+  })
+})

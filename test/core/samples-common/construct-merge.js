@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = [
   { x: 1, y: 2 },
@@ -9,4 +9,4 @@ module.exports = [
   { x: 1, y: 2, r: 10, label: 'center/big' },
   { x: 1, y: 2, r: 10, label: 'center/big' },
   { x: 1, y: 2, r: 10, label: 'center/big' }
-];
+]

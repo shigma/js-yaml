@@ -1,17 +1,16 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('refactor compact variant of MarkedYAMLError.toString', function () {
   var source = `
 foo: {bar} baz
-`;
+`
 
   assert.throws(function () {
-    yaml.load(source);
-  }, "require('issue-33.yml') should throw, but it does not");
-});
+    yaml.load(source)
+  }, "require('issue-33.yml') should throw, but it does not")
+})

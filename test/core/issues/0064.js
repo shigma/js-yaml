@@ -1,14 +1,13 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-var readFileSync = require('fs').readFileSync;
-
+var assert = require('assert')
+var yaml = require('js-yaml')
+var readFileSync = require('fs').readFileSync
 
 it('Wrong error message when yaml file contains tabs', function () {
   assert.doesNotThrow(
-    function () { yaml.load(readFileSync(require('path').join(__dirname, '/0064.yml'), 'utf8')); },
-    yaml.YAMLException);
-});
+    function () { yaml.load(readFileSync(require('path').join(__dirname, '/0064.yml'), 'utf8')) },
+    yaml.YAMLException)
+})

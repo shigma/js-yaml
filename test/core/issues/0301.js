@@ -1,29 +1,28 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-const assert = require('assert');
-const yaml = require('js-yaml');
-
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('should assign anchor to an empty node', function () {
   assert.deepStrictEqual(
     yaml.load('foo: &a\nbar: *a\n'),
     { foo: null, bar: null }
-  );
+  )
 
   assert.deepStrictEqual(
     yaml.load('{ foo: &a, bar: *a }'),
     { foo: null, bar: null }
-  );
+  )
 
   assert.deepStrictEqual(
     yaml.load('- &a\n- *a\n'),
-    [ null, null ]
-  );
+    [null, null]
+  )
 
   assert.deepStrictEqual(
     yaml.load('[ &a, *a ]'),
-    [ null, null ]
-  );
-});
+    [null, null]
+  )
+})

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   canonical: 685230,
@@ -6,4 +6,4 @@ module.exports = {
   octal: 685230,
   hexadecimal: 685230,
   binary: 685230
-};
+}

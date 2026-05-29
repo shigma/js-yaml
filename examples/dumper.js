@@ -1,8 +1,7 @@
-'use strict';
+'use strict'
 
-var yaml = require('../');
-var object = require('./dumper.json');
-
+var yaml = require('../')
+var object = require('./dumper.json')
 
 console.log(yaml.dump(object, {
   flowLevel: 3,
@@ -10,11 +9,10 @@ console.log(yaml.dump(object, {
     '!!int'  : 'hexadecimal',
     '!!null' : 'camelcase'
   }
-}));
-
+}))
 
 // Output:
-//==============================================================================
+//= =============================================================================
 // name: Wizzard
 // level: 0x11
 // sanity: Null

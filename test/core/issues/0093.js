@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('Unwanted line breaks in folded scalars', function () {
   var data = yaml.load(`
@@ -33,9 +32,9 @@ third: >
     d
   e
   f
-`);
+`)
 
-  assert.strictEqual(data.first,  'a b\n  c\n  d\ne f\n');
-  assert.strictEqual(data.second, 'a b\n  c\n\n  d\ne f\n');
-  assert.strictEqual(data.third,  'a b\n\n  c\n  d\ne f\n');
-});
+  assert.strictEqual(data.first,  'a b\n  c\n  d\ne f\n')
+  assert.strictEqual(data.second, 'a b\n  c\n\n  d\ne f\n')
+  assert.strictEqual(data.third,  'a b\n\n  c\n  d\ne f\n')
+})

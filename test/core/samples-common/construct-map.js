@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   'Block style': {
@@ -12,4 +12,4 @@ module.exports = {
     Oren: 'Ben-Kiki'
   },
   'foo,bar': 'baz'
-};
+}

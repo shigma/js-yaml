@@ -1,17 +1,16 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml   = require('js-yaml');
-
+var assert = require('assert')
+var yaml   = require('js-yaml')
 
 it('Should check kind type when resolving !<?> tag', function () {
   try {
-    yaml.load('!<?> [0]');
+    yaml.load('!<?> [0]')
   } catch (err) {
-    assert(err.stack.startsWith('YAMLException: unacceptable node kind for !<?> tag'));
-    return;
+    assert(err.stack.startsWith('YAMLException: unacceptable node kind for !<?> tag'))
+    return
   }
-  assert.fail(null, null, 'Expected an error to be thrown');
-});
+  assert.fail(null, null, 'Expected an error to be thrown')
+})

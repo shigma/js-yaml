@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it("Incorrect utf-8 handling on require('file.yaml')", function () {
   var data = yaml.load(`
@@ -49,22 +48,22 @@ it("Incorrect utf-8 handling on require('file.yaml')", function () {
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
-`);
+`)
   var expected = '',
-      index;
+      index
 
   //
   // document is an array of 40 elements
   // each element is a string of 100 `у` (Russian letter) chars
   //
   for (index = 0; index <= 100; index += 1) {
-    expected += 'у';
+    expected += 'у'
   }
 
   //
   // make sure none of the strings were corrupted.
   //
   for (index = 0; index < 40; index += 1) {
-    assert.strictEqual(data[index], expected, ('Line ' + index + ' is corrupted'));
+    assert.strictEqual(data[index], expected, ('Line ' + index + ' is corrupted'))
   }
-});
+})

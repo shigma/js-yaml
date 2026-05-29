@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
 module.exports = {
   'Block tasks': [
-    [ 'meeting', 'with team.' ],
-    [ 'meeting', 'with boss.' ],
-    [ 'break', 'lunch.' ],
-    [ 'meeting', 'with client.' ]
+    ['meeting', 'with team.'],
+    ['meeting', 'with boss.'],
+    ['break', 'lunch.'],
+    ['meeting', 'with client.']
   ],
   'Flow tasks': [
-    [ 'meeting', 'with team' ],
-    [ 'meeting', 'with boss' ]
+    ['meeting', 'with team'],
+    ['meeting', 'with boss']
   ]
-};
+}

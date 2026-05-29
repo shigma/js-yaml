@@ -1,25 +1,24 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml   = require('js-yaml');
-
+var assert = require('assert')
+var yaml   = require('js-yaml')
 
 it('Empty block scalars loaded wrong', function () {
-  assert.deepStrictEqual(yaml.load('a: |\nb: .'),  { a: '', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: |+\nb: .'), { a: '', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: |-\nb: .'), { a: '', b: '.' });
+  assert.deepStrictEqual(yaml.load('a: |\nb: .'),  { a: '', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: |+\nb: .'), { a: '', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: |-\nb: .'), { a: '', b: '.' })
 
-  assert.deepStrictEqual(yaml.load('a: >\nb: .'),  { a: '', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: >+\nb: .'), { a: '', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: >-\nb: .'), { a: '', b: '.' });
+  assert.deepStrictEqual(yaml.load('a: >\nb: .'),  { a: '', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: >+\nb: .'), { a: '', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: >-\nb: .'), { a: '', b: '.' })
 
-  assert.deepStrictEqual(yaml.load('a: |\n\nb: .'),  { a: '',   b: '.' });
-  assert.deepStrictEqual(yaml.load('a: |+\n\nb: .'), { a: '\n', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: |-\n\nb: .'), { a: '',   b: '.' });
+  assert.deepStrictEqual(yaml.load('a: |\n\nb: .'),  { a: '',   b: '.' })
+  assert.deepStrictEqual(yaml.load('a: |+\n\nb: .'), { a: '\n', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: |-\n\nb: .'), { a: '',   b: '.' })
 
-  assert.deepStrictEqual(yaml.load('a: >\n\nb: .'),  { a: '',   b: '.' });
-  assert.deepStrictEqual(yaml.load('a: >+\n\nb: .'), { a: '\n', b: '.' });
-  assert.deepStrictEqual(yaml.load('a: >-\n\nb: .'), { a: '',   b: '.' });
-});
+  assert.deepStrictEqual(yaml.load('a: >\n\nb: .'),  { a: '',   b: '.' })
+  assert.deepStrictEqual(yaml.load('a: >+\n\nb: .'), { a: '\n', b: '.' })
+  assert.deepStrictEqual(yaml.load('a: >-\n\nb: .'), { a: '',   b: '.' })
+})

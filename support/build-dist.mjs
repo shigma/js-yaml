@@ -28,7 +28,7 @@ await build({
     lib: {
       entry: 'lib/index_vite_proxy.tmp.mjs',
       name: 'jsyaml',
-      formats: [ 'umd' ],
+      formats: ['umd'],
       fileName: () => 'js-yaml.js'
     },
     rollupOptions: {
@@ -48,7 +48,7 @@ await build({
     lib: {
       entry: 'lib/index_vite_proxy.tmp.mjs',
       name: 'jsyaml',
-      formats: [ 'umd' ],
+      formats: ['umd'],
       fileName: () => 'js-yaml.min.js'
     },
     rollupOptions: {
@@ -67,7 +67,7 @@ await build({
     minify: false,
     lib: {
       entry: 'lib/index_vite_proxy.tmp.mjs',
-      formats: [ 'es' ],
+      formats: ['es'],
       fileName: () => 'js-yaml.mjs'
     },
     rollupOptions: {

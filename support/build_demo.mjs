@@ -8,7 +8,7 @@ await build({
   root: 'support/demo_template',
   configFile: false,
   plugins: [
-    nodePolyfills({ include: [ 'util' ] }),
+    nodePolyfills({ include: ['util'] }),
     viteSingleFile({ removeViteModuleLoader: true })
   ],
   build: {

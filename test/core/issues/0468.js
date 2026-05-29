@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('should not indent arrays an extra level when disabled', function () {
   var output = yaml.dump(
@@ -23,7 +23,7 @@ it('should not indent arrays an extra level when disabled', function () {
       }
     ],
     { noArrayIndent: true }
-  );
-  var expected = '- a: a_val\n  b: b_val\n- a: a2_val\n  items:\n  - a: a_a_val\n    b: a_b_val\n';
-  assert.strictEqual(output, expected);
-});
+  )
+  var expected = '- a: a_val\n  b: b_val\n- a: a2_val\n  items:\n  - a: a_a_val\n    b: a_b_val\n'
+  assert.strictEqual(output, expected)
+})

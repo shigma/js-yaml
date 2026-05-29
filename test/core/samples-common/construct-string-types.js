@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 var essay = 'a\n' +
   'b\n' +
@@ -14,7 +14,7 @@ var essay = 'a\n' +
     'aaaa bbbb cccc dddd eeeee fff ggggggg hhhi iiii jjjj ' +
     'long  asdfasdfasdfasdfslong                         ' +
     '                                              xlong  ' +
-    'asdfasdfasdfasdfasdfasdfasdfasd asdf xasdf the  end';
+    'asdfasdfasdfasdfasdfasdfasdfasd asdf xasdf the  end'
 
 module.exports = {
   simpleString: 'hello world',
@@ -48,7 +48,7 @@ module.exports = {
   questy: '?asdf',
 
   // Example 8.1.
-  blockScalarHeader: [ 'literal\n', ' folded\n', 'keep\n\n', ' strip' ],
+  blockScalarHeader: ['literal\n', ' folded\n', 'keep\n\n', ' strip'],
   // Example 8.2.
   // The ' \t' is a more-indented line as per [177] s-nb-spaced-text.
   blockIndentationIndicator: [
@@ -66,49 +66,49 @@ module.exports = {
   longMultiTrailingCR: new Array(80).join('lo hel') + '\nworld\n\n\n\n\n',
   longMulti: new Array(80).join('lo hel') + '\nworld\n'
 
-};
+}
 
 // now indent the long multi really far
 var obj = module.exports,
-    i;
+    i
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
 
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
 
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
 
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
 
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
 
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti
 
 for (i = 0; i < 5; i++) {
-  obj.indent = {};
-  obj = obj.indent;
+  obj.indent = {}
+  obj = obj.indent
 }
-obj.ind = module.exports.longMulti;
+obj.ind = module.exports.longMulti

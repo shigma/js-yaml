@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-const { describe, it } = require('node:test');
+const { describe, it } = require('node:test')
 
-const assert = require('assert');
-const yaml = require('js-yaml');
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 const sample = {
   // normal key-value pair
@@ -55,8 +55,7 @@ const sample = {
 
   // bool compat
   yes: 'yes'
-};
-
+}
 
 describe('should format strings with specified quoting type', function () {
   it('quotingType=\', forceQuotes=false', function () {
@@ -90,11 +89,10 @@ nonprintable2: "foo\\vbar test test test test test test test test test test test
 nonprintable3: "foo\\vbar foo\\nbar\\nbaz"
 empty: ''
 'yes': 'yes'
-`.replace(/^\n/, '');
+`.replace(/^\n/, '')
 
-    assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: false }), expected);
-  });
-
+    assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: false }), expected)
+  })
 
   it('quotingType=\", forceQuotes=false', function () {
     const expected = `
@@ -127,11 +125,10 @@ nonprintable2: "foo\\vbar test test test test test test test test test test test
 nonprintable3: "foo\\vbar foo\\nbar\\nbaz"
 empty: ""
 "yes": "yes"
-`.replace(/^\n/, '');
+`.replace(/^\n/, '')
 
-    assert.strictEqual(yaml.dump(sample, { quotingType: '"', forceQuotes: false }), expected);
-  });
-
+    assert.strictEqual(yaml.dump(sample, { quotingType: '"', forceQuotes: false }), expected)
+  })
 
   it('quotingType=\', forceQuotes=true', function () {
     const expected = `
@@ -157,11 +154,10 @@ nonprintable2: "foo\\vbar test test test test test test test test test test test
 nonprintable3: "foo\\vbar foo\\nbar\\nbaz"
 empty: ''
 'yes': 'yes'
-`.replace(/^\n/, '');
+`.replace(/^\n/, '')
 
-    assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: true }), expected);
-  });
-
+    assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: true }), expected)
+  })
 
   it('quotingType=\", forceQuotes=true', function () {
     const expected = `
@@ -187,8 +183,8 @@ nonprintable2: "foo\\vbar test test test test test test test test test test test
 nonprintable3: "foo\\vbar foo\\nbar\\nbaz"
 empty: ""
 "yes": "yes"
-`.replace(/^\n/, '');
+`.replace(/^\n/, '')
 
-    assert.strictEqual(yaml.dump(sample, { quotingType: '"', forceQuotes: true }), expected);
-  });
-});
+    assert.strictEqual(yaml.dump(sample, { quotingType: '"', forceQuotes: true }), expected)
+  })
+})

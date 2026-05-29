@@ -1,25 +1,24 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('Don\'t throw on warning', function () {
   var src = `
 foo: {
     bar: true
 }
-`;
+`
   var warnings = [],
-      data;
+      data
 
-  data = yaml.load(src);
+  data = yaml.load(src)
 
-  assert.deepStrictEqual(data, { foo: { bar: true } });
+  assert.deepStrictEqual(data, { foo: { bar: true } })
 
-  yaml.load(src, { onWarning: function (e) { warnings.push(e); } });
+  yaml.load(src, { onWarning: function (e) { warnings.push(e) } })
 
-  assert.strictEqual(warnings.length, 1);
-});
+  assert.strictEqual(warnings.length, 1)
+})

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = [
   {
@@ -13,4 +13,4 @@ module.exports = [
       { '=': 'library2.dll', version: 2.3 }
     ]
   }
-];
+]

@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('should convert new line into white space', function () {
   var data = yaml.load(`
@@ -12,7 +11,7 @@ test: >
   a
   b
   c
-`);
+`)
 
-  assert.strictEqual(data.test, 'a b c\n');
-});
+  assert.strictEqual(data.test, 'a b c\n')
+})

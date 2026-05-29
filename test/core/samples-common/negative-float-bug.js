@@ -1,3 +1,3 @@
-'use strict';
+'use strict'
 
-module.exports = -1.0;
+module.exports = -1.0

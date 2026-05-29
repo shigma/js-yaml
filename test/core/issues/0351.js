@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('should include the error message in the error stack', function () {
   try {
@@ -13,10 +12,10 @@ it('should include the error message in the error stack', function () {
 
   foo: bar
 baz: qux
-`);
+`)
   } catch (err) {
-    assert(err.stack.startsWith('YAMLException: end of the stream or a document separator is expected'));
-    return;
+    assert(err.stack.startsWith('YAMLException: end of the stream or a document separator is expected'))
+    return
   }
-  assert.fail(null, null, 'Expected an error to be thrown');
-});
+  assert.fail(null, null, 'Expected an error to be thrown')
+})

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   Bestiary: [
@@ -11,4 +11,4 @@ module.exports = {
     { two   : 2 },
     { three : 3 }
   ]
-};
+}

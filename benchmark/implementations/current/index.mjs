@@ -1,5 +1,5 @@
-import yaml from '../../../index.js';
+import yaml from '../../../index.js'
 
-export function run(data) {
-  return yaml.load(data);
+export function run (data) {
+  return yaml.load(data)
 }

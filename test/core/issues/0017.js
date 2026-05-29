@@ -1,15 +1,14 @@
-'use strict';
+'use strict'
 
-const { it } = require('node:test');
+const { it } = require('node:test')
 
-var assert = require('assert');
-var yaml = require('js-yaml');
-
+var assert = require('assert')
+var yaml = require('js-yaml')
 
 it('Non-specific "!" tags should resolve to !!str', function () {
   var data = yaml.load(`
 ! 12
-`);
+`)
 
-  assert.strictEqual(typeof data, 'string');
-});
+  assert.strictEqual(typeof data, 'string')
+})

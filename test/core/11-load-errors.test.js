@@ -1,23 +1,22 @@
-'use strict';
+'use strict'
 
-const { describe, it } = require('node:test');
+const { describe, it } = require('node:test')
 
-var assert = require('assert');
-var path   = require('path');
-var fs     = require('fs');
-var yaml   = require('js-yaml');
+var assert = require('assert')
+var path   = require('path')
+var fs     = require('fs')
+var yaml   = require('js-yaml')
 
-var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA;
-
+var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
 describe('Load errors', function () {
-  var samplesDir = path.resolve(__dirname, 'samples-load-errors');
+  var samplesDir = path.resolve(__dirname, 'samples-load-errors')
 
   fs.readdirSync(samplesDir).forEach(function (sampleName) {
-    var yamlFile = path.resolve(samplesDir, sampleName);
+    var yamlFile = path.resolve(samplesDir, sampleName)
 
     it(path.basename(sampleName, '.yml'), function () {
-      var yamlSource = fs.readFileSync(yamlFile, { encoding: 'utf8' });
+      var yamlSource = fs.readFileSync(yamlFile, { encoding: 'utf8' })
 
       assert.throws(function () {
         yaml.loadAll(
@@ -26,10 +25,10 @@ describe('Load errors', function () {
           {
             filename: yamlFile,
             schema: TEST_SCHEMA,
-            onWarning: function (e) { throw e; }
+            onWarning: function (e) { throw e }
           }
-        );
-      }, yaml.YAMLException, yamlFile);
-    });
-  });
-});
+        )
+      }, yaml.YAMLException, yamlFile)
+    })
+  })
+})

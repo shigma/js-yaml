@@ -1,34 +1,28 @@
-'use strict';
+'use strict'
 
+var util = require('util')
+var yaml = require('js-yaml')
 
-var util = require('util');
-var yaml = require('js-yaml');
-
-
-function Tag1(parameters) {
-  this.x = parameters.x;
-  this.y = parameters.y || 0;
-  this.z = parameters.z || 0;
+function Tag1 (parameters) {
+  this.x = parameters.x
+  this.y = parameters.y || 0
+  this.z = parameters.z || 0
 }
 
-
-function Tag2() {
-  Tag1.apply(this, arguments);
+function Tag2 () {
+  Tag1.apply(this, arguments)
 }
-util.inherits(Tag2, Tag1);
+util.inherits(Tag2, Tag1)
 
-
-function Tag3() {
-  Tag2.apply(this, arguments);
+function Tag3 () {
+  Tag2.apply(this, arguments)
 }
-util.inherits(Tag3, Tag2);
+util.inherits(Tag3, Tag2)
 
-
-function Foo(parameters) {
-  this.myParameter        = parameters.myParameter;
-  this.myAnotherParameter = parameters.myAnotherParameter;
+function Foo (parameters) {
+  this.myParameter        = parameters.myParameter
+  this.myAnotherParameter = parameters.myAnotherParameter
 }
-
 
 var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
   // NOTE: Type order matters!
@@ -38,77 +32,76 @@ var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
   new yaml.Type('!tag3', {
     kind: 'mapping',
     resolve: function (data) {
-      if (data === null) return false;
+      if (data === null) return false
       if (!Object.prototype.hasOwnProperty.call(data, '=') &&
           !Object.prototype.hasOwnProperty.call(data, 'x')) {
-        return false;
+        return false
       }
-      if (!Object.keys(data).every(function (k) { return k === '=' || k === 'x' || k === 'y' || k === 'z'; })) {
-        return false;
+      if (!Object.keys(data).every(function (k) { return k === '=' || k === 'x' || k === 'y' || k === 'z' })) {
+        return false
       }
-      return true;
+      return true
     },
     construct: function (data) {
-      return new Tag3({ x: (data['='] || data.x), y: data.y, z: data.z });
+      return new Tag3({ x: (data['='] || data.x), y: data.y, z: data.z })
     },
     instanceOf: Tag3,
     represent: function (object) {
-      return { '=': object.x, y: object.y, z: object.z };
+      return { '=': object.x, y: object.y, z: object.z }
     }
   }),
   new yaml.Type('!tag2', {
     kind: 'scalar',
     construct: function (data) {
-      return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) });
+      return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
     },
     instanceOf: Tag2,
     represent: function (object) {
-      return String(object.x);
+      return String(object.x)
     }
   }),
   new yaml.Type('!tag1', {
     kind: 'mapping',
     resolve: function (data) {
-      if (data === null) return false;
-      if (!Object.prototype.hasOwnProperty.call(data, 'x')) return false;
-      if (!Object.keys(data).every(function (k) { return k === 'x' || k === 'y' || k === 'z'; })) {
-        return false;
+      if (data === null) return false
+      if (!Object.prototype.hasOwnProperty.call(data, 'x')) return false
+      if (!Object.keys(data).every(function (k) { return k === 'x' || k === 'y' || k === 'z' })) {
+        return false
       }
-      return true;
+      return true
     },
     construct: function (data) {
-      return new Tag1({ x: data.x, y: data.y, z: data.z });
+      return new Tag1({ x: data.x, y: data.y, z: data.z })
     },
     instanceOf: Tag1
   }),
   new yaml.Type('!foo', {
     kind: 'mapping',
     resolve: function (data) {
-      if (data === null) return false;
-      if (!Object.keys(data).every(function (k) { return k === 'my-parameter' || k === 'my-another-parameter'; })) {
-        return false;
+      if (data === null) return false
+      if (!Object.keys(data).every(function (k) { return k === 'my-parameter' || k === 'my-another-parameter' })) {
+        return false
       }
-      return true;
+      return true
     },
     construct: function (data) {
       return new Foo({
         myParameter:        data['my-parameter'],
         myAnotherParameter: data['my-another-parameter']
-      });
+      })
     },
     instanceOf: Foo,
     represent: function (object) {
       return {
         'my-parameter':         object.myParameter,
         'my-another-parameter': object.myAnotherParameter
-      };
+      }
     }
   })
-]);
+])
 
-
-module.exports.Tag1 = Tag1;
-module.exports.Tag2 = Tag2;
-module.exports.Tag3 = Tag3;
-module.exports.Foo = Foo;
-module.exports.TEST_SCHEMA = TEST_SCHEMA;
+module.exports.Tag1 = Tag1
+module.exports.Tag2 = Tag2
+module.exports.Tag3 = Tag3
+module.exports.Foo = Foo
+module.exports.TEST_SCHEMA = TEST_SCHEMA

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 module.exports = {
   'Block style': [
@@ -23,4 +23,4 @@ module.exports = {
     'Neptune',
     'Pluto'
   ]
-};
+}
