@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('should allow cast integers as !!float', function () {
-  var data = yaml.load(`
+  const data = yaml.load(`
 negative: !!float -1
 zero: !!float 0
 positive: !!float 2.3e4

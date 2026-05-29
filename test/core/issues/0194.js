@@ -2,19 +2,18 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Don\'t throw on warning', function () {
-  var src = `
+  const src = `
 foo: {
     bar: true
 }
 `
-  var warnings = []
-  var data
+  const warnings = []
 
-  data = yaml.load(src)
+  const data = yaml.load(src)
 
   assert.deepStrictEqual(data, { foo: { bar: true } })
 

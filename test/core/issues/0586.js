@@ -19,14 +19,14 @@ it('Should allow custom formatting through implicit custom tags', function () {
     return result
   }
 
-  let CustomDumpType = new yaml.Type('!format', {
+  const CustomDumpType = new yaml.Type('!format', {
     kind: 'scalar',
     resolve: () => false,
     instanceOf: CustomDump,
     represent: d => d.represent()
   })
 
-  let schema = yaml.DEFAULT_SCHEMA.extend({ implicit: [CustomDumpType] })
+  const schema = yaml.DEFAULT_SCHEMA.extend({ implicit: [CustomDumpType] })
 
   function replacer (key, value) {
     if (key === '') return value // top-level, don't change this
@@ -35,7 +35,7 @@ it('Should allow custom formatting through implicit custom tags', function () {
     return value // default
   }
 
-  let result = CustomDump({ flow_choices : [1, 2], block_choices: [4, 5] }).represent().trim()
+  const result = CustomDump({ flow_choices : [1, 2], block_choices: [4, 5] }).represent().trim()
 
   assert.strictEqual(result, `
 flow_choices: [1, 2]

@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Don\'t throw on warning', function () {
-  var src = `
+  const src = `
 not_num_1: -_123
 not_num_2: _123
 not_num_3: 123_

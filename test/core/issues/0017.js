@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Non-specific "!" tags should resolve to !!str', function () {
-  var data = yaml.load(`
+  const data = yaml.load(`
 ! 12
 `)
 

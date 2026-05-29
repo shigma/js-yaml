@@ -1,8 +1,8 @@
 'use strict'
 
-var assert = require('assert')
+const assert = require('assert')
 
-var expected = {
+const expected = {
   canonical: 685230.15,
   exponential: 685230.15,
   fixed: 685230.15,

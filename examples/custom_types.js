@@ -1,9 +1,9 @@
 'use strict'
 
-var fs = require('fs')
-var path = require('path')
-var util = require('util')
-var yaml = require('../')
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const yaml = require('../')
 
 // Let's define a couple of classes.
 
@@ -29,7 +29,7 @@ function Space (height, width, points) {
 
 // Then define YAML types to load and dump our Point/Space objects.
 
-var PointYamlType = new yaml.Type('!point', {
+const PointYamlType = new yaml.Type('!point', {
   // Loader must parse sequence nodes only for this type (i.e. arrays in JS terminology).
   // Other available kinds are 'scalar' (string) and 'mapping' (object).
   // http://www.yaml.org/spec/1.2/spec.html#kind//
@@ -57,7 +57,7 @@ var PointYamlType = new yaml.Type('!point', {
   }
 })
 
-var SpaceYamlType = new yaml.Type('!space', {
+const SpaceYamlType = new yaml.Type('!space', {
   kind: 'mapping',
   construct: function (data) {
     data = data || {} // in case of empty node
@@ -70,13 +70,13 @@ var SpaceYamlType = new yaml.Type('!space', {
 
 // After our types are defined, it's time to join them into a schema.
 
-var SPACE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([SpaceYamlType, PointYamlType])
+const SPACE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([SpaceYamlType, PointYamlType])
 
 // do not execute the following if file is required (http://stackoverflow.com/a/6398335)
 if (require.main === module) {
   // And read a document using that schema.
   fs.readFile(path.join(__dirname, 'custom_types.yml'), 'utf8', function (error, data) {
-    var loaded
+    let loaded
 
     if (!error) {
       loaded = yaml.load(data, { schema: SPACE_SCHEMA })

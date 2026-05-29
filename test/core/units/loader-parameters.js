@@ -2,13 +2,13 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 describe('loader parameters', function () {
-  var testStr = 'test: 1 \ntest: 2'
-  var expected = [{ test: 2 }]
-  var result
+  const testStr = 'test: 1 \ntest: 2'
+  const expected = [{ test: 2 }]
+  let result
 
   it('loadAll(input, options)', function () {
     result = yaml.loadAll(testStr, { json: true })

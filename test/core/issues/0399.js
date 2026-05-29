@@ -2,12 +2,12 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('should properly dump negative ints in different styles', function () {
-  var dump
-  var src = { integer: -100 }
+  let dump
+  const src = { integer: -100 }
 
   dump = yaml.dump(src, { styles: { '!!int': 'binary' } })
   assert.deepStrictEqual(yaml.load(dump), src)

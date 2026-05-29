@@ -8,7 +8,7 @@ const util = require('util')
 const yaml = require('../')
 
 // keep most of the original `int` options as is
-let options = Object.assign({}, yaml.types.int.options)
+const options = Object.assign({}, yaml.types.int.options)
 
 options.construct = data => {
   let value = data
@@ -35,7 +35,7 @@ options.predicate = object => {
          yaml.types.int.options.predicate(object)
 }
 
-let BigIntType = new yaml.Type('tag:yaml.org,2002:int', options)
+const BigIntType = new yaml.Type('tag:yaml.org,2002:int', options)
 
 const SCHEMA = yaml.DEFAULT_SCHEMA.extend({ implicit: [BigIntType] })
 

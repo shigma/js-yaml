@@ -2,21 +2,21 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const path = require('path')
+const fs = require('fs')
+const yaml = require('js-yaml')
 
-var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
+const TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
 describe('Load errors', function () {
-  var samplesDir = path.resolve(__dirname, 'samples-load-errors')
+  const samplesDir = path.resolve(__dirname, 'samples-load-errors')
 
   fs.readdirSync(samplesDir).forEach(function (sampleName) {
-    var yamlFile = path.resolve(samplesDir, sampleName)
+    const yamlFile = path.resolve(samplesDir, sampleName)
 
     it(path.basename(sampleName, '.yml'), function () {
-      var yamlSource = fs.readFileSync(yamlFile, { encoding: 'utf8' })
+      const yamlSource = fs.readFileSync(yamlFile, { encoding: 'utf8' })
 
       assert.throws(function () {
         yaml.loadAll(

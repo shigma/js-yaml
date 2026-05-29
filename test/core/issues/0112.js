@@ -2,8 +2,8 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Plain scalar "constructor" parsed as `null`', function () {
   assert.strictEqual(yaml.load('constructor'), 'constructor')

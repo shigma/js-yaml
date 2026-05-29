@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Timestamp parsing is one month off', function () {
-  var data = yaml.load(`
+  const data = yaml.load(`
 ---
 xmas: 2011-12-24
 ...

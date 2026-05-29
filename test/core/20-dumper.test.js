@@ -2,24 +2,24 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const path = require('path')
+const fs = require('fs')
+const yaml = require('js-yaml')
 
-var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
+const TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
 describe('Dumper', function () {
-  var samplesDir = path.resolve(__dirname, 'samples-common')
+  const samplesDir = path.resolve(__dirname, 'samples-common')
 
   fs.readdirSync(samplesDir).forEach(function (jsFile) {
     if (path.extname(jsFile) !== '.js') return // continue
 
     it(path.basename(jsFile, '.js'), function () {
-      var sample = require(path.resolve(samplesDir, jsFile))
-      var data = typeof sample === 'function' ? sample.expected : sample
-      var serialized = yaml.dump(data, { schema: TEST_SCHEMA })
-      var deserialized = yaml.load(serialized, { schema: TEST_SCHEMA })
+      const sample = require(path.resolve(samplesDir, jsFile))
+      const data = typeof sample === 'function' ? sample.expected : sample
+      const serialized = yaml.dump(data, { schema: TEST_SCHEMA })
+      const deserialized = yaml.load(serialized, { schema: TEST_SCHEMA })
 
       if (typeof sample === 'function') {
         sample.call(this, deserialized)

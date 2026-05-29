@@ -2,11 +2,11 @@
 
 const { describe } = require('node:test')
 
-var path = require('path')
-var fs = require('fs')
+const path = require('path')
+const fs = require('fs')
 
 describe('Issues', function () {
-  var issues = path.resolve(__dirname, 'issues')
+  const issues = path.resolve(__dirname, 'issues')
 
   fs.readdirSync(issues).forEach(function (file) {
     if (path.extname(file) === '.js') {

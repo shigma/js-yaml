@@ -2,10 +2,10 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
-var sample = {
+const sample = {
   number: 42,
   string: 'hello',
   func:   function (a, b) { return a + b },
@@ -13,7 +13,7 @@ var sample = {
   array:  [1, 2, 3]
 }
 
-var expected = {
+const expected = {
   number: 42,
   string: 'hello',
   array:  [1, 2, 3]

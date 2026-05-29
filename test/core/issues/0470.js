@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Don\'t quote strings with : without need', function () {
-  var data = {
+  const data = {
     // no quotes needed
     'http://example.com': 'http://example.com',
     // quotes required
@@ -14,7 +14,7 @@ it('Don\'t quote strings with : without need', function () {
     'foo:': 'foo:'
   }
 
-  var expected = `
+  const expected = `
 http://example.com: http://example.com
 'foo: bar': 'foo: bar'
 'foo:': 'foo:'

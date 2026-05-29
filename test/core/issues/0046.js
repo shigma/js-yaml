@@ -2,19 +2,17 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Timestamps are incorrectly parsed in local time', function () {
-  var src = `
+  const src = `
 date1: 2010-10-20T20:45:00Z
 date2: 2010-10-20T20:45:00+01:00
 `
-  var data = yaml.load(src)
-  var date1
-  var date2
+  const data = yaml.load(src)
 
-  date1 = data.date1 // date1: 2010-10-20T20:45:00Z
+  const date1 = data.date1 // date1: 2010-10-20T20:45:00Z
   assert.strictEqual(date1.getUTCFullYear(), 2010, 'year')
   assert.strictEqual(date1.getUTCMonth(), 9, 'month')
   assert.strictEqual(date1.getUTCDate(), 20, 'date')
@@ -22,7 +20,7 @@ date2: 2010-10-20T20:45:00+01:00
   assert.strictEqual(date1.getUTCMinutes(), 45)
   assert.strictEqual(date1.getUTCSeconds(), 0)
 
-  date2 = data.date2 // date2: 2010-10-20T20:45:00+0100
+  const date2 = data.date2 // date2: 2010-10-20T20:45:00+0100
   assert.strictEqual(date2.getUTCFullYear(), 2010, 'year')
   assert.strictEqual(date2.getUTCMonth(), 9, 'month')
   assert.strictEqual(date2.getUTCDate(), 20, 'date')

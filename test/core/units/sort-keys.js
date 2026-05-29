@@ -2,13 +2,13 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
-var sample = { b: 1, a: 2, c: 3 }
-var unsortedExpected = 'b: 1\na: 2\nc: 3\n'
-var simpleExpected = 'a: 2\nb: 1\nc: 3\n'
-var reverseExpected = 'c: 3\nb: 1\na: 2\n'
+const sample = { b: 1, a: 2, c: 3 }
+const unsortedExpected = 'b: 1\na: 2\nc: 3\n'
+const simpleExpected = 'a: 2\nb: 1\nc: 3\n'
+const reverseExpected = 'c: 3\nb: 1\na: 2\n'
 
 it('Dumper should sort preserve key insertion order', function () {
   assert.deepStrictEqual(yaml.dump(sample, { sortKeys: false }), unsortedExpected)

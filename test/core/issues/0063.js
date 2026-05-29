@@ -2,16 +2,16 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Invalid errors/warnings of invalid indentation on flow scalars', function () {
-  var sources = [
+  const sources = [
     'text:\n    hello\n  world',   // plain style
     "text:\n    'hello\n  world'", // single-quoted style
     'text:\n    "hello\n  world"'  // double-quoted style
   ]
-  var expected = { text: 'hello world' }
+  const expected = { text: 'hello world' }
 
   assert.doesNotThrow(function () { yaml.load(sources[0]) }, 'Throws on plain style')
   assert.doesNotThrow(function () { yaml.load(sources[1]) }, 'Throws on single-quoted style')

@@ -8,7 +8,7 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 it('Should allow int override', function () {
-  let options = Object.assign({}, yaml.types.int.options)
+  const options = Object.assign({}, yaml.types.int.options)
 
   options.construct = data => {
     let value = data
@@ -30,7 +30,7 @@ it('Should allow int override', function () {
     return sign * BigInt(value)
   }
 
-  let BigIntType = new yaml.Type('tag:yaml.org,2002:int', options)
+  const BigIntType = new yaml.Type('tag:yaml.org,2002:int', options)
 
   const SCHEMA = yaml.DEFAULT_SCHEMA.extend({ implicit: [BigIntType] })
 

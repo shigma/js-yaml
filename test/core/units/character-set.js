@@ -2,8 +2,8 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Allow astral characters', function () {
   assert.deepStrictEqual(yaml.load('𝑘𝑒𝑦: 𝑣𝑎𝑙𝑢𝑒'), { '𝑘𝑒𝑦': '𝑣𝑎𝑙𝑢𝑒' })

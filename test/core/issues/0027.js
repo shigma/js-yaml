@@ -2,8 +2,8 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 describe('Should load numbers in YAML 1.2 format', function () {
   it('should not parse base60', function () {
@@ -38,7 +38,7 @@ describe('Should dump numbers in YAML 1.2 format', function () {
   })
 
   it('should quote all potential numbers', function () {
-    var tests = '1:23 1:23.45 01234 0999 -01234 01234e4 01234.56 -01234.56 0x123 0o123'
+    const tests = '1:23 1:23.45 01234 0999 -01234 01234e4 01234.56 -01234.56 0x123 0o123'
 
     tests.split(' ').forEach(function (sample) {
       assert.strictEqual(yaml.dump(sample, { noCompatMode: false }), "'" + sample + "'\n")
@@ -46,7 +46,7 @@ describe('Should dump numbers in YAML 1.2 format', function () {
   })
 
   it('should not quote base60 in noCompatMode', function () {
-    var tests = '1:23 1:23.45'
+    const tests = '1:23 1:23.45'
 
     tests.split(' ').forEach(function (sample) {
       assert.strictEqual(yaml.dump(sample, { noCompatMode: true }), sample + '\n')

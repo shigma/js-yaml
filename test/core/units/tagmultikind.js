@@ -2,10 +2,10 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
-var tags = [{
+const tags = [{
   tag: 'Include',
   type: 'scalar'
 }, {
@@ -23,7 +23,7 @@ var tags = [{
   })
 })
 
-var schema = yaml.DEFAULT_SCHEMA.extend(tags)
+const schema = yaml.DEFAULT_SCHEMA.extend(tags)
 
 it('Process tag with kind: scalar', function () {
   assert.deepStrictEqual(yaml.load('!Include foobar', {

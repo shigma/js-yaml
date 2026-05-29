@@ -8,7 +8,7 @@ import 'codemirror/mode/yaml/yaml.js'
 import 'codemirror/mode/javascript/javascript.js'
 import './demo.css'
 
-var source, result, permalink, clear
+let source, result, permalink, clear
 
 function encodeBase64 (str) {
   return btoa(String.fromCharCode(...new TextEncoder().encode(str)))
@@ -20,19 +20,19 @@ function decodeBase64 (str) {
   }))
 }
 
-var SexyYamlType = new jsyaml.Type('!sexy', {
+const SexyYamlType = new jsyaml.Type('!sexy', {
   kind: 'sequence', // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
   construct: function (data) {
     return data.map(function (string) { return 'sexy ' + string })
   }
 })
 
-var SEXY_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([SexyYamlType])
+const SEXY_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([SexyYamlType])
 
 function parse () {
-  var str, obj
+  let obj
 
-  str = source.getValue()
+  const str = source.getValue()
   permalink.href = '#yaml=' + encodeBase64(str)
 
   try {
@@ -47,7 +47,7 @@ function parse () {
 }
 
 function updateSource () {
-  var yaml
+  let yaml
 
   if (location.hash && location.hash.toString().slice(0, 6) === '#yaml=') {
     yaml = decodeBase64(location.hash.slice(6))
@@ -66,7 +66,7 @@ window.onload = function () {
     lineNumbers: true
   })
 
-  var timer
+  let timer
 
   source.on('change', function () {
     clearTimeout(timer)

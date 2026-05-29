@@ -1,9 +1,9 @@
 'use strict'
 
-var assert = require('assert')
-var schema = require('../support/schema')
+const assert = require('assert')
+const schema = require('../support/schema')
 
-var expected = [
+const expected = [
   new schema.Tag1({ x: 1 }),
   new schema.Tag1({ x: 1, y: 2, z: 3 }),
   new schema.Tag2({ x: 10 }),

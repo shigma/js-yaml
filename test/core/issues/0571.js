@@ -6,7 +6,7 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 describe('Undefined', function () {
-  let undef = new yaml.Type('!undefined', {
+  const undef = new yaml.Type('!undefined', {
     kind: 'scalar',
     resolve: () => true,
     construct: () => {},
@@ -14,7 +14,7 @@ describe('Undefined', function () {
     represent: () => ''
   })
 
-  let undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
+  const undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
 
   it('Should replace undefined with null in collections', function () {
     let str

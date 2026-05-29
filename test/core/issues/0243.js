@@ -2,14 +2,14 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
-var readFileSync = require('fs').readFileSync
+const assert = require('assert')
+const yaml = require('js-yaml')
+const readFileSync = require('fs').readFileSync
 
 describe('Duplicated mapping key errors throw at beginning of key', function () {
   it('on top level', function () {
-    var src = readFileSync(require('path').join(__dirname, '/0243-basic.yml'), 'utf8')
-    var lines = src.split('\n')
+    const src = readFileSync(require('path').join(__dirname, '/0243-basic.yml'), 'utf8')
+    const lines = src.split('\n')
 
     try {
       yaml.load(src)
@@ -21,8 +21,8 @@ describe('Duplicated mapping key errors throw at beginning of key', function () 
   })
 
   it('inside of mapping values', function () {
-    var src = readFileSync(require('path').join(__dirname, '/0243-nested.yml'), 'utf8')
-    var lines = src.split('\n')
+    const src = readFileSync(require('path').join(__dirname, '/0243-nested.yml'), 'utf8')
+    const lines = src.split('\n')
 
     try {
       yaml.load(src)

@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Listener informed on a very simple scalar.', function () {
-  var history = []
+  const history = []
   function l (eventType, state) {
     history.push([eventType, state.position])
   }
@@ -24,14 +24,14 @@ it('Listener informed on a very simple scalar.', function () {
 })
 
 it('Listener informed on a map with a list.', function () {
-  var history = []
+  const history = []
   function l (eventType, state) {
     history.push([eventType, state.position, state.result])
   }
 
   yaml.load('{ a: 1, b: [ 0, xyz ] }', { listener: l })
 
-  var i = -1
+  let i = -1
   assert.strictEqual(history[++i][0], 'open') // doc
   assert.strictEqual(history[++i][0], 'open') // map
 

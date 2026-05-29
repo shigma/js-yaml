@@ -1,14 +1,14 @@
 'use strict'
 
-var fs = require('fs')
-var path = require('path')
-var util = require('util')
-var yaml = require('../')
+const fs = require('fs')
+const path = require('path')
+const util = require('util')
+const yaml = require('../')
 
 try {
-  var filename = path.join(__dirname, 'sample_document.yml')
-  var contents = fs.readFileSync(filename, 'utf8')
-  var data = yaml.load(contents)
+  const filename = path.join(__dirname, 'sample_document.yml')
+  const contents = fs.readFileSync(filename, 'utf8')
+  const data = yaml.load(contents)
 
   console.log(util.inspect(data, false, 10, true))
 } catch (err) {

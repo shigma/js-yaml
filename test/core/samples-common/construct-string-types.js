@@ -1,6 +1,6 @@
 'use strict'
 
-var essay = 'a\n' +
+const essay = 'a\n' +
   'b\n' +
   '1sdf 2ar 3sdf 4sdf 5sdf 6sdf 7sdf 8sdf 9sdf 10asdf 11asdf ' +
     '12asdf 13asdf 14asdf 15df 16df long  17df 1890 1900 2000 ' +
@@ -69,8 +69,8 @@ module.exports = {
 }
 
 // now indent the long multi really far
-var obj = module.exports
-var i
+let obj = module.exports
+let i
 
 for (i = 0; i < 5; i++) {
   obj.indent = {}

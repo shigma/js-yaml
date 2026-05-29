@@ -2,17 +2,17 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 function SuccessSignal () {}
 
-var TestClassYaml = new yaml.Type('!test', {
+const TestClassYaml = new yaml.Type('!test', {
   kind: 'scalar',
   resolve: function () { throw new SuccessSignal() }
 })
 
-var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([TestClassYaml])
+const TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([TestClassYaml])
 
 it('Resolving of empty nodes are skipped in some cases', function () {
   assert.throws(function () { yaml.load('- foo: !test\n- bar: baz', { schema: TEST_SCHEMA }) }, SuccessSignal)

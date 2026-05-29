@@ -2,17 +2,17 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
-var DEPRECATED_BOOLEANS_SYNTAX = [
+const DEPRECATED_BOOLEANS_SYNTAX = [
   'y', 'Y', 'yes', 'Yes', 'YES', 'on', 'On', 'ON',
   'n', 'N', 'no', 'No', 'NO', 'off', 'Off', 'OFF'
 ]
 
 it('Dumper should not take into account booleans syntax from YAML 1.0/1.1 in noCompatMode', function () {
   DEPRECATED_BOOLEANS_SYNTAX.forEach(function (string) {
-    var dump = yaml.dump(string, { noCompatMode: true }).trim()
+    const dump = yaml.dump(string, { noCompatMode: true }).trim()
 
     assert(
       (dump === string),

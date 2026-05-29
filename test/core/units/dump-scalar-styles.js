@@ -2,8 +2,8 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 // Indents lines by 2 spaces. Empty lines (\n only) are not indented.
 function indent (string) {
@@ -76,8 +76,8 @@ describe('Scalar style dump:', function () {
   })
 
   describe('Literal style', function () {
-    var content = 'a\nb \n\n c\n  d'
-    var indented = indent(content)
+    const content = 'a\nb \n\n c\n  d'
+    const indented = indent(content)
 
     it('preserves trailing newlines using chomping', function () {
       assert.strictEqual(yaml.dump({ a: '\n', b: '\n\n', c: 'c\n', d: 'd\nd' }),
@@ -111,17 +111,17 @@ describe('Scalar style dump:', function () {
 
   describe('Folded style', function () {
     (function () {
-      var content = (function () {
-        var result = ''
-        var i = 1000
-        for (var para = 1; para <= 7; para++) {
+      const content = (function () {
+        let result = ''
+        let i = 1000
+        for (let para = 1; para <= 7; para++) {
           result += '\n'
           // indent paragraphs 3 and 4
           if (para === 3 || para === 4) {
             result += repeat(' ', para)
           }
           // vary the number of words on the last line
-          for (var count = 2 * (30 / 5) + para - 1; count > 0; count--) {
+          for (let count = 2 * (30 / 5) + para - 1; count > 0; count--) {
             result += i + ' '
             if (i % 17 === 0) result += ' '
             i++
@@ -129,7 +129,7 @@ describe('Scalar style dump:', function () {
         }
         return result
       }())
-      var wrapped = '\n' +
+      const wrapped = '\n' +
         '1000 1001 1002 1003  1004 1005\n' +
         '1006 1007 1008 1009 1010 1011 \n' +
         '\n' +
@@ -149,7 +149,7 @@ describe('Scalar style dump:', function () {
         '1087 1088  1089 1090 1091 1092\n' +
         '1093 1094 1095 1096 1097 1098\n' +
         '1099 1100 1101 1102 1103 1104 '
-      var indented = indent(wrapped)
+      const indented = indent(wrapped)
 
       function dumpNarrow (s) {
         return yaml.dump(s, { lineWidth: 30 + 2 })
@@ -168,7 +168,7 @@ describe('Scalar style dump:', function () {
 
     // Dump and check that dump-then-load preserves content (is the identity function).
     function dump (input, opts) {
-      var output = yaml.dump(input, opts)
+      const output = yaml.dump(input, opts)
       assert.strictEqual(yaml.load(output), input, 'Dump then load should preserve content')
       return output
     }
@@ -185,7 +185,7 @@ describe('Scalar style dump:', function () {
     })
 
     it('preserves consecutive spaces', function () {
-      var alphabet = 'a bc  def  ghi' + repeat(' ', 70) + 'jk  lmn o\n' +
+      const alphabet = 'a bc  def  ghi' + repeat(' ', 70) + 'jk  lmn o\n' +
         ' p  qrstu     v' + repeat(' ', 80) + '\nw x\n' + 'yz  '
       assert.strictEqual(dump(alphabet),
         '>-\n' + indent(
@@ -197,7 +197,7 @@ describe('Scalar style dump:', function () {
           '\n' +
           'yz  \n'))
 
-      var indeed = repeat('word. ', 31) + '\n' +
+      const indeed = repeat('word. ', 31) + '\n' +
         [2, 3, 5, 7, 11, 13, 17]
           .map(function (n) { return repeat(' ', n) })
           .join('\n')
@@ -211,35 +211,35 @@ describe('Scalar style dump:', function () {
             .join('\n') + '\n'))
     })
 
-    var story = 'Call me Ishmael. Some years ago—never mind how long precisely—' +
+    const story = 'Call me Ishmael. Some years ago—never mind how long precisely—' +
       'having little or no money in my purse, ' +
       'and nothing particular to interest me on shore, ' +
       'I thought I would sail about a little and see the watery part of the world...'
-    var prefix = 'var short_story = "",'
-    var line = 'longer_story = "' + story + '";'
+    const prefix = 'var short_story = "",'
+    const line = 'longer_story = "' + story + '";'
 
     it('should fold a long last line missing an ending newline', function () {
-      var content = [prefix, line].join('\n')
+      const content = [prefix, line].join('\n')
 
-      var lengths = dump(content).split('\n').map(getLength)
+      const lengths = dump(content).split('\n').map(getLength)
       assert.deepStrictEqual(lengths, [2, 23, 0, 69, 76, 80, 24, 0])
     })
 
     it('should not fold a more-indented last line', function functionName () {
-      var content = [prefix, line, '    ' + line].join('\n')
+      const content = [prefix, line, '    ' + line].join('\n')
 
-      var lengths = dump(content).split('\n').map(getLength)
+      const lengths = dump(content).split('\n').map(getLength)
       assert.deepStrictEqual(lengths, [2, 23, 0, 69, 76, 80, 24, 250, 0])
     })
 
     it('should not fold when lineWidth === -1', function () {
-      var content = [prefix, line, line + line, line].join('\n')
+      const content = [prefix, line, line + line, line].join('\n')
 
       assert.strictEqual(dump(content, { lineWidth: -1 }), '|-\n' + indent(content) + '\n')
     })
 
     it('falls back to literal style when no lines are foldable', function () {
-      var content = [prefix, '    ' + line, '    ' + line].join('\n')
+      const content = [prefix, '    ' + line, '    ' + line].join('\n')
 
       assert.strictEqual(dump(content), '|-\n' + indent(content) + '\n')
     })

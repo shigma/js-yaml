@@ -1,8 +1,8 @@
 'use strict'
 
-var assert = require('assert')
+const assert = require('assert')
 
-var expected = [
+const expected = [
   0.0,
   1.0,
   -1.0,

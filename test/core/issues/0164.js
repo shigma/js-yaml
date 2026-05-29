@@ -6,7 +6,7 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 it('should define __proto__ as a value (not invoke setter)', function () {
-  let object = yaml.load('{ __proto__: {polluted: bar} }')
+  const object = yaml.load('{ __proto__: {polluted: bar} }')
 
   assert.strictEqual(({}).hasOwnProperty.call(yaml.load('{}'), '__proto__'), false)
   assert.strictEqual(({}).hasOwnProperty.call(object, '__proto__'), true)
@@ -14,7 +14,7 @@ it('should define __proto__ as a value (not invoke setter)', function () {
 })
 
 it('should merge __proto__ as a value with << operator', function () {
-  let object = yaml.load(`
+  const object = yaml.load(`
 payload: &ref
   polluted: bar
 

@@ -2,20 +2,20 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var fc = require('fast-check')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const fc = require('fast-check')
+const yaml = require('js-yaml')
 
 // Generate valid YAML instances for yaml.safeDump
-var key = fc.string({ unit: fc.nat({ max: 0xffff }).map(n => String.fromCharCode(n)) })
-var values = [
+const key = fc.string({ unit: fc.nat({ max: 0xffff }).map(n => String.fromCharCode(n)) })
+const values = [
   key, fc.boolean(), fc.integer(), fc.double(),
   fc.constantFrom(null, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 ]
-var yamlArbitrary = fc.object({ key: key, values: values })
+const yamlArbitrary = fc.object({ key: key, values: values })
 
 // Generate valid options for yaml.safeDump configuration
-var dumpOptionsArbitrary = fc.record({
+const dumpOptionsArbitrary = fc.record({
   skipInvalid: fc.boolean(),
   sortKeys: fc.boolean(),
   noRefs: fc.boolean(),
@@ -41,7 +41,7 @@ describe('Properties', function () {
       yamlArbitrary,
       dumpOptionsArbitrary,
       function (obj, dumpOptions) {
-        var yamlContent = yaml.dump(obj, dumpOptions)
+        const yamlContent = yaml.dump(obj, dumpOptions)
         assert.ok(typeof yamlContent === 'string')
         assert.deepStrictEqual(yaml.load(yamlContent), obj)
       }))

@@ -1,7 +1,7 @@
 'use strict'
 
-var yaml = require('../')
-var object = require('./dumper.json')
+const yaml = require('../')
+const object = require('./dumper.json')
 
 console.log(yaml.dump(object, {
   flowLevel: 3,

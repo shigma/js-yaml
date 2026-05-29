@@ -2,20 +2,20 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 function TestClass (data) {
-  var self = this
+  const self = this
   Object.keys(data).forEach(function (key) { self[key] = data[key] })
 }
 
-var TestClassYaml = new yaml.Type('!test', {
+const TestClassYaml = new yaml.Type('!test', {
   kind: 'mapping',
   construct: function (data) { return new TestClass(data) }
 })
 
-var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([TestClassYaml])
+const TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([TestClassYaml])
 
 describe('Alias nodes', function () {
   describe('Resolving of an alias node should result the resolved and contructed value of the anchored node', function () {
@@ -32,14 +32,14 @@ describe('Alias nodes', function () {
     })
 
     it('Recursive built-in objects', function () {
-      var actual = yaml.load('[&1 {self: *1}, *1]')[1]
+      const actual = yaml.load('[&1 {self: *1}, *1]')[1]
 
       assert(actual === actual.self)
     })
 
     it('Simple custom objects', function () {
-      var expected = new TestClass({ a: 'b', c: 'd' })
-      var actual = yaml.load('[&1 !test {a: b, c: d}, *1]', { schema: TEST_SCHEMA })[1]
+      const expected = new TestClass({ a: 'b', c: 'd' })
+      const actual = yaml.load('[&1 !test {a: b, c: d}, *1]', { schema: TEST_SCHEMA })[1]
 
       assert(actual instanceof TestClass)
       assert.deepStrictEqual(actual, expected)
@@ -47,7 +47,7 @@ describe('Alias nodes', function () {
 
     // TODO: Not implemented yet (see issue #141)
     it.skip('Recursive custom objects', function () {
-      var actual = yaml.load('[&1 !test {self: *1}, *1]', { schema: TEST_SCHEMA })[1]
+      const actual = yaml.load('[&1 !test {self: *1}, *1]', { schema: TEST_SCHEMA })[1]
 
       assert(actual instanceof TestClass)
       assert(actual.self instanceof TestClass)

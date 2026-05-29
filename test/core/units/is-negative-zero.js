@@ -2,9 +2,9 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
+const assert = require('assert')
 
-var isNegativeZero = require('../../../lib/common').isNegativeZero
+const isNegativeZero = require('../../../lib/common').isNegativeZero
 
 it('isNegativeZero', function () {
   assert(!isNegativeZero(0))

@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
-var simpleArray = ['a', 'b']
-var arrayOfSimpleObj = [{ a: 1 }, { b: 2 }]
-var arrayOfObj = [{ a: 1, b: 'abc' }, { c: 'def', d: 2 }]
+const assert = require('assert')
+const yaml = require('js-yaml')
+const simpleArray = ['a', 'b']
+const arrayOfSimpleObj = [{ a: 1 }, { b: 2 }]
+const arrayOfObj = [{ a: 1, b: 'abc' }, { c: 'def', d: 2 }]
 
 it('space should be added for array, regardless of indent', function () {
   assert.deepStrictEqual(

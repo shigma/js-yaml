@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Circular and cross references', function () {
-  var source = {
+  const source = {
     a: { a: 1 },
     b: [1, 2],
     c: {},
@@ -18,7 +18,7 @@ it('Circular and cross references', function () {
   source.d.push(source.d)
   source.d.push(source)
 
-  var obtained = yaml.load(yaml.dump(source))
+  const obtained = yaml.load(yaml.dump(source))
 
   assert.strictEqual(obtained.crossObject, obtained.a)
   assert.strictEqual(obtained.crossArray, obtained.b)

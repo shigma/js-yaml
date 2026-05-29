@@ -13,9 +13,7 @@ export default [
   {
     rules: {
       camelcase: 'off',
-      'no-var': 'off',
       '@stylistic/key-spacing': 'off',
-      'prefer-const': 'off',
       'no-useless-escape': 'off',
       'object-shorthand': 'off',
     }

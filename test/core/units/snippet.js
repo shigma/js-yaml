@@ -2,25 +2,23 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var snippet = require('../../../lib/snippet')
+const assert = require('assert')
+const path = require('path')
+const fs = require('fs')
+const snippet = require('../../../lib/snippet')
 
 it('Snippet', function () {
-  let filepath = path.join(__dirname, 'snippet.txt')
-  let filedata = fs.readFileSync(filepath, 'utf8')
+  const filepath = path.join(__dirname, 'snippet.txt')
+  const filedata = fs.readFileSync(filepath, 'utf8')
 
-  let data = filedata.split(/(---[ \d]*\n)/).slice(1)
+  const data = filedata.split(/(---[ \d]*\n)/).slice(1)
 
   for (let i = 0; i < data.length; i += 4) {
     let index = 0
     let line = 0
     let column = 0
-    let input = data[i + 1]
-    let expected = data[i + 3].replace(/\n$/, '')
-    let mark
-    let code
+    const input = data[i + 1]
+    const expected = data[i + 3].replace(/\n$/, '')
 
     assert(input.indexOf('*') >= 0)
 
@@ -34,7 +32,7 @@ it('Snippet', function () {
       index += 1
     }
 
-    mark = {
+    const mark = {
       name: filepath,
       buffer: input,
       position: index,
@@ -42,7 +40,7 @@ it('Snippet', function () {
       column: column
     }
 
-    code = snippet(mark, {
+    const code = snippet(mark, {
       indent: 1,
       maxLength: 78,
       linesBefore: 3,

@@ -2,24 +2,24 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var path = require('path')
-var fs = require('fs')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const path = require('path')
+const fs = require('fs')
+const yaml = require('js-yaml')
 
-var TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
+const TEST_SCHEMA = require('./support/schema').TEST_SCHEMA
 
 describe('Loader', function () {
-  var samplesDir = path.resolve(__dirname, 'samples-common')
+  const samplesDir = path.resolve(__dirname, 'samples-common')
 
   fs.readdirSync(samplesDir).forEach(function (jsFile) {
     if (path.extname(jsFile) !== '.js') return // continue
 
-    var yamlFile = path.resolve(samplesDir, path.basename(jsFile, '.js') + '.yml')
+    const yamlFile = path.resolve(samplesDir, path.basename(jsFile, '.js') + '.yml')
 
     it(path.basename(jsFile, '.js'), function () {
-      var expected = require(path.resolve(samplesDir, jsFile))
-      var actual = []
+      const expected = require(path.resolve(samplesDir, jsFile))
+      let actual = []
 
       yaml.loadAll(fs.readFileSync(yamlFile, { encoding: 'utf8' }), function (doc) { actual.push(doc) }, {
         filename: yamlFile,

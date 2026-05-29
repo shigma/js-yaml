@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('should return parse docs from loadAll', function () {
-  var data = yaml.loadAll(`
+  const data = yaml.loadAll(`
 ---
 a: 1
 ---

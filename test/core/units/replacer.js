@@ -6,7 +6,7 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 describe('replacer', function () {
-  let undef = new yaml.Type('!undefined', {
+  const undef = new yaml.Type('!undefined', {
     kind: 'scalar',
     resolve: () => true,
     construct: () => {},
@@ -14,12 +14,12 @@ describe('replacer', function () {
     represent: () => ''
   })
 
-  let undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
+  const undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
 
   it('should be called on the root of the document', function () {
     let called = 0
 
-    let result = yaml.dump(42, {
+    const result = yaml.dump(42, {
       replacer (key, value) {
         called++
         assert.deepStrictEqual(this, { '': 42 })
@@ -43,7 +43,7 @@ describe('replacer', function () {
   it('should be called in collections (block)', function () {
     let called = 0
 
-    let result = yaml.dump([42], {
+    const result = yaml.dump([42], {
       replacer (key, value) {
         called++
         if (key === '' && called === 1) return value
@@ -61,7 +61,7 @@ describe('replacer', function () {
   it('should be called in collections (flow)', function () {
     let called = 0
 
-    let result = yaml.dump([42], {
+    const result = yaml.dump([42], {
       replacer (key, value) {
         called++
         if (key === '' && called === 1) return value
@@ -79,7 +79,7 @@ describe('replacer', function () {
   it('should be called in mappings (block)', function () {
     let called = 0
 
-    let result = yaml.dump({ a: 42 }, {
+    const result = yaml.dump({ a: 42 }, {
       replacer (key, value) {
         called++
         if (key === '' && called === 1) return value
@@ -97,7 +97,7 @@ describe('replacer', function () {
   it('should be called in mappings (flow)', function () {
     let called = 0
 
-    let result = yaml.dump({ a: 42 }, {
+    const result = yaml.dump({ a: 42 }, {
       replacer (key, value) {
         called++
         if (key === '' && called === 1) return value
@@ -161,7 +161,7 @@ describe('replacer', function () {
   it('should recursively call replacer', function () {
     let count = 0
 
-    let result = yaml.dump(42, {
+    const result = yaml.dump(42, {
       replacer (key, value) {
         return count++ > 3 ? value : { ['lvl' + count]: value }
       }

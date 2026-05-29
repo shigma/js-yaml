@@ -7,9 +7,9 @@ const yaml = require('js-yaml')
 
 it('should dump null in different styles', function () {
   let dump
-  let src = { foo: null, bar: 1 }
+  const src = { foo: null, bar: 1 }
 
-  let tests = {
+  const tests = {
     lowercase: 'null',
     uppercase: 'NULL',
     camelcase: 'Null',
@@ -17,7 +17,7 @@ it('should dump null in different styles', function () {
     empty: ''
   }
 
-  for (let [name, value] of Object.entries(tests)) {
+  for (const [name, value] of Object.entries(tests)) {
     dump = yaml.dump(src, { styles: { '!!null': name } })
     assert.strictEqual(dump, 'foo: ' + value + '\nbar: 1\n')
     assert.deepStrictEqual(yaml.load(dump), src)

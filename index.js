@@ -1,7 +1,7 @@
 'use strict'
 
-var loader = require('./lib/loader')
-var dumper = require('./lib/dumper')
+const loader = require('./lib/loader')
+const dumper = require('./lib/dumper')
 
 function renamed (from, to) {
   return function () {

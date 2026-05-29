@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('should properly dump leading newlines and spaces', function () {
-  var dump, src
+  let dump, src
 
   src = { str: '\n  a\nb' }
   dump = yaml.dump(src)

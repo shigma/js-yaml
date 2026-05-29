@@ -2,13 +2,13 @@
 
 'use strict'
 
-var fs = require('fs')
-var argparse = require('argparse')
-var yaml = require('..')
+const fs = require('fs')
+const argparse = require('argparse')
+const yaml = require('..')
 
 /// /////////////////////////////////////////////////////////////////////////////
 
-var cli = new argparse.ArgumentParser({
+const cli = new argparse.ArgumentParser({
   prog:     'js-yaml',
   add_help:  true
 })
@@ -44,7 +44,7 @@ cli.add_argument('file', {
 
 /// /////////////////////////////////////////////////////////////////////////////
 
-var options = cli.parse_args()
+const options = cli.parse_args()
 
 /// /////////////////////////////////////////////////////////////////////////////
 
@@ -52,7 +52,7 @@ function readFile (filename, encoding, callback) {
   if (options.file === '-') {
     // read from stdin
 
-    var chunks = []
+    const chunks = []
 
     process.stdin.on('data', function (chunk) {
       chunks.push(chunk)
@@ -67,7 +67,7 @@ function readFile (filename, encoding, callback) {
 }
 
 readFile(options.file, 'utf8', function (error, input) {
-  var output, isYaml
+  let output, isYaml
 
   if (error) {
     if (error.code === 'ENOENT') {

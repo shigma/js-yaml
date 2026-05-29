@@ -2,9 +2,9 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
-var readFileSync = require('fs').readFileSync
+const assert = require('assert')
+const yaml = require('js-yaml')
+const readFileSync = require('fs').readFileSync
 
 it('Wrong error message when yaml file contains tabs', function () {
   assert.doesNotThrow(

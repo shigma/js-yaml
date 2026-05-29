@@ -2,18 +2,18 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Don\'t quote strings with # without need', function () {
-  var required = `
+  const required = `
 http://example.com/page#anchor: no:quotes#required
 parameter#fallback: 'quotes #required'
 'quotes: required': Visit [link](http://example.com/foo#bar)
 'foo #bar': key is quoted
 `.replace(/^\n/, '')
 
-  var sample = {
+  const sample = {
     'http://example.com/page#anchor': 'no:quotes#required',
     'parameter#fallback': 'quotes #required',
     'quotes: required': 'Visit [link](http://example.com/foo#bar)',
@@ -27,7 +27,7 @@ parameter#fallback: 'quotes #required'
 })
 
 it('Quote []{} in block-level scalars, but not in flow', function () {
-  var required = `
+  const required = `
 key1: a[]b
 key2: a{}b
 nested:
@@ -36,7 +36,7 @@ nested:
   nested: {key1: 'a[]b', key2: 'a{}b', nested: {key1: 'a[]b', key2: 'a{}b'}}
 `.replace(/^\n/, '')
 
-  var sample = {
+  const sample = {
     key1: 'a[]b',
     key2: 'a{}b',
     nested: {

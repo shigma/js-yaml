@@ -2,8 +2,8 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it('Float type dumper should not miss dot', function () {
   assert.strictEqual(5e-100.toString(10), '5e-100')

@@ -2,8 +2,8 @@
 
 const { describe, it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 describe('Resolving explicit tags on empty nodes', function () {
   it('!!binary', function () {

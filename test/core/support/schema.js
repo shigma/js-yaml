@@ -1,7 +1,7 @@
 'use strict'
 
-var util = require('util')
-var yaml = require('js-yaml')
+const util = require('util')
+const yaml = require('js-yaml')
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -24,7 +24,7 @@ function Foo (parameters) {
   this.myAnotherParameter = parameters.myAnotherParameter
 }
 
-var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
+const TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
   // NOTE: Type order matters!
   // Inherited classes must precede their parents because the dumper
   // doesn't inspect class inheritance and just picks first suitable

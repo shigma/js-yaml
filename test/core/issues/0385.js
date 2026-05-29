@@ -7,7 +7,7 @@ const yaml = require('js-yaml')
 
 describe('Multi tag', function () {
   it('should process multi tags', function () {
-    let tags = ['scalar', 'mapping', 'sequence'].map(kind =>
+    const tags = ['scalar', 'mapping', 'sequence'].map(kind =>
       new yaml.Type('!', {
         kind,
         multi: true,
@@ -20,9 +20,9 @@ describe('Multi tag', function () {
       })
     )
 
-    let schema = yaml.DEFAULT_SCHEMA.extend(tags)
+    const schema = yaml.DEFAULT_SCHEMA.extend(tags)
 
-    let expected = [
+    const expected = [
       {
         kind: 'scalar',
         tag: '!t1',
@@ -50,7 +50,7 @@ describe('Multi tag', function () {
   })
 
   it('should process tags depending on prefix', function () {
-    let tags = ['!foo', '!bar', '!'].map(prefix =>
+    const tags = ['!foo', '!bar', '!'].map(prefix =>
       new yaml.Type(prefix, {
         kind: 'scalar',
         multi: true,
@@ -75,9 +75,9 @@ describe('Multi tag', function () {
       })
     )
 
-    let schema = yaml.DEFAULT_SCHEMA.extend(tags)
+    const schema = yaml.DEFAULT_SCHEMA.extend(tags)
 
-    let expected = [
+    const expected = [
       { prefix: '!foo', tag: '!foo', value: '1' },
       { prefix: '!foo', tag: '!foo2', value: '2' },
       { single: true, value: '3' },
@@ -97,7 +97,7 @@ describe('Multi tag', function () {
   })
 
   it('should dump multi types with custom tag', function () {
-    let tags = [
+    const tags = [
       new yaml.Type('!', {
         kind: 'scalar',
         multi: true,
@@ -113,7 +113,7 @@ describe('Multi tag', function () {
       })
     ]
 
-    let schema = yaml.DEFAULT_SCHEMA.extend(tags)
+    const schema = yaml.DEFAULT_SCHEMA.extend(tags)
 
     assert.strictEqual(yaml.dump({ test: { tag: 'foo', value: 'bar' } }, {
       schema: schema

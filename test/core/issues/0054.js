@@ -2,11 +2,11 @@
 
 const { it } = require('node:test')
 
-var assert = require('assert')
-var yaml = require('js-yaml')
+const assert = require('assert')
+const yaml = require('js-yaml')
 
 it("Incorrect utf-8 handling on require('file.yaml')", function () {
-  var data = yaml.load(`
+  const data = yaml.load(`
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
@@ -49,8 +49,8 @@ it("Incorrect utf-8 handling on require('file.yaml')", function () {
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 - ууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууууу
 `)
-  var expected = ''
-  var index
+  let expected = ''
+  let index
 
   //
   // document is an array of 40 elements
