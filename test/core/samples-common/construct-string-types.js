@@ -70,44 +70,43 @@ module.exports = {
 
 // now indent the long multi really far
 let obj = module.exports
-let i
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }
 
 obj.ind = module.exports.longMulti
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }
 
 obj.ind = module.exports.longMulti
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }
 
 obj.ind = module.exports.longMulti
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }
 
 obj.ind = module.exports.longMulti
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }
 
 obj.ind = module.exports.longMulti
 
-for (i = 0; i < 5; i++) {
+for (let i = 0; i < 5; i++) {
   obj.indent = {}
   obj = obj.indent
 }

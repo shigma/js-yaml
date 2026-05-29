@@ -67,7 +67,8 @@ function readFile (filename, encoding, callback) {
 }
 
 readFile(options.file, 'utf8', function (error, input) {
-  let output, isYaml
+  let output
+  let isYaml
 
   if (error) {
     if (error.code === 'ENOENT') {

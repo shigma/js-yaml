@@ -8,7 +8,10 @@ import 'codemirror/mode/yaml/yaml.js'
 import 'codemirror/mode/javascript/javascript.js'
 import './demo.css'
 
-let source, result, permalink, clear
+let source
+let result
+let permalink
+let clear
 
 function encodeBase64 (str) {
   return btoa(String.fromCharCode(...new TextEncoder().encode(str)))

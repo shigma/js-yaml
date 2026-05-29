@@ -113,15 +113,13 @@ describe('replacer', function () {
   })
 
   it('undefined removes element from a mapping', function () {
-    let str, result
-
-    str = yaml.dump({ a: 1, b: 2, c: 3 }, {
+    let str = yaml.dump({ a: 1, b: 2, c: 3 }, {
       replacer (key, value) {
         if (key === 'b') return undefined
         return value
       }
     })
-    result = yaml.load(str)
+    let result = yaml.load(str)
     assert.deepStrictEqual(result, { a: 1, c: 3 })
 
     str = yaml.dump({ a: 1, b: 2, c: 3 }, {
@@ -136,15 +134,13 @@ describe('replacer', function () {
   })
 
   it('undefined replaces element in an array with null', function () {
-    let str, result
-
-    str = yaml.dump([1, 2, 3], {
+    let str = yaml.dump([1, 2, 3], {
       replacer (key, value) {
         if (key === '1') return undefined
         return value
       }
     })
-    result = yaml.load(str)
+    let result = yaml.load(str)
     assert.deepStrictEqual(result, [1, null, 3])
 
     str = yaml.dump([1, 2, 3], {
