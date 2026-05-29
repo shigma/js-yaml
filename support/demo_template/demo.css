@@ -23,9 +23,9 @@
   font-size: 13px;
 }
 
-/* .CodeMirror .cm-comment {
+.CodeMirror .cm-comment {
   color: #baa;
-} */
+}
 
 .github-link {
   color: #333;

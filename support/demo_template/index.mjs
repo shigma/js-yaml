@@ -10,7 +10,7 @@ import 'codemirror/mode/yaml/yaml.js'
 import 'codemirror/mode/javascript/javascript.js'
 import './demo.css'
 
-var source, result, permalink;
+var source, result, permalink, clear;
 
 function encodeBase64(str) {
   return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
@@ -61,6 +61,7 @@ function updateSource() {
 
 window.onload = function () {
   permalink = document.getElementById('permalink');
+  clear = document.getElementById('clear');
 
   source = codemirror.fromTextArea(document.getElementById('source'), {
     mode: 'yaml',
@@ -76,6 +77,12 @@ window.onload = function () {
 
   result = codemirror.fromTextArea(document.getElementById('result'), {
     readOnly: true
+  });
+
+  clear.addEventListener('click', function (event) {
+    event.preventDefault();
+    source.setValue('');
+    parse();
   });
 
   // initial source
