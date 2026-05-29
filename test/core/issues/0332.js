@@ -29,7 +29,6 @@ it('Should format errors', function () {
   try {
     yaml.load('foo:\n  bar: 1\na');
   } catch (err) {
-    // eslint-disable-next-line max-len
     assert.strictEqual(err.toString(), `YAMLException: can not read a block mapping entry; a multiline key may not be an implicit key (4:1)
 
  1 | foo:

@@ -2,8 +2,6 @@
 
 const { describe, it } = require('node:test');
 
-/* eslint-disable max-len */
-
 const assert = require('assert');
 const yaml = require('js-yaml');
 

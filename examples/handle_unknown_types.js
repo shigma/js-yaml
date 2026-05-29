@@ -1,7 +1,5 @@
 'use strict';
 
-/*eslint-disable no-console*/
-
 const util = require('util');
 const yaml = require('../');
 

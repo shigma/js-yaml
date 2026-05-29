@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import jsyaml from '../../lib/index_vite_proxy.tmp.mjs'
 import codemirror from 'codemirror'
 import { inspect } from 'util'

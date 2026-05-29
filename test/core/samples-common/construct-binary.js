@@ -1,7 +1,5 @@
 'use strict';
 
-/*eslint-disable max-len*/
-
 function toTyped(data, encoding) {
   return new Uint8Array(Buffer.from(data, encoding));
 }

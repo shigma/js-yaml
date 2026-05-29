@@ -20,7 +20,6 @@ var TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([ TestClassYaml ]);
 
 
 describe('Alias nodes', function () {
-  /* eslint-disable max-len */
   describe('Resolving of an alias node should result the resolved and contructed value of the anchored node', function () {
     it('Simple built-in primitives', function () {
       assert.strictEqual(yaml.load('[&1 "foobar", *1]')[1], 'foobar');

@@ -2,9 +2,6 @@
 
 const { it } = require('node:test');
 
-/* eslint-disable no-use-before-define, new-cap */
-
-
 const assert = require('assert');
 const yaml   = require('js-yaml');
 
