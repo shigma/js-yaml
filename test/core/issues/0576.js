@@ -6,11 +6,11 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 describe('Custom tags', function () {
-  const tag_names = ['tag', '!tag', '!!tag', '!<!tag>', 'tag*-!< >{\n}', '!tagαβγ']
+  const tagNames = ['tag', '!tag', '!!tag', '!<!tag>', 'tag*-!< >{\n}', '!tagαβγ']
   const encoded = ['!<tag>', '!tag', '!%21tag', '!%3C%21tag%3E',
     '!<tag*-%21%3C%20%3E%7B%0A%7D>', '!tag%CE%B1%CE%B2%CE%B3']
 
-  const tags = tag_names.map(tag =>
+  const tags = tagNames.map(tag =>
     new yaml.Type(tag, {
       kind: 'scalar',
       resolve: () => true,
@@ -23,14 +23,14 @@ describe('Custom tags', function () {
   const schema = yaml.DEFAULT_SCHEMA.extend(tags)
 
   it('Should dump tags with proper encoding', function () {
-    tag_names.forEach(function (tag, idx) {
+    tagNames.forEach(function (tag, idx) {
       assert.strictEqual(yaml.dump({ tag }, { schema }), encoded[idx] + ' value\n')
     })
   })
 
   it('Should decode tags when loading', function () {
     encoded.forEach(function (tag, idx) {
-      assert.deepStrictEqual(yaml.load(tag + ' value', { schema }), [tag_names[idx], 'value'])
+      assert.deepStrictEqual(yaml.load(tag + ' value', { schema }), [tagNames[idx], 'value'])
     })
   })
 

@@ -12,9 +12,7 @@ export default [
 
   {
     rules: {
-      camelcase: 'off',
       '@stylistic/key-spacing': 'off',
-      'no-useless-escape': 'off',
       'object-shorthand': 'off',
     }
   }

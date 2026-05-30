@@ -14,7 +14,7 @@ describe('replacer', function () {
     represent: () => ''
   })
 
-  const undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
+  const undefSchema = yaml.DEFAULT_SCHEMA.extend(undef)
 
   it('should be called on the root of the document', function () {
     let called = 0
@@ -127,9 +127,9 @@ describe('replacer', function () {
         if (key === 'b') return undefined
         return value
       },
-      schema: undef_schema
+      schema: undefSchema
     })
-    result = yaml.load(str, { schema: undef_schema })
+    result = yaml.load(str, { schema: undefSchema })
     assert.deepStrictEqual(result, { a: 1, b: undefined, c: 3 })
   })
 
@@ -148,9 +148,9 @@ describe('replacer', function () {
         if (key === '1') return undefined
         return value
       },
-      schema: undef_schema
+      schema: undefSchema
     })
-    result = yaml.load(str, { schema: undef_schema })
+    result = yaml.load(str, { schema: undefSchema })
     assert.deepStrictEqual(result, [1, undefined, 3])
   })
 

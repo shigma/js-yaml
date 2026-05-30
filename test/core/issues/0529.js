@@ -94,7 +94,7 @@ empty: ''
     assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: false }), expected)
   })
 
-  it('quotingType=\", forceQuotes=false', function () {
+  it('quotingType=", forceQuotes=false', function () {
     const expected = `
 simple_key: value
 foo'bar"baz: 1
@@ -159,7 +159,7 @@ empty: ''
     assert.strictEqual(yaml.dump(sample, { quotingType: "'", forceQuotes: true }), expected)
   })
 
-  it('quotingType=\", forceQuotes=true', function () {
+  it('quotingType=", forceQuotes=true', function () {
     const expected = `
 simple_key: "value"
 foo'bar"baz: 1

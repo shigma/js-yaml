@@ -14,7 +14,7 @@ describe('Undefined', function () {
     represent: () => ''
   })
 
-  const undef_schema = yaml.DEFAULT_SCHEMA.extend(undef)
+  const undefSchema = yaml.DEFAULT_SCHEMA.extend(undef)
 
   it('Should replace undefined with null in collections', function () {
     let str
@@ -59,16 +59,16 @@ describe('Undefined', function () {
   it('Should serialize undefined if schema is available', function () {
     assert.deepStrictEqual(
       yaml.load(
-        yaml.dump([1, undefined, null, 2], { schema: undef_schema }),
-        { schema: undef_schema }
+        yaml.dump([1, undefined, null, 2], { schema: undefSchema }),
+        { schema: undefSchema }
       ),
       [1, undefined, null, 2]
     )
 
     assert.deepStrictEqual(
       yaml.load(
-        yaml.dump({ foo: 1, bar: undefined, baz: null }, { schema: undef_schema }),
-        { schema: undef_schema }
+        yaml.dump({ foo: 1, bar: undefined, baz: null }, { schema: undefSchema }),
+        { schema: undefSchema }
       ),
       { foo: 1, bar: undefined, baz: null }
     )

@@ -1,7 +1,7 @@
 import jsyaml from '../../lib/index_vite_proxy.tmp.mjs'
 import codemirror from 'codemirror'
 import { inspect } from 'util'
-import default_text from './sample.mjs'
+import defaultText from './sample.mjs'
 
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/mode/yaml/yaml.js'
@@ -56,7 +56,7 @@ function updateSource () {
     yaml = decodeBase64(location.hash.slice(6))
   }
 
-  source.setValue(yaml || default_text)
+  source.setValue(yaml || defaultText)
   parse()
 }
 
