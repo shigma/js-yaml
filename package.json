@@ -35,6 +35,7 @@
   },
   "scripts": {
     "lint": "eslint .",
+    "lint-fix": "eslint . --fix",
     "test": "npm run lint && npm run test:core && npm run test:build",
     "test:core": "node --test test/core/*.test.*",
     "test:build": "npm run build && node --test test/build/*.test.*",
