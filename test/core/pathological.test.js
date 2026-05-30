@@ -10,9 +10,9 @@ const workerpool = require('workerpool')
 // eval scope has no `require`. `import()` is syntax, so it survives eval.
 const yamlUrl = pathToFileURL(require.resolve('js-yaml')).href
 
-async function loadYamlInWorker (doc, url) {
+async function loadYamlInWorker (doc, url, options) {
   const mod = await import(url)
-  ;(mod.default || mod).load(doc)
+  ;(mod.default || mod).load(doc, options)
 }
 
 function assertYamlException (fn, pattern) {
@@ -57,10 +57,19 @@ describe('Pathological tests', function () {
       const doc = createRepeatedMergeAliasPattern(100000, 100000)
       const pool = workerpool.pool()
       try {
-        await pool.exec(loadYamlInWorker, [doc, yamlUrl]).timeout(2000)
+        await pool.exec(loadYamlInWorker, [doc, yamlUrl, { maxMergeSeqLength: 1000000 }]).timeout(2000)
       } finally {
         await pool.terminate()
       }
+    })
+
+    it('throws YAMLException on long merge sequence (over maxMergeSeqLength)', function () {
+      assertYamlException(function () {
+        yaml.load(`
+a: &a { k: 0 }
+b: { <<: [ ${'*a, '.repeat(20)}*a ] }
+`)
+      }, /merge sequence length exceeded maxMergeSeqLength/)
     })
   })
 })
