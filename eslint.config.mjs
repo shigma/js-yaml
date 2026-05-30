@@ -12,7 +12,6 @@ export default [
 
   {
     rules: {
-      '@stylistic/key-spacing': 'off',
       'object-shorthand': 'off',
     }
   }

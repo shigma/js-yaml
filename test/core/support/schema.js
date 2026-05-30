@@ -86,14 +86,14 @@ const TEST_SCHEMA = yaml.DEFAULT_SCHEMA.extend([
     },
     construct: function (data) {
       return new Foo({
-        myParameter:        data['my-parameter'],
+        myParameter: data['my-parameter'],
         myAnotherParameter: data['my-another-parameter']
       })
     },
     instanceOf: Foo,
     represent: function (object) {
       return {
-        'my-parameter':         object.myParameter,
+        'my-parameter': object.myParameter,
         'my-another-parameter': object.myAnotherParameter
       }
     }

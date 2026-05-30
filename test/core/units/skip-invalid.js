@@ -8,15 +8,15 @@ const yaml = require('js-yaml')
 const sample = {
   number: 42,
   string: 'hello',
-  func:   function (a, b) { return a + b },
+  func: function (a, b) { return a + b },
   regexp: /^hel+o/,
-  array:  [1, 2, 3]
+  array: [1, 2, 3]
 }
 
 const expected = {
   number: 42,
   string: 'hello',
-  array:  [1, 2, 3]
+  array: [1, 2, 3]
 }
 
 it('Dumper must throw an exception on invalid type when option `skipInvalid` is false.', function () {

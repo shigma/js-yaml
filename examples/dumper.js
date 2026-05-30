@@ -6,8 +6,8 @@ const object = require('./dumper.json')
 console.log(yaml.dump(object, {
   flowLevel: 3,
   styles: {
-    '!!int'  : 'hexadecimal',
-    '!!null' : 'camelcase'
+    '!!int': 'hexadecimal',
+    '!!null': 'camelcase'
   }
 }))
 

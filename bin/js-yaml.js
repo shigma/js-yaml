@@ -9,8 +9,8 @@ const yaml = require('..')
 /// /////////////////////////////////////////////////////////////////////////////
 
 const cli = new argparse.ArgumentParser({
-  prog:     'js-yaml',
-  add_help:  true
+  prog: 'js-yaml',
+  add_help: true
 })
 
 cli.add_argument('-v', '--version', {
@@ -19,26 +19,26 @@ cli.add_argument('-v', '--version', {
 })
 
 cli.add_argument('-c', '--compact', {
-  help:   'Display errors in compact mode',
+  help: 'Display errors in compact mode',
   action: 'store_true'
 })
 
 // deprecated (not needed after we removed output colors)
 // option suppressed, but not completely removed for compatibility
 cli.add_argument('-j', '--to-json', {
-  help:   argparse.SUPPRESS,
-  dest:   'json',
+  help: argparse.SUPPRESS,
+  dest: 'json',
   action: 'store_true'
 })
 
 cli.add_argument('-t', '--trace', {
-  help:   'Show stack trace on error',
+  help: 'Show stack trace on error',
   action: 'store_true'
 })
 
 cli.add_argument('file', {
-  help:   'File to read, utf-8 encoded without BOM',
-  nargs:  '?',
+  help: 'File to read, utf-8 encoded without BOM',
+  nargs: '?',
   default: '-'
 })
 

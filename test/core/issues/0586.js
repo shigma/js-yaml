@@ -35,7 +35,7 @@ it('Should allow custom formatting through implicit custom tags', function () {
     return value // default
   }
 
-  const result = CustomDump({ flow_choices : [1, 2], block_choices: [4, 5] }).represent().trim()
+  const result = CustomDump({ flow_choices: [1, 2], block_choices: [4, 5] }).represent().trim()
 
   assert.strictEqual(result, `
 flow_choices: [1, 2]

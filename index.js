@@ -23,19 +23,19 @@ module.exports.YAMLException = require('./lib/exception')
 
 // Re-export all types in case user wants to create custom schema
 module.exports.types = {
-  binary:    require('./lib/type/binary'),
-  float:     require('./lib/type/float'),
-  map:       require('./lib/type/map'),
-  null:      require('./lib/type/null'),
-  pairs:     require('./lib/type/pairs'),
-  set:       require('./lib/type/set'),
+  binary: require('./lib/type/binary'),
+  float: require('./lib/type/float'),
+  map: require('./lib/type/map'),
+  null: require('./lib/type/null'),
+  pairs: require('./lib/type/pairs'),
+  set: require('./lib/type/set'),
   timestamp: require('./lib/type/timestamp'),
-  bool:      require('./lib/type/bool'),
-  int:       require('./lib/type/int'),
-  merge:     require('./lib/type/merge'),
-  omap:      require('./lib/type/omap'),
-  seq:       require('./lib/type/seq'),
-  str:       require('./lib/type/str')
+  bool: require('./lib/type/bool'),
+  int: require('./lib/type/int'),
+  merge: require('./lib/type/merge'),
+  omap: require('./lib/type/omap'),
+  seq: require('./lib/type/seq'),
+  str: require('./lib/type/str')
 }
 
 // Removed functions from JS-YAML 3.0.x
