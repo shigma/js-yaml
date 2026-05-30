@@ -6,3 +6,6 @@ doc
 benchmark/implementations/*
 !/benchmark/implementations/current/
 dist/
+.claude/
+.codex/
+.agents/
