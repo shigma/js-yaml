@@ -88,6 +88,9 @@ options:
     https://www.yaml.org/spec/1.2/spec.html#id2804923
   - `DEFAULT_SCHEMA` - all supported YAML types.
 - `json` _(default: false)_ - compatibility with JSON.parse behaviour. If true, then duplicate keys in a mapping will override values rather than throwing an error.
+- `maxDepth` _(default: 100)_ - limits nesting depth for collections.
+- `maxMergeSeqLength` _(default: 20)_ - limits the number of elements in merge
+  (`<<`) sequences.
 
 NOTE: This function **does not** understand multi-document sources, it throws
 exception on those.
@@ -226,10 +229,3 @@ moment of adding them.
 ``` javascript
 { "foo,bar": ["baz"], "[object Object]": ["baz", "baz"] }
 ```
-
-js-yaml for enterprise
-----------------------
-
-Available as part of the Tidelift Subscription
-
-The maintainers of js-yaml and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/npm-js-yaml?utm_source=npm-js-yaml&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)

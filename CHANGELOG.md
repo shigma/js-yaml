@@ -5,9 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [4.2.0] - Unreleased
+### Added
+- Added `docs/safety.md` with notes about processing untrusted YAML.
+- Added `maxDepth` (100) loader option. Not a problem, but gives a better
+  exception instead of RangeError on stack overflow.
+- Added `maxMergeSeqLength` (20) loader option. Not a problem after `merge` fix,
+  but an additional restriction for safety.
+
+### Changed
+- Switched dev toolchains to Vite / neostandard.
+- Updated demo.
+- Reorganized tests.
+- `dist/` files are no longer kept in the repository.
+
+### Fixed
+- Fix parsing of properties on the first implicit block mapping key, #62.
+- Reject top-level block scalars without content indentation, #280.
+- Ensure numbers survive round-trip, #737.
+- Fix test coverage for issue #221.
+
+### Security
+- Fix potential DoS via quadratic complexity in merge - deduplicate repeated
+  elements (makes sense for malformed files > 10K).
+
+
 ## [3.14.2] - 2025-11-15
 ### Security
 - Backported v4.1.1 fix to v3
+
 
 ## [4.1.1] - 2025-11-12
 ### Security
