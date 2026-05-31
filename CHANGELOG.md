@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   but an additional restriction for safety.
 
 ### Changed
+- Stop resolving numbers with underscores as numeric scalars, #627.
 - Switched dev toolchains to Vite / neostandard.
 - Updated demo.
 - Reorganized tests.
