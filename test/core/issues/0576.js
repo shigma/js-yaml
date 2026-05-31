@@ -46,4 +46,17 @@ describe('Custom tags', function () {
 !xx!g 123
 `, { schema }), ['tag', '123'])
   })
+
+  it('Should allow digits in named tag handles', function () {
+    assert.deepStrictEqual(yaml.load(`
+%TAG !1! tag:yaml.org,2002:
+%TAG !a1-2! tag:yaml.org,2002:
+---
+k1: !1!str some-string
+k2: !a1-2!str 123
+`), {
+      k1: 'some-string',
+      k2: '123'
+    })
+  })
 })
