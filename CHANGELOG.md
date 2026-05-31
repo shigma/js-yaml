@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix parsing of properties on the first implicit block mapping key, #62.
+- Fix trailing whitespace handling when folding flow scalar lines, #307.
 - Reject top-level block scalars without content indentation, #280.
 - Ensure numbers survive round-trip, #737.
 - Fix test coverage for issue #221.
