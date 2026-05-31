@@ -53,4 +53,11 @@ describe('loader parameters', function () {
     }, { json: true })
     assert.deepStrictEqual(result, expected)
   })
+
+  it('empty input', function () {
+    // https://github.com/nodeca/js-yaml/issues/565#issuecomment-659696047
+    // NOTE: in theory, can throw instead of undefined, for load().
+    assert.strictEqual(yaml.load(''), undefined)
+    assert.deepStrictEqual(yaml.loadAll(''), [])
+  })
 })
