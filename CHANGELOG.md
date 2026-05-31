@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   exception instead of RangeError on stack overflow.
 - Added `maxMergeSeqLength` (20) loader option. Not a problem after `merge` fix,
   but an additional restriction for safety.
+- Added sourcemaps to `dist/` builds.
 
 ### Changed
 - Stop resolving numbers with underscores as numeric scalars, #627.

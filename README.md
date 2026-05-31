@@ -88,8 +88,9 @@ options:
     https://www.yaml.org/spec/1.2/spec.html#id2804923
   - `DEFAULT_SCHEMA` - all supported YAML types.
 - `json` _(default: false)_ - compatibility with JSON.parse behaviour. If true, then duplicate keys in a mapping will override values rather than throwing an error.
-- `maxDepth` _(default: 100)_ - limits nesting depth for collections.
-- `maxMergeSeqLength` _(default: 20)_ - limits the number of elements in merge
+- `maxDepth` _(default: 100)_ - limits nesting depth for collections (does not
+  take aliasees into account).
+- `maxMergeSeqLength` _(default: 20)_ - limits the number of items in merge
   (`<<`) sequences.
 
 NOTE: This function **does not** understand multi-document sources, it throws
