@@ -6,5 +6,5 @@ const assert = require('assert')
 const yaml = require('js-yaml')
 
 it('Infinite loop when attempting to parse multi-line scalar document that is not indented', function () {
-  assert.strictEqual(yaml.load('--- |\nfoo\n'), 'foo\n')
+  assert.throws(() => yaml.load('--- |\nfoo\n'), /missing indentation for block scalar/)
 })
