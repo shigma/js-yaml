@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [4.2.0] - Unreleased
+## [4.2.0] - 2026-06-01
 ### Added
 - Added `docs/safety.md` with notes about processing untrusted YAML.
 - Added `maxDepth` (100) loader option. Not a problem, but gives a better
@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reject top-level block scalars without content indentation, #280.
 - Ensure numbers survive round-trip, #737.
 - Fix test coverage for issue #221.
+- Fix flow scalar trailing whitespace folding, #307.
+- Fix digits in YAML named tag handles.
 
 ### Security
 - Fix potential DoS via quadratic complexity in merge - deduplicate repeated
@@ -579,6 +581,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First public release
 
 
+[4.2.0]: https://github.com/nodeca/js-yaml/compare/4.1.1...4.2.0
 [4.1.1]: https://github.com/nodeca/js-yaml/compare/4.1.0...4.1.1
 [4.1.0]: https://github.com/nodeca/js-yaml/compare/4.0.0...4.1.0
 [4.0.0]: https://github.com/nodeca/js-yaml/compare/3.14.0...4.0.0
