@@ -22,13 +22,13 @@ describe('Custom tags', function () {
 
   it('Should dump tags with proper encoding', function () {
     tagNames.forEach(function (tag, idx) {
-      assert.strictEqual(dump({ tag }, { schema }), encoded[idx] + ' value\n')
+      assert.strictEqual(dump({ tag }, { schema }), `${encoded[idx]} value\n`)
     })
   })
 
   it('Should decode tags when loading', function () {
     encoded.forEach(function (tag, idx) {
-      assert.deepStrictEqual(load(tag + ' value', { schema }), [tagNames[idx], 'value'])
+      assert.deepStrictEqual(load(`${tag} value`, { schema }), [tagNames[idx], 'value'])
     })
   })
 

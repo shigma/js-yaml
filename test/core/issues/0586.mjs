@@ -13,7 +13,7 @@ it('Should allow custom formatting through implicit custom tags', function () {
   CustomDump.prototype.represent = function () {
     let result = dump(this.data, Object.assign({ replacer, schema }, this.opts))
     result = result.trim()
-    if (result.includes('\n')) result = '\n' + result
+    if (result.includes('\n')) result = `\n${result}`
     return result
   }
 

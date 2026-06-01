@@ -39,7 +39,7 @@ class Type {
 
     Object.keys(options).forEach(function (name) {
       if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
-        throw new YAMLException('Unknown option "' + name + '" is met in definition of "' + tag + '" YAML type.')
+        throw new YAMLException(`Unknown option "${name}" is met in definition of "${tag}" YAML type.`)
       }
     })
 
@@ -58,7 +58,7 @@ class Type {
     this.styleAliases = compileStyleAliases(options['styleAliases'] || null)
 
     if (YAML_NODE_KINDS.indexOf(this.kind) === -1) {
-      throw new YAMLException('Unknown kind "' + this.kind + '" is specified for "' + tag + '" YAML type.')
+      throw new YAMLException(`Unknown kind "${this.kind}" is specified for "${tag}" YAML type.`)
     }
   }
 }

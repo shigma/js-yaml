@@ -17,7 +17,7 @@ describe('Loader', function () {
     if (path.extname(sampleFile) !== '.mjs') return // continue
 
     const sampleName = path.basename(sampleFile, '.mjs')
-    const yamlFile = path.resolve(samplesDir, sampleName + '.yml')
+    const yamlFile = path.resolve(samplesDir, `${sampleName}.yml`)
 
     it(sampleName, async function () {
       const expected = (await import(pathToFileURL(path.resolve(samplesDir, sampleFile)).href)).default

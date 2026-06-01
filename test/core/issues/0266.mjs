@@ -14,7 +14,7 @@ it('Dumper should not take into account booleans syntax from YAML 1.0/1.1 in noC
 
     assert(
       (dumped === string),
-      ('"' + string + '" string is not dumped as-is; actual dump: ' + dumped)
+      (`"${string}" string is not dumped as-is; actual dump: ${dumped}`)
     )
   })
 })

@@ -7,16 +7,16 @@ function formatError (exception, compact) {
   if (!exception.mark) return message
 
   if (exception.mark.name) {
-    where += 'in "' + exception.mark.name + '" '
+    where += `in "${exception.mark.name}" `
   }
 
-  where += '(' + (exception.mark.line + 1) + ':' + (exception.mark.column + 1) + ')'
+  where += `(${exception.mark.line + 1}:${exception.mark.column + 1})`
 
   if (!compact && exception.mark.snippet) {
-    where += '\n\n' + exception.mark.snippet
+    where += `\n\n${exception.mark.snippet}`
   }
 
-  return message + ' ' + where
+  return `${message} ${where}`
 }
 
 class YAMLException extends Error {
@@ -40,7 +40,7 @@ class YAMLException extends Error {
   }
 
   toString (compact) {
-    return this.name + ': ' + formatError(this, compact)
+    return `${this.name}: ${formatError(this, compact)}`
   }
 }
 

@@ -17,7 +17,7 @@ it('should dump null in different styles', function () {
 
   for (const [name, value] of Object.entries(tests)) {
     dumped = dump(src, { styles: { '!!null': name } })
-    assert.strictEqual(dumped, 'foo: ' + value + '\nbar: 1\n')
+    assert.strictEqual(dumped, `foo: ${value}\nbar: 1\n`)
     assert.deepStrictEqual(load(dumped), src)
   }
 })

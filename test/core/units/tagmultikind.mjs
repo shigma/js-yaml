@@ -10,7 +10,7 @@ const tags = [{
   tag: 'Include',
   type: 'mapping'
 }].map(function (fn) {
-  return new Type('!' + fn.tag, {
+  return new Type(`!${fn.tag}`, {
     kind: fn.type,
     resolve: function () {
       return true

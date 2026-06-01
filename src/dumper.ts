@@ -67,7 +67,7 @@ function compileStyleMap (schema, map) {
     let style = String(map[tag])
 
     if (tag.slice(0, 2) === '!!') {
-      tag = 'tag:yaml.org,2002:' + tag.slice(2)
+      tag = `tag:yaml.org,2002:${tag.slice(2)}`
     }
     const type = schema.compiledTypeMap['fallback'][tag]
 
@@ -100,7 +100,7 @@ function encodeHex (character) {
     throw new YAMLException('code point within a string may not be greater than 0xFFFFFFFF')
   }
 
-  return '\\' + handle + '0'.repeat(length - string.length) + string
+  return `\\${handle}${'0'.repeat(length - string.length)}${string}`
 }
 
 const QUOTING_TYPE_SINGLE = 1
@@ -197,7 +197,7 @@ function indentString (string, spaces) {
 }
 
 function generateNextLine (state, level) {
-  return '\n' + ' '.repeat(state.indent * level)
+  return `\n${' '.repeat(state.indent * level)}`
 }
 
 function testImplicitResolving (state, str) {
@@ -432,7 +432,7 @@ function writeScalar (state, string, level, iskey, inblock) {
     }
     if (!state.noCompatMode) {
       if (DEPRECATED_BOOLEANS_SYNTAX.indexOf(string) !== -1 || DEPRECATED_BASE60_SYNTAX.test(string)) {
-        return state.quotingType === QUOTING_TYPE_DOUBLE ? ('"' + string + '"') : ("'" + string + "'")
+        return state.quotingType === QUOTING_TYPE_DOUBLE ? `"${string}"` : `'${string}'`
       }
     }
 
@@ -461,7 +461,7 @@ function writeScalar (state, string, level, iskey, inblock) {
       case STYLE_PLAIN:
         return string
       case STYLE_SINGLE:
-        return "'" + string.replace(/'/g, "''") + "'"
+        return `'${string.replace(/'/g, "''")}'`
       case STYLE_LITERAL:
         return '|' + blockHeader(string, state.indent) +
           dropEndingNewline(indentString(string, indent))
@@ -469,7 +469,7 @@ function writeScalar (state, string, level, iskey, inblock) {
         return '>' + blockHeader(string, state.indent) +
           dropEndingNewline(indentString(foldString(string, lineWidth), indent))
       case STYLE_DOUBLE:
-        return '"' + escapeString(string, lineWidth) + '"'
+        return `"${escapeString(string, lineWidth)}"`
       default:
         throw new YAMLException('impossible error: invalid scalar style')
     }
@@ -485,7 +485,7 @@ function blockHeader (string, indentPerLevel) {
   const keep = clip && (string[string.length - 2] === '\n' || string === '\n')
   const chomp = keep ? '+' : (clip ? '' : '-')
 
-  return indentIndicator + chomp + '\n'
+  return `${indentIndicator}${chomp}\n`
 }
 
 // (See the note for writeScalar.)
@@ -555,7 +555,7 @@ function foldLine (line, width) {
     // maintain invariant: curr - start <= width
     if (next - start > width) {
       end = (curr > start) ? curr : next // derive end <= length-2
-      result += '\n' + line.slice(start, end)
+      result += `\n${line.slice(start, end)}`
       // skip the space that was output as \n
       start = end + 1                    // derive start <= length-1
     }
@@ -567,7 +567,7 @@ function foldLine (line, width) {
   result += '\n'
   // Insert a break if the remainder is too long and there is a break available.
   if (line.length - start > width && curr > start) {
-    result += line.slice(start, curr) + '\n' + line.slice(curr + 1)
+    result += `${line.slice(start, curr)}\n${line.slice(curr + 1)}`
   } else {
     result += line.slice(start)
   }
@@ -610,13 +610,13 @@ function writeFlowSequence (state, level, object) {
     if (writeNode(state, level, value, false, false) ||
         (typeof value === 'undefined' &&
          writeNode(state, level, null, false, false))) {
-      if (_result !== '') _result += ',' + (!state.condenseFlow ? ' ' : '')
+      if (_result !== '') _result += `,${!state.condenseFlow ? ' ' : ''}`
       _result += state.dump
     }
   }
 
   state.tag = _tag
-  state.dump = '[' + _result + ']'
+  state.dump = `[${_result}]`
 }
 
 function writeBlockSequence (state, level, object, compact) {
@@ -676,7 +676,7 @@ function writeFlowMapping (state, level, object) {
 
     if (state.dump.length > 1024) pairBuffer += '? '
 
-    pairBuffer += state.dump + (state.condenseFlow ? '"' : '') + ':' + (state.condenseFlow ? '' : ' ')
+    pairBuffer += `${state.dump}${state.condenseFlow ? '"' : ''}:${state.condenseFlow ? '' : ' '}`
 
     if (!writeNode(state, level, objectValue, false, false)) {
       continue // Skip this pair because of invalid value.
@@ -689,7 +689,7 @@ function writeFlowMapping (state, level, object) {
   }
 
   state.tag = _tag
-  state.dump = '{' + _result + '}'
+  state.dump = `{${_result}}`
 }
 
 function writeBlockMapping (state, level, object, compact) {
@@ -792,7 +792,7 @@ function detectType (state, object, explicit) {
         } else if (_hasOwnProperty.call(type.represent, style)) {
           _result = type.represent[style](object, style)
         } else {
-          throw new YAMLException('!<' + type.tag + '> tag resolver accepts not "' + style + '" style')
+          throw new YAMLException(`!<${type.tag}> tag resolver accepts not "${style}" style`)
         }
 
         state.dump = _result
@@ -837,7 +837,7 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
   }
 
   if (duplicate && state.usedDuplicates[duplicateIndex]) {
-    state.dump = '*ref_' + duplicateIndex
+    state.dump = `*ref_${duplicateIndex}`
   } else {
     if (objectOrArray && duplicate && !state.usedDuplicates[duplicateIndex]) {
       state.usedDuplicates[duplicateIndex] = true
@@ -846,12 +846,12 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
       if (block && (Object.keys(state.dump).length !== 0)) {
         writeBlockMapping(state, level, state.dump, compact)
         if (duplicate) {
-          state.dump = '&ref_' + duplicateIndex + state.dump
+          state.dump = `&ref_${duplicateIndex}${state.dump}`
         }
       } else {
         writeFlowMapping(state, level, state.dump)
         if (duplicate) {
-          state.dump = '&ref_' + duplicateIndex + ' ' + state.dump
+          state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }
       }
     } else if (type === '[object Array]') {
@@ -862,12 +862,12 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
           writeBlockSequence(state, level, state.dump, compact)
         }
         if (duplicate) {
-          state.dump = '&ref_' + duplicateIndex + state.dump
+          state.dump = `&ref_${duplicateIndex}${state.dump}`
         }
       } else {
         writeFlowSequence(state, level, state.dump)
         if (duplicate) {
-          state.dump = '&ref_' + duplicateIndex + ' ' + state.dump
+          state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }
       }
     } else if (type === '[object String]') {
@@ -878,7 +878,7 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
       return false
     } else {
       if (state.skipInvalid) return false
-      throw new YAMLException('unacceptable kind of an object to dump ' + type)
+      throw new YAMLException(`unacceptable kind of an object to dump ${type}`)
     }
 
     if (state.tag !== null && state.tag !== '?') {
@@ -900,14 +900,14 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
       ).replace(/!/g, '%21')
 
       if (state.tag[0] === '!') {
-        tagStr = '!' + tagStr
+        tagStr = `!${tagStr}`
       } else if (tagStr.slice(0, 18) === 'tag:yaml.org,2002:') {
-        tagStr = '!!' + tagStr.slice(18)
+        tagStr = `!!${tagStr.slice(18)}`
       } else {
-        tagStr = '!<' + tagStr + '>'
+        tagStr = `!<${tagStr}>`
       }
 
-      state.dump = tagStr + ' ' + state.dump
+      state.dump = `${tagStr} ${state.dump}`
     }
   }
 
@@ -963,7 +963,7 @@ function dump (input, options: DumpOptions = {}) {
     value = state.replacer.call({ '': value }, '', value)
   }
 
-  if (writeNode(state, 0, value, true, true)) return state.dump + '\n'
+  if (writeNode(state, 0, value, true, true)) return `${state.dump}\n`
 
   return ''
 }

@@ -65,14 +65,12 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
       maxLineLength
     )
-    result = ' '.repeat(options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) +
-      ' | ' + line.str + '\n' + result
+    result = `${' '.repeat(options.indent)}${padStart((mark.line - i + 1).toString(), lineNoLength)} | ${line.str}\n${result}`
   }
 
   const line = getLine(mark.buffer, lineStarts[foundLineNo], lineEnds[foundLineNo], mark.position, maxLineLength)
-  result += ' '.repeat(options.indent) + padStart((mark.line + 1).toString(), lineNoLength) +
-    ' | ' + line.str + '\n'
-  result += '-'.repeat(options.indent + lineNoLength + 3 + line.pos) + '^' + '\n'
+  result += `${' '.repeat(options.indent)}${padStart((mark.line + 1).toString(), lineNoLength)} | ${line.str}\n`
+  result += `${'-'.repeat(options.indent + lineNoLength + 3 + line.pos)}^\n`
 
   for (let i = 1; i <= options.linesAfter; i++) {
     if (foundLineNo + i >= lineEnds.length) break
@@ -83,8 +81,7 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
       maxLineLength
     )
-    result += ' '.repeat(options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) +
-      ' | ' + line.str + '\n'
+    result += `${' '.repeat(options.indent)}${padStart((mark.line + i + 1).toString(), lineNoLength)} | ${line.str}\n`
   }
 
   return result.replace(/\n$/, '')

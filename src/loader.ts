@@ -357,7 +357,7 @@ const directiveHandlers = {
     }
 
     if (_hasOwnProperty.call(state.tagMap, handle)) {
-      throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle')
+      throwError(state, `there is a previously declared suffix for "${handle}" tag handle`)
     }
 
     if (!PATTERN_TAG_URI.test(prefix)) {
@@ -367,7 +367,7 @@ const directiveHandlers = {
     try {
       prefix = decodeURIComponent(prefix)
     } catch (err) {
-      throwError(state, 'tag prefix is malformed: ' + prefix)
+      throwError(state, `tag prefix is malformed: ${prefix}`)
     }
 
     state.tagMap[handle] = prefix
@@ -446,7 +446,7 @@ function storeMappingPair (state, _result, overridableKeys, keyTag, keyNode, val
   if (keyTag === 'tag:yaml.org,2002:merge') {
     if (Array.isArray(valueNode)) {
       if (valueNode.length > state.maxMergeSeqLength) {
-        throwError(state, 'merge sequence length exceeded maxMergeSeqLength (' + state.maxMergeSeqLength + ')')
+        throwError(state, `merge sequence length exceeded maxMergeSeqLength (${state.maxMergeSeqLength})`)
       }
       const seen = new Set()
       for (let index = 0, quantity = valueNode.length; index < quantity; index += 1) {
@@ -1337,13 +1337,13 @@ function readTagProperty (state) {
   }
 
   if (tagName && !PATTERN_TAG_URI.test(tagName)) {
-    throwError(state, 'tag name cannot contain such characters: ' + tagName)
+    throwError(state, `tag name cannot contain such characters: ${tagName}`)
   }
 
   try {
     tagName = decodeURIComponent(tagName)
   } catch (err) {
-    throwError(state, 'tag name is malformed: ' + tagName)
+    throwError(state, `tag name is malformed: ${tagName}`)
   }
 
   if (isVerbatim) {
@@ -1351,11 +1351,11 @@ function readTagProperty (state) {
   } else if (_hasOwnProperty.call(state.tagMap, tagHandle)) {
     state.tag = state.tagMap[tagHandle] + tagName
   } else if (tagHandle === '!') {
-    state.tag = '!' + tagName
+    state.tag = `!${tagName}`
   } else if (tagHandle === '!!') {
-    state.tag = 'tag:yaml.org,2002:' + tagName
+    state.tag = `tag:yaml.org,2002:${tagName}`
   } else {
-    throwError(state, 'undeclared tag handle "' + tagHandle + '"')
+    throwError(state, `undeclared tag handle "${tagHandle}"`)
   }
 
   return true
@@ -1404,7 +1404,7 @@ function readAlias (state) {
   const alias = state.input.slice(_position, state.position)
 
   if (!_hasOwnProperty.call(state.anchorMap, alias)) {
-    throwError(state, 'unidentified alias "' + alias + '"')
+    throwError(state, `unidentified alias "${alias}"`)
   }
 
   state.result = state.anchorMap[alias]
@@ -1447,7 +1447,7 @@ function composeNode (state, parentIndent, nodeContext, allowToSeek, allowCompac
   let blockIndent
 
   if (state.depth >= state.maxDepth) {
-    throwError(state, 'nesting exceeded maxDepth (' + state.maxDepth + ')')
+    throwError(state, `nesting exceeded maxDepth (${state.maxDepth})`)
   }
 
   state.depth += 1
@@ -1588,7 +1588,7 @@ function composeNode (state, parentIndent, nodeContext, allowToSeek, allowCompac
     // tag, for example like this: "!<?> [0]"
     //
     if (state.result !== null && state.kind !== 'scalar') {
-      throwError(state, 'unacceptable node kind for !<?> tag; it should be "scalar", not "' + state.kind + '"')
+      throwError(state, `unacceptable node kind for !<?> tag; it should be "scalar", not "${state.kind}"`)
     }
 
     for (let typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
@@ -1620,15 +1620,15 @@ function composeNode (state, parentIndent, nodeContext, allowToSeek, allowCompac
     }
 
     if (!type) {
-      throwError(state, 'unknown tag !<' + state.tag + '>')
+      throwError(state, `unknown tag !<${state.tag}>`)
     }
 
     if (state.result !== null && type.kind !== state.kind) {
-      throwError(state, 'unacceptable node kind for !<' + state.tag + '> tag; it should be "' + type.kind + '", not "' + state.kind + '"')
+      throwError(state, `unacceptable node kind for !<${state.tag}> tag; it should be "${type.kind}", not "${state.kind}"`)
     }
 
     if (!type.resolve(state.result, state.tag)) { // `state.result` updated in resolver if matched
-      throwError(state, 'cannot resolve a node with !<' + state.tag + '> explicit tag')
+      throwError(state, `cannot resolve a node with !<${state.tag}> explicit tag`)
     } else {
       state.result = type.construct(state.result, state.tag)
       if (state.anchor !== null) {
@@ -1706,7 +1706,7 @@ function readDocument (state) {
     if (_hasOwnProperty.call(directiveHandlers, directiveName)) {
       directiveHandlers[directiveName](state, directiveName, directiveArgs)
     } else {
-      throwWarning(state, 'unknown document directive "' + directiveName + '"')
+      throwWarning(state, `unknown document directive "${directiveName}"`)
     }
   }
 

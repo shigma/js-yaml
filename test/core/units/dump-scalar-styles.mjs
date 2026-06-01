@@ -32,7 +32,7 @@ describe('Scalar style dump:', function () {
         '100% safe non-first characters? Of course!',
         'Jack & Jill <well@example.com>'
       ].forEach(function (string) {
-        assert.strictEqual(dump(string), string + '\n')
+        assert.strictEqual(dump(string), `${string}\n`)
       })
     })
 
@@ -83,14 +83,14 @@ describe('Scalar style dump:', function () {
       assert.strictEqual(dump('\n'), '|+\n' + '\n')
       assert.strictEqual(dump('\n\n'), '|+\n' + '\n\n')
 
-      assert.strictEqual(dump(content), '|-\n' + indented + '\n')
-      assert.strictEqual(dump(content + '\n'), '|\n' + indented + '\n')
-      assert.strictEqual(dump(content + '\n\n'), '|+\n' + indented + '\n\n')
-      assert.strictEqual(dump(content + '\n\n\n'), '|+\n' + indented + '\n\n\n')
+      assert.strictEqual(dump(content), `|-\n${indented}\n`)
+      assert.strictEqual(dump(`${content}\n`), `|\n${indented}\n`)
+      assert.strictEqual(dump(`${content}\n\n`), `|+\n${indented}\n\n`)
+      assert.strictEqual(dump(`${content}\n\n\n`), `|+\n${indented}\n\n\n`)
     })
 
     it('accepts leading whitespace', function () {
-      assert.strictEqual(dump('   ' + content), '|2-\n   ' + indented + '\n')
+      assert.strictEqual(dump(`   ${content}`), `|2-\n   ${indented}\n`)
     })
 
     it('falls back to quoting when required indent indicator is too large', function () {
@@ -154,13 +154,13 @@ describe('Scalar style dump:', function () {
       }
 
       it('wraps lines and ignores more-indented lines ', function () {
-        assert.strictEqual(dumpNarrow(content), '>-\n' + indented + '\n')
+        assert.strictEqual(dumpNarrow(content), `>-\n${indented}\n`)
       })
 
       it('preserves trailing newlines using chomping', function () {
-        assert.strictEqual(dumpNarrow(content + '\n'), '>\n' + indented + '\n')
-        assert.strictEqual(dumpNarrow(content + '\n\n'), '>+\n' + indented + '\n\n')
-        assert.strictEqual(dumpNarrow(content + '\n\n\n'), '>+\n' + indented + '\n\n\n')
+        assert.strictEqual(dumpNarrow(`${content}\n`), `>\n${indented}\n`)
+        assert.strictEqual(dumpNarrow(`${content}\n\n`), `>+\n${indented}\n\n`)
+        assert.strictEqual(dumpNarrow(`${content}\n\n\n`), `>+\n${indented}\n\n\n`)
       })
     }())
 

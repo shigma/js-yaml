@@ -13,8 +13,8 @@ it('Dumper should take into account booleans syntax from YAML 1.0/1.1', function
     const dumped = dump(string).trim()
 
     assert(
-      ((dumped === "'" + string + "'") || (dumped === '"' + string + '"')),
-      ('"' + string + '" string is dumped without quoting; actual dump: ' + dumped)
+      ((dumped === `'${string}'`) || (dumped === `"${string}"`)),
+      (`"${string}" string is dumped without quoting; actual dump: ${dumped}`)
     )
   })
 })

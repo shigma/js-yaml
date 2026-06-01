@@ -26,7 +26,7 @@ function decodeBase64 (str) {
 const SexyYamlType = new jsyaml.Type('!sexy', {
   kind: 'sequence', // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
   construct: function (data) {
-    return data.map(function (string) { return 'sexy ' + string })
+    return data.map(function (string) { return `sexy ${string}` })
   }
 })
 
@@ -36,7 +36,7 @@ function parse () {
   let obj
 
   const str = source.getValue()
-  permalink.href = '#yaml=' + encodeBase64(str)
+  permalink.href = `#yaml=${encodeBase64(str)}`
 
   try {
     obj = jsyaml.load(str, { schema: SEXY_SCHEMA })

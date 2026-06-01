@@ -157,7 +157,7 @@ describe('replacer', function () {
 
     const result = dump(42, {
       replacer (key, value) {
-        return count++ > 3 ? value : { ['lvl' + count]: value }
+        return count++ > 3 ? value : { [`lvl${count}`]: value }
       }
     })
     assert.strictEqual(result, `

@@ -39,7 +39,7 @@ describe('Should dump numbers in YAML 1.2 format', function () {
     const tests = '1:23 1:23.45 01234 0999 -01234 01234e4 01234.56 -01234.56 0x123 0o123'
 
     tests.split(' ').forEach(function (sample) {
-      assert.strictEqual(dump(sample, { noCompatMode: false }), "'" + sample + "'\n")
+      assert.strictEqual(dump(sample, { noCompatMode: false }), `'${sample}'\n`)
     })
   })
 
@@ -47,7 +47,7 @@ describe('Should dump numbers in YAML 1.2 format', function () {
     const tests = '1:23 1:23.45'
 
     tests.split(' ').forEach(function (sample) {
-      assert.strictEqual(dump(sample, { noCompatMode: true }), sample + '\n')
+      assert.strictEqual(dump(sample, { noCompatMode: true }), `${sample}\n`)
     })
   })
 })
