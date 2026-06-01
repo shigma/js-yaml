@@ -49,59 +49,61 @@ function compileMap (/* lists... */) {
   return result
 }
 
-function Schema (definition) {
-  return this.extend(definition)
-}
-
-Schema.prototype.extend = function extend (definition) {
-  let implicit = []
-  let explicit = []
-
-  if (definition instanceof Type) {
-    // Schema.extend(type)
-    explicit.push(definition)
-  } else if (Array.isArray(definition)) {
-    // Schema.extend([ type1, type2, ... ])
-    explicit = explicit.concat(definition)
-  } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
-    // Schema.extend({ explicit: [ type1, type2, ... ], implicit: [ type1, type2, ... ] })
-    if (definition.implicit) implicit = implicit.concat(definition.implicit)
-    if (definition.explicit) explicit = explicit.concat(definition.explicit)
-  } else {
-    throw new YAMLException('Schema.extend argument should be a Type, [ Type ], ' +
-      'or a schema definition ({ implicit: [...], explicit: [...] })')
+class Schema {
+  constructor (definition) {
+    return this.extend(definition)
   }
 
-  implicit.forEach(function (type) {
-    if (!(type instanceof Type)) {
-      throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
+  extend (definition) {
+    let implicit = []
+    let explicit = []
+
+    if (definition instanceof Type) {
+      // Schema.extend(type)
+      explicit.push(definition)
+    } else if (Array.isArray(definition)) {
+      // Schema.extend([ type1, type2, ... ])
+      explicit = explicit.concat(definition)
+    } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
+      // Schema.extend({ explicit: [ type1, type2, ... ], implicit: [ type1, type2, ... ] })
+      if (definition.implicit) implicit = implicit.concat(definition.implicit)
+      if (definition.explicit) explicit = explicit.concat(definition.explicit)
+    } else {
+      throw new YAMLException('Schema.extend argument should be a Type, [ Type ], ' +
+        'or a schema definition ({ implicit: [...], explicit: [...] })')
     }
 
-    if (type.loadKind && type.loadKind !== 'scalar') {
-      throw new YAMLException('There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.')
-    }
+    implicit.forEach(function (type) {
+      if (!(type instanceof Type)) {
+        throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
+      }
 
-    if (type.multi) {
-      throw new YAMLException('There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.')
-    }
-  })
+      if (type.loadKind && type.loadKind !== 'scalar') {
+        throw new YAMLException('There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.')
+      }
 
-  explicit.forEach(function (type) {
-    if (!(type instanceof Type)) {
-      throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
-    }
-  })
+      if (type.multi) {
+        throw new YAMLException('There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.')
+      }
+    })
 
-  const result = Object.create(Schema.prototype)
+    explicit.forEach(function (type) {
+      if (!(type instanceof Type)) {
+        throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
+      }
+    })
 
-  result.implicit = (this.implicit || []).concat(implicit)
-  result.explicit = (this.explicit || []).concat(explicit)
+    const result = Object.create(Schema.prototype)
 
-  result.compiledImplicit = compileList(result, 'implicit')
-  result.compiledExplicit = compileList(result, 'explicit')
-  result.compiledTypeMap = compileMap(result.compiledImplicit, result.compiledExplicit)
+    result.implicit = (this.implicit || []).concat(implicit)
+    result.explicit = (this.explicit || []).concat(explicit)
 
-  return result
+    result.compiledImplicit = compileList(result, 'implicit')
+    result.compiledExplicit = compileList(result, 'explicit')
+    result.compiledTypeMap = compileMap(result.compiledImplicit, result.compiledExplicit)
+
+    return result
+  }
 }
 
 export default Schema

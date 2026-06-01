@@ -106,30 +106,32 @@ function encodeHex (character) {
 const QUOTING_TYPE_SINGLE = 1
 const QUOTING_TYPE_DOUBLE = 2
 
-function State (options) {
-  this.schema = options['schema'] || DEFAULT_SCHEMA
-  this.indent = Math.max(1, (options['indent'] || 2))
-  this.noArrayIndent = options['noArrayIndent'] || false
-  this.skipInvalid = options['skipInvalid'] || false
-  this.flowLevel = (common.isNothing(options['flowLevel']) ? -1 : options['flowLevel'])
-  this.styleMap = compileStyleMap(this.schema, options['styles'] || null)
-  this.sortKeys = options['sortKeys'] || false
-  this.lineWidth = options['lineWidth'] || 80
-  this.noRefs = options['noRefs'] || false
-  this.noCompatMode = options['noCompatMode'] || false
-  this.condenseFlow = options['condenseFlow'] || false
-  this.quotingType = options['quotingType'] === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE
-  this.forceQuotes = options['forceQuotes'] || false
-  this.replacer = typeof options['replacer'] === 'function' ? options['replacer'] : null
+class DumperState {
+  constructor (options) {
+    this.schema = options['schema'] || DEFAULT_SCHEMA
+    this.indent = Math.max(1, (options['indent'] || 2))
+    this.noArrayIndent = options['noArrayIndent'] || false
+    this.skipInvalid = options['skipInvalid'] || false
+    this.flowLevel = (common.isNothing(options['flowLevel']) ? -1 : options['flowLevel'])
+    this.styleMap = compileStyleMap(this.schema, options['styles'] || null)
+    this.sortKeys = options['sortKeys'] || false
+    this.lineWidth = options['lineWidth'] || 80
+    this.noRefs = options['noRefs'] || false
+    this.noCompatMode = options['noCompatMode'] || false
+    this.condenseFlow = options['condenseFlow'] || false
+    this.quotingType = options['quotingType'] === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE
+    this.forceQuotes = options['forceQuotes'] || false
+    this.replacer = typeof options['replacer'] === 'function' ? options['replacer'] : null
 
-  this.implicitTypes = this.schema.compiledImplicit
-  this.explicitTypes = this.schema.compiledExplicit
+    this.implicitTypes = this.schema.compiledImplicit
+    this.explicitTypes = this.schema.compiledExplicit
 
-  this.tag = null
-  this.result = ''
+    this.tag = null
+    this.result = ''
 
-  this.duplicates = []
-  this.usedDuplicates = null
+    this.duplicates = []
+    this.usedDuplicates = null
+  }
 }
 
 // Indents every line in a string. Empty lines (\n only) are not indented.
@@ -917,7 +919,7 @@ function inspectNode (object, objects, duplicatesIndexes) {
 function dump (input, options) {
   options = options || {}
 
-  const state = new State(options)
+  const state = new DumperState(options)
 
   if (!state.noRefs) getDuplicateReferences(input, state)
 
