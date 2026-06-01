@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should not steal a property from the first block mapping key', function () {
+it('should not steal a property from the first block mapping key', () => {
   assert.deepStrictEqual(
     load(`
 obj:

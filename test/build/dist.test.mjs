@@ -47,25 +47,25 @@ function loadGlobal (filename) {
   return context.jsyaml
 }
 
-describe('dist build', function () {
-  it('exports the expected CommonJS API from js-yaml.cjs.js', function () {
+describe('dist build', () => {
+  it('exports the expected CommonJS API from js-yaml.cjs.js', () => {
     const yaml = require('js-yaml')
     checkExports(yaml)
   })
 
-  it('exports the expected ESM API from js-yaml.mjs', async function () {
+  it('exports the expected ESM API from js-yaml.mjs', async () => {
     checkExports(await import('../../dist/js-yaml.mjs'))
   })
 
-  it('exports the expected browser ESM API from js-yaml.esm.min.mjs', async function () {
+  it('exports the expected browser ESM API from js-yaml.esm.min.mjs', async () => {
     checkExports(await import('../../dist/browser/js-yaml.esm.min.mjs'))
   })
 
-  it('exports the expected browser CommonJS API from js-yaml.umd.min.js', function () {
+  it('exports the expected browser CommonJS API from js-yaml.umd.min.js', () => {
     checkExports(require('../../dist/browser/js-yaml.umd.min.js'))
   })
 
-  it('exposes the expected browser global from js-yaml.umd.min.js', function () {
+  it('exposes the expected browser global from js-yaml.umd.min.js', () => {
     checkExports(loadGlobal('browser/js-yaml.umd.min.js'))
   })
 })

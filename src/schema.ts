@@ -4,10 +4,10 @@ import Type from './type.ts'
 function compileList (schema, name) {
   const result = []
 
-  schema[name].forEach(function (currentType) {
+  schema[name].forEach((currentType) => {
     let newIndex = result.length
 
-    result.forEach(function (previousType, previousIndex) {
+    result.forEach((previousType, previousIndex) => {
       if (previousType.tag === currentType.tag &&
           previousType.kind === currentType.kind &&
           previousType.multi === currentType.multi) {
@@ -73,7 +73,7 @@ class Schema {
         'or a schema definition ({ implicit: [...], explicit: [...] })')
     }
 
-    implicit.forEach(function (type) {
+    implicit.forEach((type) => {
       if (!(type instanceof Type)) {
         throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
       }
@@ -87,7 +87,7 @@ class Schema {
       }
     })
 
-    explicit.forEach(function (type) {
+    explicit.forEach((type) => {
       if (!(type instanceof Type)) {
         throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
       }

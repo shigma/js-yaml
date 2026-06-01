@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Timestamps are incorrectly parsed in local time', function () {
+it('Timestamps are incorrectly parsed in local time', () => {
   const src = `
 date1: 2010-10-20T20:45:00Z
 date2: 2010-10-20T20:45:00+01:00

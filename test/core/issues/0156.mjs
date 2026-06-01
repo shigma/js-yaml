@@ -7,11 +7,11 @@ function SuccessSignal () {}
 
 const TestClassYaml = new Type('!test', {
   kind: 'scalar',
-  resolve: function () { throw new SuccessSignal() }
+  resolve: () => { throw new SuccessSignal() }
 })
 
 const TEST_SCHEMA = DEFAULT_SCHEMA.extend([TestClassYaml])
 
-it('Resolving of empty nodes are skipped in some cases', function () {
-  assert.throws(function () { load('- foo: !test\n- bar: baz', { schema: TEST_SCHEMA }) }, SuccessSignal)
+it('Resolving of empty nodes are skipped in some cases', () => {
+  assert.throws(() => { load('- foo: !test\n- bar: baz', { schema: TEST_SCHEMA }) }, SuccessSignal)
 })

@@ -3,16 +3,16 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, dump, load, Type } from 'js-yaml'
 
-describe('Multi tag', function () {
-  it('should process multi tags', function () {
+describe('Multi tag', () => {
+  it('should process multi tags', () => {
     const tags = ['scalar', 'mapping', 'sequence'].map(kind =>
       new Type('!', {
         kind,
         multi: true,
-        resolve: function () {
+        resolve: () => {
           return true
         },
-        construct: function (value, tag) {
+        construct: (value, tag) => {
           return { kind, tag, value }
         }
       })
@@ -47,15 +47,15 @@ describe('Multi tag', function () {
     }), expected)
   })
 
-  it('should process tags depending on prefix', function () {
+  it('should process tags depending on prefix', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
       new Type(prefix, {
         kind: 'scalar',
         multi: true,
-        resolve: function () {
+        resolve: () => {
           return true
         },
-        construct: function (value, tag) {
+        construct: (value, tag) => {
           return { prefix, tag, value }
         }
       })
@@ -64,10 +64,10 @@ describe('Multi tag', function () {
     tags.push(
       new Type('!bar', {
         kind: 'scalar',
-        resolve: function () {
+        resolve: () => {
           return true
         },
-        construct: function (value) {
+        construct: (value) => {
           return { single: true, value }
         }
       })
@@ -94,18 +94,18 @@ describe('Multi tag', function () {
     }), expected)
   })
 
-  it('should dump multi types with custom tag', function () {
+  it('should dump multi types with custom tag', () => {
     const tags = [
       new Type('!', {
         kind: 'scalar',
         multi: true,
-        predicate: function (obj) {
+        predicate: (obj) => {
           return !!obj.tag
         },
-        representName: function (obj) {
+        representName: (obj) => {
           return obj.tag
         },
-        represent: function (obj) {
+        represent: (obj) => {
           return obj.value
         }
       })

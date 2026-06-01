@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump } from 'js-yaml'
 
-it('should not indent arrays an extra level when disabled', function () {
+it('should not indent arrays an extra level when disabled', () => {
   const output = dump(
     [
       {

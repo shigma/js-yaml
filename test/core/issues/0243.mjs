@@ -8,8 +8,8 @@ import { load } from 'js-yaml'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-describe('Duplicated mapping key errors throw at beginning of key', function () {
-  it('on top level', function () {
+describe('Duplicated mapping key errors throw at beginning of key', () => {
+  it('on top level', () => {
     const src = readFileSync(path.join(__dirname, '0243-basic.yml'), 'utf8')
     const lines = src.split('\n')
 
@@ -22,7 +22,7 @@ describe('Duplicated mapping key errors throw at beginning of key', function () 
     }
   })
 
-  it('inside of mapping values', function () {
+  it('inside of mapping values', () => {
     const src = readFileSync(path.join(__dirname, '0243-nested.yml'), 'utf8')
     const lines = src.split('\n')
 
@@ -35,7 +35,7 @@ describe('Duplicated mapping key errors throw at beginning of key', function () 
     }
   })
 
-  it('inside flow collection', function () {
+  it('inside flow collection', () => {
     try {
       load('{ foo: 123, foo: 456 }')
     } catch (e) {
@@ -44,7 +44,7 @@ describe('Duplicated mapping key errors throw at beginning of key', function () 
     }
   })
 
-  it('inside a set', function () {
+  it('inside a set', () => {
     try {
       load('   ? foo\n   ? foo\n   ? bar')
     } catch (e) {

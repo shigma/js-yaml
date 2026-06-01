@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump, load } from 'js-yaml'
 
-it('should properly dump negative ints in different styles', function () {
+it('should properly dump negative ints in different styles', () => {
   let dumped
   const src = { integer: -100 }
 

@@ -16,7 +16,7 @@ for (const name of fs.readdirSync(new URL('./implementations', import.meta.url))
 
 const SAMPLES = []
 
-fs.readdirSync(new URL('./samples', import.meta.url)).sort().forEach(function (sample) {
+fs.readdirSync(new URL('./samples', import.meta.url)).sort().forEach((sample) => {
   const filepath = new URL(`./samples/${sample}`, import.meta.url)
 
   const content = {}
@@ -27,8 +27,8 @@ fs.readdirSync(new URL('./samples', import.meta.url)).sort().forEach(function (s
 
   const bench = new Bench({ name: title })
 
-  IMPLS.forEach(function (impl) {
-    bench.add(impl.name, function () { impl.code.run(content.string) })
+  IMPLS.forEach((impl) => {
+    bench.add(impl.name, () => { impl.code.run(content.string) })
   })
 
   SAMPLES.push({ name: sample.split('.')[0], filename: sample, title, content, bench })
@@ -61,12 +61,12 @@ function select (patterns) {
   }
 
   function checkName (name) {
-    return patterns.length === 0 || patterns.some(function (regexp) {
+    return patterns.length === 0 || patterns.some((regexp) => {
       return regexp.test(name)
     })
   }
 
-  SAMPLES.forEach(function (sample) {
+  SAMPLES.forEach((sample) => {
     if (checkName(sample.name)) {
       result.push(sample)
     }
@@ -80,7 +80,7 @@ async function run (files) {
 
   if (selected.length > 0) {
     console.log('Selected samples: (%d of %d)', selected.length, SAMPLES.length)
-    selected.forEach(function (sample) {
+    selected.forEach((sample) => {
       console.log(' > %s', sample.name)
     })
   } else {
@@ -90,7 +90,7 @@ async function run (files) {
   for (const sample of selected) {
     console.log('\n\nSample: %s %s', sample.filename, sample.title)
 
-    sample.bench.addEventListener('cycle', function (event) {
+    sample.bench.addEventListener('cycle', (event) => {
       console.log(' > %s', formatTask(event.task))
     })
 
@@ -98,6 +98,6 @@ async function run (files) {
   }
 }
 
-await run(process.argv.slice(2).map(function (source) {
+await run(process.argv.slice(2).map((source) => {
   return new RegExp(source, 'i')
 }))

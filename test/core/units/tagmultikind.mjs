@@ -9,13 +9,13 @@ const tags = [{
 }, {
   tag: 'Include',
   type: 'mapping'
-}].map(function (fn) {
+}].map((fn) => {
   return new Type(`!${fn.tag}`, {
     kind: fn.type,
-    resolve: function () {
+    resolve: () => {
       return true
     },
-    construct: function (obj) {
+    construct: (obj) => {
       return obj
     }
   })
@@ -23,13 +23,13 @@ const tags = [{
 
 const schema = DEFAULT_SCHEMA.extend(tags)
 
-it('Process tag with kind: scalar', function () {
+it('Process tag with kind: scalar', () => {
   assert.deepStrictEqual(load('!Include foobar', {
     schema: schema
   }), 'foobar')
 })
 
-it('Process tag with kind: mapping', function () {
+it('Process tag with kind: mapping', () => {
   assert.deepStrictEqual(load('!Include\n  location: foobar', {
     schema: schema
   }), { location: 'foobar' })

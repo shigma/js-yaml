@@ -10,10 +10,10 @@ import { TEST_SCHEMA } from './support/schema.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-describe('Loader', function () {
+describe('Loader', () => {
   const samplesDir = path.resolve(__dirname, 'samples-common')
 
-  fs.readdirSync(samplesDir).forEach(function (sampleFile) {
+  fs.readdirSync(samplesDir).forEach((sampleFile) => {
     if (path.extname(sampleFile) !== '.mjs') return // continue
 
     const sampleName = path.basename(sampleFile, '.mjs')
@@ -23,7 +23,7 @@ describe('Loader', function () {
       const expected = (await import(pathToFileURL(path.resolve(samplesDir, sampleFile)).href)).default
       let actual = []
 
-      loadAll(fs.readFileSync(yamlFile, { encoding: 'utf8' }), function (doc) { actual.push(doc) }, {
+      loadAll(fs.readFileSync(yamlFile, { encoding: 'utf8' }), (doc) => { actual.push(doc) }, {
         filename: yamlFile,
         schema: TEST_SCHEMA
       })

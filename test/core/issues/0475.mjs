@@ -8,7 +8,7 @@ import { load } from 'js-yaml'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-it('Should not allow nested arrays in map keys (explicit syntax)', function () {
+it('Should not allow nested arrays in map keys (explicit syntax)', () => {
   try {
     load(readFileSync(path.join(__dirname, '0475-case1.yml'), 'utf8'))
   } catch (err) {
@@ -18,7 +18,7 @@ it('Should not allow nested arrays in map keys (explicit syntax)', function () {
   assert.fail(null, null, 'Expected an error to be thrown')
 })
 
-it('Should not allow nested arrays in map keys (implicit syntax)', function () {
+it('Should not allow nested arrays in map keys (implicit syntax)', () => {
   try {
     load(readFileSync(path.join(__dirname, '0475-case2.yml'), 'utf8'))
   } catch (err) {

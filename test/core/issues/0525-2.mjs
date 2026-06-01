@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Should check kind type when resolving !<?> tag', function () {
+it('Should check kind type when resolving !<?> tag', () => {
   try {
     load('!<?> [0]')
   } catch (err) {

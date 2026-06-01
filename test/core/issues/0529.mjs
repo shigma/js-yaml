@@ -55,8 +55,8 @@ const sample = {
   yes: 'yes'
 }
 
-describe('should format strings with specified quoting type', function () {
-  it('quotingType=\', forceQuotes=false', function () {
+describe('should format strings with specified quoting type', () => {
+  it('quotingType=\', forceQuotes=false', () => {
     const expected = `
 simple_key: value
 foo'bar"baz: 1
@@ -92,7 +92,7 @@ empty: ''
     assert.strictEqual(dump(sample, { quotingType: "'", forceQuotes: false }), expected)
   })
 
-  it('quotingType=", forceQuotes=false', function () {
+  it('quotingType=", forceQuotes=false', () => {
     const expected = `
 simple_key: value
 foo'bar"baz: 1
@@ -128,7 +128,7 @@ empty: ""
     assert.strictEqual(dump(sample, { quotingType: '"', forceQuotes: false }), expected)
   })
 
-  it('quotingType=\', forceQuotes=true', function () {
+  it('quotingType=\', forceQuotes=true', () => {
     const expected = `
 simple_key: 'value'
 foo'bar"baz: 1
@@ -157,7 +157,7 @@ empty: ''
     assert.strictEqual(dump(sample, { quotingType: "'", forceQuotes: true }), expected)
   })
 
-  it('quotingType=", forceQuotes=true', function () {
+  it('quotingType=", forceQuotes=true', () => {
     const expected = `
 simple_key: "value"
 foo'bar"baz: 1

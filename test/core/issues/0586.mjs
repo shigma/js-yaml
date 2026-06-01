@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, dump, Type } from 'js-yaml'
 
-it('Should allow custom formatting through implicit custom tags', function () {
+it('Should allow custom formatting through implicit custom tags', () => {
   function CustomDump (data, opts) {
     if (!(this instanceof CustomDump)) return new CustomDump(data, opts)
     this.data = data

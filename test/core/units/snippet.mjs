@@ -8,7 +8,7 @@ import snippet from '../../../src/snippet.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-it('Snippet', function () {
+it('Snippet', () => {
   const filepath = path.join(__dirname, 'snippet.txt')
   const filedata = fs.readFileSync(filepath, 'utf8')
 

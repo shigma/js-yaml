@@ -10,10 +10,10 @@ import { TEST_SCHEMA } from './support/schema.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-describe('Dumper', function () {
+describe('Dumper', () => {
   const samplesDir = path.resolve(__dirname, 'samples-common')
 
-  fs.readdirSync(samplesDir).forEach(function (sampleFile) {
+  fs.readdirSync(samplesDir).forEach((sampleFile) => {
     if (path.extname(sampleFile) !== '.mjs') return // continue
 
     const sampleName = path.basename(sampleFile, '.mjs')

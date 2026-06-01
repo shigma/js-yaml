@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Should not resolve numbers with underscores', function () {
+it('Should not resolve numbers with underscores', () => {
   assert.deepStrictEqual(load(`
 string: '1_2_3'
 also_string: 1_2_3

@@ -5,7 +5,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, load, Type, types } from 'js-yaml'
 
-it('Should allow int override', function () {
+it('Should allow int override', () => {
   const options = Object.assign({}, types.int.options)
 
   options.construct = data => {

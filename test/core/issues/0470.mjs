@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump, load } from 'js-yaml'
 
-it('Don\'t quote strings with : without need', function () {
+it('Don\'t quote strings with : without need', () => {
   const data = {
     // no quotes needed
     'http://example.com': 'http://example.com',

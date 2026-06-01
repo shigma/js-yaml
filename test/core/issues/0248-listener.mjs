@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Listener informed on a very simple scalar.', function () {
+it('Listener informed on a very simple scalar.', () => {
   const history = []
   function l (eventType, state) {
     history.push([eventType, state.position])
@@ -21,7 +21,7 @@ it('Listener informed on a very simple scalar.', function () {
   assert.strictEqual(history[3][1], 16)
 })
 
-it('Listener informed on a map with a list.', function () {
+it('Listener informed on a map with a list.', () => {
   const history = []
   function l (eventType, state) {
     history.push([eventType, state.position, state.result])

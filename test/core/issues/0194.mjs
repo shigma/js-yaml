@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Don\'t throw on warning', function () {
+it('Don\'t throw on warning', () => {
   const src = `
 foo: {
     bar: true
@@ -15,7 +15,7 @@ foo: {
 
   assert.deepStrictEqual(data, { foo: { bar: true } })
 
-  load(src, { onWarning: function (e) { warnings.push(e) } })
+  load(src, { onWarning: (e) => { warnings.push(e) } })
 
   assert.strictEqual(warnings.length, 1)
 })

@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should include the error message in the error stack', function () {
+it('should include the error message in the error stack', () => {
   try {
     load(`
 # intentionally invalid yaml

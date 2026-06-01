@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should assign anchor to an empty node', function () {
+it('should assign anchor to an empty node', () => {
   assert.deepStrictEqual(
     load('foo: &a\nbar: *a\n'),
     { foo: null, bar: null }

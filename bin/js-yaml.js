@@ -54,11 +54,11 @@ function readFile (filename, encoding, callback) {
 
     const chunks = []
 
-    process.stdin.on('data', function (chunk) {
+    process.stdin.on('data', (chunk) => {
       chunks.push(chunk)
     })
 
-    process.stdin.on('end', function () {
+    process.stdin.on('end', () => {
       return callback(null, Buffer.concat(chunks).toString(encoding))
     })
   } else {
@@ -66,7 +66,7 @@ function readFile (filename, encoding, callback) {
   }
 }
 
-readFile(options.file, 'utf8', function (error, input) {
+readFile(options.file, 'utf8', (error, input) => {
   let output
   let isYaml
 
@@ -91,7 +91,7 @@ readFile(options.file, 'utf8', function (error, input) {
     if (err instanceof SyntaxError) {
       try {
         output = []
-        yaml.loadAll(input, function (doc) { output.push(doc) }, {})
+        yaml.loadAll(input, (doc) => { output.push(doc) }, {})
         isYaml = true
 
         if (output.length === 0) output = null

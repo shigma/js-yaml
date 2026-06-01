@@ -3,7 +3,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, dump, FAILSAFE_SCHEMA, load, Type } from 'js-yaml'
 
-describe('Undefined', function () {
+describe('Undefined', () => {
   const undef = new Type('!undefined', {
     kind: 'scalar',
     resolve: () => true,
@@ -14,7 +14,7 @@ describe('Undefined', function () {
 
   const undefSchema = DEFAULT_SCHEMA.extend(undef)
 
-  it('Should replace undefined with null in collections', function () {
+  it('Should replace undefined with null in collections', () => {
     let str
 
     str = dump([undefined, 1, undefined, null, 2], { flowLevel: 0 })
@@ -32,7 +32,7 @@ describe('Undefined', function () {
     )
   })
 
-  it('Should remove keys with undefined in mappings', function () {
+  it('Should remove keys with undefined in mappings', () => {
     let str
 
     str = dump({ t: undefined, foo: 1, bar: undefined, baz: null }, { flowLevel: 0 })
@@ -50,11 +50,11 @@ describe('Undefined', function () {
     )
   })
 
-  it("Should serialize top-level undefined to ''", function () {
+  it("Should serialize top-level undefined to ''", () => {
     assert.strictEqual(dump(undefined), '')
   })
 
-  it('Should serialize undefined if schema is available', function () {
+  it('Should serialize undefined if schema is available', () => {
     assert.deepStrictEqual(
       load(
         dump([1, undefined, null, 2], { schema: undefSchema }),
@@ -72,20 +72,20 @@ describe('Undefined', function () {
     )
   })
 
-  it('Should respect null formatting', function () {
+  it('Should respect null formatting', () => {
     assert.strictEqual(
       dump([undefined], { styles: { '!!null': 'uppercase' } }),
       '- NULL\n'
     )
   })
 
-  it('Should return an error if neither null nor undefined schemas are available', function () {
+  it('Should return an error if neither null nor undefined schemas are available', () => {
     assert.throws(() => {
       dump(['foo', undefined, 'bar'], { schema: FAILSAFE_SCHEMA })
     }, /unacceptable kind of an object to dump/)
   })
 
-  it('Should skip leading values correctly', function () {
+  it('Should skip leading values correctly', () => {
     assert.strictEqual(
       dump([() => {}, 'a'], { flowLevel: 0, skipInvalid: true }),
       '[a]\n')

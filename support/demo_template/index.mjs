@@ -18,15 +18,15 @@ function encodeBase64 (str) {
 }
 
 function decodeBase64 (str) {
-  return new TextDecoder().decode(Uint8Array.from(atob(str), function (char) {
+  return new TextDecoder().decode(Uint8Array.from(atob(str), (char) => {
     return char.charCodeAt(0)
   }))
 }
 
 const SexyYamlType = new jsyaml.Type('!sexy', {
   kind: 'sequence', // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
-  construct: function (data) {
-    return data.map(function (string) { return `sexy ${string}` })
+  construct: (data) => {
+    return data.map((string) => { return `sexy ${string}` })
   }
 })
 
@@ -60,7 +60,7 @@ function updateSource () {
   parse()
 }
 
-window.onload = function () {
+window.onload = () => {
   permalink = document.getElementById('permalink')
   clear = document.getElementById('clear')
 
@@ -71,7 +71,7 @@ window.onload = function () {
 
   let timer
 
-  source.on('change', function () {
+  source.on('change', () => {
     clearTimeout(timer)
     timer = setTimeout(parse, 500)
   })
@@ -80,7 +80,7 @@ window.onload = function () {
     readOnly: true
   })
 
-  clear.addEventListener('click', function (event) {
+  clear.addEventListener('click', (event) => {
     event.preventDefault()
     source.setValue('')
     parse()

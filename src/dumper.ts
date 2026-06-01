@@ -426,7 +426,7 @@ function chooseScalarStyle (string, singleLineOnly, indentPerLevel, lineWidth,
 //    • Ending newline    => removed then restored.
 //  Importantly, this keeps the "+" chomp indicator from gaining an extra line.
 function writeScalar (state, string, level, iskey, inblock) {
-  state.dump = (function () {
+  state.dump = (() => {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''"
     }
@@ -473,7 +473,7 @@ function writeScalar (state, string, level, iskey, inblock) {
       default:
         throw new YAMLException('impossible error: invalid scalar style')
     }
-  }())
+  })()
 }
 
 // Pre-conditions: string is valid for a block scalar, 1 <= indentPerLevel <= 9.
@@ -503,12 +503,12 @@ function foldString (string, width) {
   const lineRe = /(\n+)([^\n]*)/g
 
   // first line (possibly an empty line)
-  let result = (function () {
+  let result = (() => {
     let nextLF = string.indexOf('\n')
     nextLF = nextLF !== -1 ? nextLF : string.length
     lineRe.lastIndex = nextLF
     return foldLine(string.slice(0, nextLF), width)
-  }())
+  })()
   // If we haven't reached the first content line yet, don't add an extra \n.
   let prevMoreIndented = string[0] === '\n' || string[0] === ' '
   let moreIndented

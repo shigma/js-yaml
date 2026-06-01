@@ -8,8 +8,8 @@ const DEPRECATED_BOOLEANS_SYNTAX = [
   'n', 'N', 'no', 'No', 'NO', 'off', 'Off', 'OFF'
 ]
 
-it('Dumper should not take into account booleans syntax from YAML 1.0/1.1 in noCompatMode', function () {
-  DEPRECATED_BOOLEANS_SYNTAX.forEach(function (string) {
+it('Dumper should not take into account booleans syntax from YAML 1.0/1.1 in noCompatMode', () => {
+  DEPRECATED_BOOLEANS_SYNTAX.forEach((string) => {
     const dumped = dump(string, { noCompatMode: true }).trim()
 
     assert(

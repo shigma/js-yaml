@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Should format errors', function () {
+it('Should format errors', () => {
   try {
     load('"foo\u0001bar"')
   } catch (err) {

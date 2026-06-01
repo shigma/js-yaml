@@ -6,7 +6,7 @@ const simpleArray = ['a', 'b']
 const arrayOfSimpleObj = [{ a: 1 }, { b: 2 }]
 const arrayOfObj = [{ a: 1, b: 'abc' }, { c: 'def', d: 2 }]
 
-it('space should be added for array, regardless of indent', function () {
+it('space should be added for array, regardless of indent', () => {
   assert.deepStrictEqual(
     dump(simpleArray, { indent: 1 }),
     '- a\n- b\n'
@@ -25,7 +25,7 @@ it('space should be added for array, regardless of indent', function () {
   )
 })
 
-it('array of objects should not wrap at indentation of 2', function () {
+it('array of objects should not wrap at indentation of 2', () => {
   assert.deepStrictEqual(
     dump(arrayOfSimpleObj, { indent: 2 }),
     '- a: 1\n- b: 2\n'
@@ -36,7 +36,7 @@ it('array of objects should not wrap at indentation of 2', function () {
   )
 })
 
-it('EOL space should not be added on array of objects at indentation of 3', function () {
+it('EOL space should not be added on array of objects at indentation of 3', () => {
   assert.deepStrictEqual(
     dump(arrayOfSimpleObj, { indent: 3 }),
     '-\n   a: 1\n-\n   b: 2\n'
@@ -47,7 +47,7 @@ it('EOL space should not be added on array of objects at indentation of 3', func
   )
 })
 
-it('EOL space should not be added on array of objects at indentation of 4', function () {
+it('EOL space should not be added on array of objects at indentation of 4', () => {
   assert.deepStrictEqual(
     dump(arrayOfSimpleObj, { indent: 4 }),
     '-\n    a: 1\n-\n    b: 2\n'

@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Timestamp parsing is one month off', function () {
+it('Timestamp parsing is one month off', () => {
   const data = load(`
 ---
 xmas: 2011-12-24

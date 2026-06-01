@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should define __proto__ as a value (not invoke setter)', function () {
+it('should define __proto__ as a value (not invoke setter)', () => {
   const object = load('{ __proto__: {polluted: bar} }')
 
   assert.strictEqual(({}).hasOwnProperty.call(load('{}'), '__proto__'), false)
@@ -11,7 +11,7 @@ it('should define __proto__ as a value (not invoke setter)', function () {
   assert(!object.polluted)
 })
 
-it('should merge __proto__ as a value with << operator', function () {
+it('should merge __proto__ as a value with << operator', () => {
   const object = load(`
 payload: &ref
   polluted: bar

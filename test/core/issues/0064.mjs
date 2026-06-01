@@ -8,8 +8,8 @@ import { load, YAMLException } from 'js-yaml'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-it('Wrong error message when yaml file contains tabs', function () {
+it('Wrong error message when yaml file contains tabs', () => {
   assert.doesNotThrow(
-    function () { load(readFileSync(path.join(__dirname, '0064.yml'), 'utf8')) },
+    () => { load(readFileSync(path.join(__dirname, '0064.yml'), 'utf8')) },
     YAMLException)
 })

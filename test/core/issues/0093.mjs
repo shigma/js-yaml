@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Unwanted line breaks in folded scalars', function () {
+it('Unwanted line breaks in folded scalars', () => {
   const data = load(`
 first: >
   a

@@ -17,9 +17,9 @@ function repeat (string, n) {
   return (new Array(n + 1)).join(string)
 }
 
-describe('Scalar style dump:', function () {
-  describe('Plain style', function () {
-    it('is preferred', function () {
+describe('Scalar style dump:', () => {
+  describe('Plain style', () => {
+    it('is preferred', () => {
       ['plain',
         'hello world',
         'pizza 3.14159',
@@ -31,12 +31,12 @@ describe('Scalar style dump:', function () {
         // additional allowed characters
         '100% safe non-first characters? Of course!',
         'Jack & Jill <well@example.com>'
-      ].forEach(function (string) {
+      ].forEach((string) => {
         assert.strictEqual(dump(string), `${string}\n`)
       })
     })
 
-    it('disallows flow indicators inside flow collections', function () {
+    it('disallows flow indicators inside flow collections', () => {
       assert.strictEqual(dump({ quote: 'mispell [sic]' }, { flowLevel: 0 }),
         "{quote: 'mispell [sic]'}\n")
       assert.strictEqual(dump({ key: 'no commas, either' }, { flowLevel: 0 }),
@@ -44,8 +44,8 @@ describe('Scalar style dump:', function () {
     })
   })
 
-  describe('Single- and double-quoted styles', function () {
-    it('quote strings of ambiguous type', function () {
+  describe('Single- and double-quoted styles', () => {
+    it('quote strings of ambiguous type', () => {
       assert.strictEqual(dump('Yes'), '\'Yes\'\n')
       assert.strictEqual(dump('true'), '\'true\'\n')
       assert.strictEqual(dump('42'), '\'42\'\n')
@@ -54,30 +54,30 @@ describe('Scalar style dump:', function () {
       assert.strictEqual(dump('1.23015e+3'), '\'1.23015e+3\'\n')
     })
 
-    it('quote leading/trailing whitespace', function () {
+    it('quote leading/trailing whitespace', () => {
       assert.strictEqual(dump(' leading space'), '\' leading space\'\n')
       assert.strictEqual(dump('trailing space '), '\'trailing space \'\n')
     })
 
-    it('quote leading quotes', function () {
+    it('quote leading quotes', () => {
       assert.strictEqual(dump("'singles double'"), "'''singles double'''\n")
       assert.strictEqual(dump('"single double'), '\'"single double\'\n')
     })
 
-    it('escape \\ and " in double-quoted', function () {
+    it('escape \\ and " in double-quoted', () => {
       assert.strictEqual(dump('\u0007 escape\\ escaper"'), '"\\a escape\\\\ escaper\\""\n')
     })
 
-    it('escape non-printables', function () {
+    it('escape non-printables', () => {
       assert.strictEqual(dump('a\nb\u0001c'), '"a\\nb\\x01c"\n')
     })
   })
 
-  describe('Literal style', function () {
+  describe('Literal style', () => {
     const content = 'a\nb \n\n c\n  d'
     const indented = indent(content)
 
-    it('preserves trailing newlines using chomping', function () {
+    it('preserves trailing newlines using chomping', () => {
       assert.strictEqual(dump({ a: '\n', b: '\n\n', c: 'c\n', d: 'd\nd' }),
         'a: |+\n\nb: |+\n\n\nc: |\n  c\nd: |-\n  d\n  d\n')
       assert.strictEqual(dump('\n'), '|+\n' + '\n')
@@ -89,16 +89,16 @@ describe('Scalar style dump:', function () {
       assert.strictEqual(dump(`${content}\n\n\n`), `|+\n${indented}\n\n\n`)
     })
 
-    it('accepts leading whitespace', function () {
+    it('accepts leading whitespace', () => {
       assert.strictEqual(dump(`   ${content}`), `|2-\n   ${indented}\n`)
     })
 
-    it('falls back to quoting when required indent indicator is too large', function () {
+    it('falls back to quoting when required indent indicator is too large', () => {
       assert.strictEqual(dump(' these go\nup to\neleven', { indent: 11 }),
         '" these go\\nup to\\neleven"\n')
     })
 
-    it('does not use block style for multiline key', function () {
+    it('does not use block style for multiline key', () => {
       assert.strictEqual(dump({
         'push\nand': {
           you: 'pull'
@@ -107,9 +107,9 @@ describe('Scalar style dump:', function () {
     })
   })
 
-  describe('Folded style', function () {
-    (function () {
-      const content = (function () {
+  describe('Folded style', () => {
+    (() => {
+      const content = (() => {
         let result = ''
         let i = 1000
         for (let para = 1; para <= 7; para++) {
@@ -126,7 +126,7 @@ describe('Scalar style dump:', function () {
           }
         }
         return result
-      }())
+      })()
       const wrapped = '\n' +
         '1000 1001 1002 1003  1004 1005\n' +
         '1006 1007 1008 1009 1010 1011 \n' +
@@ -153,16 +153,16 @@ describe('Scalar style dump:', function () {
         return dump(s, { lineWidth: 30 + 2 })
       }
 
-      it('wraps lines and ignores more-indented lines ', function () {
+      it('wraps lines and ignores more-indented lines ', () => {
         assert.strictEqual(dumpNarrow(content), `>-\n${indented}\n`)
       })
 
-      it('preserves trailing newlines using chomping', function () {
+      it('preserves trailing newlines using chomping', () => {
         assert.strictEqual(dumpNarrow(`${content}\n`), `>\n${indented}\n`)
         assert.strictEqual(dumpNarrow(`${content}\n\n`), `>+\n${indented}\n\n`)
         assert.strictEqual(dumpNarrow(`${content}\n\n\n`), `>+\n${indented}\n\n\n`)
       })
-    }())
+    })()
 
     // Dump and check that dump-then-load preserves content (is the identity function).
     function dumpAndLoad (input, opts) {
@@ -171,7 +171,7 @@ describe('Scalar style dump:', function () {
       return output
     }
 
-    it('should not cut off a long word at the start of a line', function () {
+    it('should not cut off a long word at the start of a line', () => {
       assert.strictEqual(dumpAndLoad('123\n' + repeat('1234567890', 9) + ' hello\ngoodbye'),
         '>-\n' + indent(
           '123\n' +
@@ -182,7 +182,7 @@ describe('Scalar style dump:', function () {
           'goodbye\n'))
     })
 
-    it('preserves consecutive spaces', function () {
+    it('preserves consecutive spaces', () => {
       const alphabet = 'a bc  def  ghi' + repeat(' ', 70) + 'jk  lmn o\n' +
         ' p  qrstu     v' + repeat(' ', 80) + '\nw x\n' + 'yz  '
       assert.strictEqual(dumpAndLoad(alphabet),
@@ -197,7 +197,7 @@ describe('Scalar style dump:', function () {
 
       const indeed = repeat('word. ', 31) + '\n' +
         [2, 3, 5, 7, 11, 13, 17]
-          .map(function (n) { return repeat(' ', n) })
+          .map((n) => { return repeat(' ', n) })
           .join('\n')
       assert.strictEqual(dumpAndLoad(indeed),
         '>-\n' + indent(
@@ -205,7 +205,7 @@ describe('Scalar style dump:', function () {
           'word. word. word. word. word. word. word. word. word. word. word. word. word.\n' +
           'word. word. word. word. word. \n' +
           [2, 3, 5, 7, 11, 13, 17]
-            .map(function (n) { return repeat(' ', n) })
+            .map((n) => { return repeat(' ', n) })
             .join('\n') + '\n'))
     })
 
@@ -216,7 +216,7 @@ describe('Scalar style dump:', function () {
     const prefix = 'var short_story = "",'
     const line = 'longer_story = "' + story + '";'
 
-    it('should fold a long last line missing an ending newline', function () {
+    it('should fold a long last line missing an ending newline', () => {
       const content = [prefix, line].join('\n')
 
       const lengths = dumpAndLoad(content).split('\n').map(getLength)
@@ -230,13 +230,13 @@ describe('Scalar style dump:', function () {
       assert.deepStrictEqual(lengths, [2, 23, 0, 69, 76, 80, 24, 250, 0])
     })
 
-    it('should not fold when lineWidth === -1', function () {
+    it('should not fold when lineWidth === -1', () => {
       const content = [prefix, line, line + line, line].join('\n')
 
       assert.strictEqual(dumpAndLoad(content, { lineWidth: -1 }), '|-\n' + indent(content) + '\n')
     })
 
-    it('falls back to literal style when no lines are foldable', function () {
+    it('falls back to literal style when no lines are foldable', () => {
       const content = [prefix, '    ' + line, '    ' + line].join('\n')
 
       assert.strictEqual(dumpAndLoad(content), '|-\n' + indent(content) + '\n')

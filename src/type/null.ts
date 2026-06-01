@@ -23,11 +23,11 @@ export default new Type('tag:yaml.org,2002:null', {
   construct: constructYamlNull,
   predicate: isNull,
   represent: {
-    canonical: function () { return '~' },
-    lowercase: function () { return 'null' },
-    uppercase: function () { return 'NULL' },
-    camelcase: function () { return 'Null' },
-    empty: function () { return '' }
+    canonical: () => { return '~' },
+    lowercase: () => { return 'null' },
+    uppercase: () => { return 'NULL' },
+    camelcase: () => { return 'Null' },
+    empty: () => { return '' }
   },
   defaultStyle: 'lowercase'
 })

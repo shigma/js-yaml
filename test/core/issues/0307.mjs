@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Trims trailing whitespace when folding flow scalar lines', function () {
+it('Trims trailing whitespace when folding flow scalar lines', () => {
   // https://github.com/nodeca/js-yaml/issues/307
   // https://yaml.org/spec/1.2.0/#id2787745
   assert.strictEqual(
@@ -17,7 +17,7 @@ it('Trims trailing whitespace when folding flow scalar lines', function () {
   )
 })
 
-it('Preserves trailing whitespace in the final line of quoted scalars', function () {
+it('Preserves trailing whitespace in the final line of quoted scalars', () => {
   assert.strictEqual(load('"line \t"'), 'line \t')
   assert.strictEqual(load("'line \t'"), 'line \t')
 })

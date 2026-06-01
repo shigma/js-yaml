@@ -36,21 +36,21 @@ b: { <<: [ ${'*a, '.repeat(repetitions - 1)}*a ] }
 `
 }
 
-describe('Pathological tests', function () {
-  describe('Deep nesting', function () {
-    it('throws YAMLException on deep array nesting (not stack overflow error)', function () {
-      assertYamlException(function () { load('['.repeat(100000)) },
+describe('Pathological tests', () => {
+  describe('Deep nesting', () => {
+    it('throws YAMLException on deep array nesting (not stack overflow error)', () => {
+      assertYamlException(() => { load('['.repeat(100000)) },
         /nesting exceeded maxDepth/)
     })
 
-    it('throws YAMLException on deep object nesting (not stack overflow error)', function () {
-      assertYamlException(function () { load('{a: '.repeat(100000)) },
+    it('throws YAMLException on deep object nesting (not stack overflow error)', () => {
+      assertYamlException(() => { load('{a: '.repeat(100000)) },
         /nesting exceeded maxDepth/)
     })
   })
 
-  describe('Merge aliases', function () {
-    it('loads repeated merge aliases with many keys', async function () {
+  describe('Merge aliases', () => {
+    it('loads repeated merge aliases with many keys', async () => {
       const doc = createRepeatedMergeAliasPattern(100000, 100000)
       const pool = workerpool.pool()
       try {
@@ -60,8 +60,8 @@ describe('Pathological tests', function () {
       }
     })
 
-    it('throws YAMLException on long merge sequence (over maxMergeSeqLength)', function () {
-      assertYamlException(function () {
+    it('throws YAMLException on long merge sequence (over maxMergeSeqLength)', () => {
+      assertYamlException(() => {
         load(`
 a: &a { k: 0 }
 b: { <<: [ ${'*a, '.repeat(20)}*a ] }

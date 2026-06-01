@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump, load } from 'js-yaml'
 
-it('should properly dump leading newlines and spaces', function () {
+it('should properly dump leading newlines and spaces', () => {
   let src = { str: '\n  a\nb' }
   let dumped = dump(src)
   assert.deepStrictEqual(load(dumped), src)

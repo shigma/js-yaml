@@ -28,17 +28,17 @@ const dumpOptionsArbitrary = fc.record({
     '!!float': fc.constantFrom('lowercase', 'uppercase', 'camelcase')
   }, { requiredKeys: [] })
 }, { requiredKeys: [] })
-  .map(function (instance) {
+  .map((instance) => {
     if (instance.condenseFlow === true && instance.flowLevel !== undefined) { instance.flowLevel = -1 }
     return instance
   })
 
-describe('Properties', function () {
-  it('Load from dumped should be the original object', function () {
+describe('Properties', () => {
+  it('Load from dumped should be the original object', () => {
     fc.assert(fc.property(
       yamlArbitrary,
       dumpOptionsArbitrary,
-      function (obj, dumpOptions) {
+      (obj, dumpOptions) => {
         const yamlContent = dump(obj, dumpOptions)
         assert.ok(typeof yamlContent === 'string')
         assert.deepStrictEqual(load(yamlContent), obj)

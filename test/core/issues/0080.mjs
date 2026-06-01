@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should throw when tabs are used as indentation', function () {
+it('should throw when tabs are used as indentation', () => {
   assert.throws(() => load(`
  \tfoo: 1
  bar: 2
@@ -25,7 +25,7 @@ it('should throw when tabs are used as indentation', function () {
 `), /tab characters must not be used/)
 })
 
-it('should allow tabs inside separation spaces', function () {
+it('should allow tabs inside separation spaces', () => {
   assert.deepStrictEqual(load(`
  foo\t \t:\t \t1\t \t
 \t \t \t
@@ -54,7 +54,7 @@ foo: # string indent = 1
 `), { foo: '1 2 3' })
 })
 
-it('should throw when tabs are used as indentation in strings', function () {
+it('should throw when tabs are used as indentation in strings', () => {
   assert.throws(() => load(`
 foo:
   bar: |

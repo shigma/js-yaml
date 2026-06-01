@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump } from 'js-yaml'
 
-it('Don\'t quote strings with # without need', function () {
+it('Don\'t quote strings with # without need', () => {
   const required = `
 http://example.com/page#anchor: no:quotes#required
 parameter#fallback: 'quotes #required'
@@ -24,7 +24,7 @@ parameter#fallback: 'quotes #required'
   )
 })
 
-it('Quote []{} in block-level scalars, but not in flow', function () {
+it('Quote []{} in block-level scalars, but not in flow', () => {
   const required = `
 key1: a[]b
 key2: a{}b

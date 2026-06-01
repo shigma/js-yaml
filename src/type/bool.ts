@@ -25,9 +25,9 @@ export default new Type('tag:yaml.org,2002:bool', {
   construct: constructYamlBoolean,
   predicate: isBoolean,
   represent: {
-    lowercase: function (object) { return object ? 'true' : 'false' },
-    uppercase: function (object) { return object ? 'TRUE' : 'FALSE' },
-    camelcase: function (object) { return object ? 'True' : 'False' }
+    lowercase: (object) => { return object ? 'true' : 'false' },
+    uppercase: (object) => { return object ? 'TRUE' : 'FALSE' },
+    camelcase: (object) => { return object ? 'True' : 'False' }
   },
   defaultStyle: 'lowercase'
 })

@@ -4,7 +4,7 @@ import assert from 'node:assert'
 
 import { isNegativeZero } from '../../../src/common.ts'
 
-it('isNegativeZero', function () {
+it('isNegativeZero', () => {
   assert(!isNegativeZero(0))
   assert(!isNegativeZero(0.0))
   assert(isNegativeZero(-0))

@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-describe('Units', async function () {
+describe('Units', async () => {
   const directory = path.resolve(__dirname, 'units')
 
   for (const file of fs.readdirSync(directory)) {

@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, dump, load, Type } from 'js-yaml'
 
-it('should shorthand tags with !! whenever possible', function () {
+it('should shorthand tags with !! whenever possible', () => {
   const regexp = new Type('tag:yaml.org,2002:js/regexp', {
     kind: 'scalar',
     resolve: () => true,

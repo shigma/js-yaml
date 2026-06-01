@@ -3,7 +3,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { DEFAULT_SCHEMA, dump, load, Type } from 'js-yaml'
 
-describe('replacer', function () {
+describe('replacer', () => {
   const undef = new Type('!undefined', {
     kind: 'scalar',
     resolve: () => true,
@@ -14,7 +14,7 @@ describe('replacer', function () {
 
   const undefSchema = DEFAULT_SCHEMA.extend(undef)
 
-  it('should be called on the root of the document', function () {
+  it('should be called on the root of the document', () => {
     let called = 0
 
     const result = dump(42, {
@@ -38,7 +38,7 @@ describe('replacer', function () {
     }), 'foo\n')
   })
 
-  it('should be called in collections (block)', function () {
+  it('should be called in collections (block)', () => {
     let called = 0
 
     const result = dump([42], {
@@ -56,7 +56,7 @@ describe('replacer', function () {
     assert.strictEqual(called, 2)
   })
 
-  it('should be called in collections (flow)', function () {
+  it('should be called in collections (flow)', () => {
     let called = 0
 
     const result = dump([42], {
@@ -74,7 +74,7 @@ describe('replacer', function () {
     assert.strictEqual(called, 2)
   })
 
-  it('should be called in mappings (block)', function () {
+  it('should be called in mappings (block)', () => {
     let called = 0
 
     const result = dump({ a: 42 }, {
@@ -92,7 +92,7 @@ describe('replacer', function () {
     assert.strictEqual(called, 2)
   })
 
-  it('should be called in mappings (flow)', function () {
+  it('should be called in mappings (flow)', () => {
     let called = 0
 
     const result = dump({ a: 42 }, {
@@ -110,7 +110,7 @@ describe('replacer', function () {
     assert.strictEqual(called, 2)
   })
 
-  it('undefined removes element from a mapping', function () {
+  it('undefined removes element from a mapping', () => {
     let str = dump({ a: 1, b: 2, c: 3 }, {
       replacer (key, value) {
         if (key === 'b') return undefined
@@ -131,7 +131,7 @@ describe('replacer', function () {
     assert.deepStrictEqual(result, { a: 1, b: undefined, c: 3 })
   })
 
-  it('undefined replaces element in an array with null', function () {
+  it('undefined replaces element in an array with null', () => {
     let str = dump([1, 2, 3], {
       replacer (key, value) {
         if (key === '1') return undefined
@@ -152,7 +152,7 @@ describe('replacer', function () {
     assert.deepStrictEqual(result, [1, undefined, 3])
   })
 
-  it('should recursively call replacer', function () {
+  it('should recursively call replacer', () => {
     let count = 0
 
     const result = dump(42, {

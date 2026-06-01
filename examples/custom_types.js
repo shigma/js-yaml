@@ -16,7 +16,7 @@ function Point (x, y, z) {
 
 function Space (height, width, points) {
   if (points) {
-    if (!points.every(function (point) { return point instanceof Point })) {
+    if (!points.every((point) => { return point instanceof Point })) {
       throw new Error('A non-Point inside a points array!')
     }
   }
@@ -36,7 +36,7 @@ const PointYamlType = new yaml.Type('!point', {
   kind: 'sequence',
 
   // Loader must check if the input object is suitable for this type.
-  resolve: function (data) {
+  resolve: (data) => {
     // `data` may be either:
     // - Null in case of an "empty node" (http://www.yaml.org/spec/1.2/spec.html#id2786563)
     // - Array since we specified `kind` to 'sequence'
@@ -44,7 +44,7 @@ const PointYamlType = new yaml.Type('!point', {
   },
 
   // If a node is resolved, use it to create a Point instance.
-  construct: function (data) {
+  construct: (data) => {
     return new Point(data[0], data[1], data[2])
   },
 
@@ -52,14 +52,14 @@ const PointYamlType = new yaml.Type('!point', {
   instanceOf: Point,
 
   // Dumper must represent Point objects as three-element sequence in YAML.
-  represent: function (point) {
+  represent: (point) => {
     return [point.x, point.y, point.z]
   }
 })
 
 const SpaceYamlType = new yaml.Type('!space', {
   kind: 'mapping',
-  construct: function (data) {
+  construct: (data) => {
     data = data || {} // in case of empty node
     return new Space(data.height || 0, data.width || 0, data.points || [])
   },
@@ -75,7 +75,7 @@ const SPACE_SCHEMA = yaml.DEFAULT_SCHEMA.extend([SpaceYamlType, PointYamlType])
 // do not execute the following if file is required (http://stackoverflow.com/a/6398335)
 if (require.main === module) {
   // And read a document using that schema.
-  fs.readFile(path.join(__dirname, 'custom_types.yml'), 'utf8', function (error, data) {
+  fs.readFile(path.join(__dirname, 'custom_types.yml'), 'utf8', (error, data) => {
     let loaded
 
     if (!error) {

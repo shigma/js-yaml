@@ -10,23 +10,23 @@ import { TEST_SCHEMA } from './support/schema.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-describe('Load errors', function () {
+describe('Load errors', () => {
   const samplesDir = path.resolve(__dirname, 'samples-load-errors')
 
-  fs.readdirSync(samplesDir).forEach(function (sampleName) {
+  fs.readdirSync(samplesDir).forEach((sampleName) => {
     const yamlFile = path.resolve(samplesDir, sampleName)
 
-    it(path.basename(sampleName, '.yml'), function () {
+    it(path.basename(sampleName, '.yml'), () => {
       const yamlSource = fs.readFileSync(yamlFile, { encoding: 'utf8' })
 
-      assert.throws(function () {
+      assert.throws(() => {
         loadAll(
           yamlSource,
-          function () {},
+          () => {},
           {
             filename: yamlFile,
             schema: TEST_SCHEMA,
-            onWarning: function (e) { throw e }
+            onWarning: (e) => { throw e }
           }
         )
       }, YAMLException, yamlFile)

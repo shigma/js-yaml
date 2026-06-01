@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { dump, load } from 'js-yaml'
 
-it('Circular and cross references', function () {
+it('Circular and cross references', () => {
   const source = {
     a: { a: 1 },
     b: [1, 2],

@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('should convert new line into white space', function () {
+it('should convert new line into white space', () => {
   const data = load(`
 test: >
   a

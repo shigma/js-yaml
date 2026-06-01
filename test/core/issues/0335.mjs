@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { load } from 'js-yaml'
 
-it('Don\'t throw on warning', function () {
+it('Don\'t throw on warning', () => {
   const src = `
 not_num_1: -_123
 not_num_2: _123

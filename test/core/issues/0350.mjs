@@ -3,7 +3,7 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { loadAll } from 'js-yaml'
 
-it('should return parse docs from loadAll', function () {
+it('should return parse docs from loadAll', () => {
   const data = loadAll(`
 ---
 a: 1
