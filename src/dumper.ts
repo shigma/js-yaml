@@ -100,7 +100,7 @@ function encodeHex (character) {
     throw new YAMLException('code point within a string may not be greater than 0xFFFFFFFF')
   }
 
-  return '\\' + handle + common.repeat('0', length - string.length) + string
+  return '\\' + handle + '0'.repeat(length - string.length) + string
 }
 
 const QUOTING_TYPE_SINGLE = 1
@@ -136,7 +136,7 @@ class DumperState {
 
 // Indents every line in a string. Empty lines (\n only) are not indented.
 function indentString (string, spaces) {
-  const ind = common.repeat(' ', spaces)
+  const ind = ' '.repeat(spaces)
   let position = 0
   let result = ''
   const length = string.length
@@ -161,7 +161,7 @@ function indentString (string, spaces) {
 }
 
 function generateNextLine (state, level) {
-  return '\n' + common.repeat(' ', state.indent * level)
+  return '\n' + ' '.repeat(state.indent * level)
 }
 
 function testImplicitResolving (state, str) {

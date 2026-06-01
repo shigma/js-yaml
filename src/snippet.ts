@@ -1,5 +1,3 @@
-import * as common from './common.ts'
-
 // get snippet for a single line, respecting maxLength
 function getLine (buffer, lineStart, lineEnd, position, maxLineLength) {
   let head = ''
@@ -23,7 +21,8 @@ function getLine (buffer, lineStart, lineEnd, position, maxLineLength) {
 }
 
 function padStart (string, max) {
-  return common.repeat(' ', max - string.length) + string
+  // max() protects from negativa value, to avoid exception.
+  return ' '.repeat(Math.max(max - string.length, 0)) + string
 }
 
 function makeSnippet (mark, options) {
@@ -66,14 +65,14 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
       maxLineLength
     )
-    result = common.repeat(' ', options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) +
+    result = ' '.repeat(options.indent) + padStart((mark.line - i + 1).toString(), lineNoLength) +
       ' | ' + line.str + '\n' + result
   }
 
   const line = getLine(mark.buffer, lineStarts[foundLineNo], lineEnds[foundLineNo], mark.position, maxLineLength)
-  result += common.repeat(' ', options.indent) + padStart((mark.line + 1).toString(), lineNoLength) +
+  result += ' '.repeat(options.indent) + padStart((mark.line + 1).toString(), lineNoLength) +
     ' | ' + line.str + '\n'
-  result += common.repeat('-', options.indent + lineNoLength + 3 + line.pos) + '^' + '\n'
+  result += '-'.repeat(options.indent + lineNoLength + 3 + line.pos) + '^' + '\n'
 
   for (let i = 1; i <= options.linesAfter; i++) {
     if (foundLineNo + i >= lineEnds.length) break
@@ -84,7 +83,7 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
       maxLineLength
     )
-    result += common.repeat(' ', options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) +
+    result += ' '.repeat(options.indent) + padStart((mark.line + i + 1).toString(), lineNoLength) +
       ' | ' + line.str + '\n'
   }
 
