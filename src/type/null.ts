@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 function resolveYamlNull (data) {
   if (data === null) return true
@@ -19,7 +17,7 @@ function isNull (object) {
   return object === null
 }
 
-module.exports = new Type('tag:yaml.org,2002:null', {
+export default new Type('tag:yaml.org,2002:null', {
   kind: 'scalar',
   resolve: resolveYamlNull,
   construct: constructYamlNull,

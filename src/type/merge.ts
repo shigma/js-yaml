@@ -1,12 +1,10 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 function resolveYamlMerge (data) {
   return data === '<<' || data === null
 }
 
-module.exports = new Type('tag:yaml.org,2002:merge', {
+export default new Type('tag:yaml.org,2002:merge', {
   kind: 'scalar',
   resolve: resolveYamlMerge
 })

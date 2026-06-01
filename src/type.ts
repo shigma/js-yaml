@@ -1,6 +1,4 @@
-'use strict'
-
-const YAMLException = require('./exception')
+import YAMLException from './exception.ts'
 
 const TYPE_CONSTRUCTOR_OPTIONS = [
   'kind',
@@ -63,4 +61,4 @@ function Type (tag, options) {
   }
 }
 
-module.exports = Type
+export default Type

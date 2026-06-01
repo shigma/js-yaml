@@ -1,7 +1,5 @@
-'use strict'
-
-const YAMLException = require('./exception')
-const Type = require('./type')
+import YAMLException from './exception.ts'
+import Type from './type.ts'
 
 function compileList (schema, name) {
   const result = []
@@ -106,4 +104,4 @@ Schema.prototype.extend = function extend (definition) {
   return result
 }
 
-module.exports = Schema
+export default Schema

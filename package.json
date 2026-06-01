@@ -27,19 +27,23 @@
     }
   ],
   "files": [
-    "index.js",
-    "lib/",
     "bin/",
     "dist/"
   ],
   "bin": {
     "js-yaml": "bin/js-yaml.js"
   },
+  "main": "./dist/js-yaml.cjs.js",
   "module": "./dist/js-yaml.mjs",
   "exports": {
     ".": {
       "import": "./dist/js-yaml.mjs",
-      "require": "./index.js"
+      "require": "./dist/js-yaml.cjs.js"
+    },
+    "./browser": {
+      "import": "./dist/browser/js-yaml.esm.min.mjs",
+      "require": "./dist/browser/js-yaml.umd.min.js",
+      "default": "./dist/browser/js-yaml.umd.min.js"
     },
     "./package.json": "./package.json"
   },
@@ -47,15 +51,13 @@
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "test": "npm run lint && npm run build && node --test 'test/**/*.test.*'",
-    "coverage": "npm run build && c8 --include 'lib/**' -r text -r html -r lcov node --test 'test/**/*.test.*'",
+    "coverage": "npm run build && c8 --include 'src/**' -r text -r html -r lcov node --test 'test/**/*.test.*'",
     "build": "node support/build-dist.mjs",
     "build:demo": "npm run lint && node support/build_demo.mjs",
     "gh-demo": "npm run build:demo && gh-pages -d demo -f",
     "prepack": "npm test && npm run build && npm run build:demo",
     "postpublish": "npm run gh-demo"
   },
-  "unpkg": "dist/js-yaml.min.js",
-  "jsdelivr": "dist/js-yaml.min.js",
   "dependencies": {
     "argparse": "^2.0.1"
   },

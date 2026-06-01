@@ -5,13 +5,17 @@
 // So, this schema is not such strict as defined in the YAML specification.
 // It allows numbers in binary notaion, use `Null` and `NULL` as `null`, etc.
 
-'use strict'
+import FAILSAFE_SCHEMA from './failsafe.ts'
+import nullType from '../type/null.ts'
+import bool from '../type/bool.ts'
+import int from '../type/int.ts'
+import float from '../type/float.ts'
 
-module.exports = require('./failsafe').extend({
+export default FAILSAFE_SCHEMA.extend({
   implicit: [
-    require('../type/null'),
-    require('../type/bool'),
-    require('../type/int'),
-    require('../type/float')
+    nullType,
+    bool,
+    int,
+    float
   ]
 })

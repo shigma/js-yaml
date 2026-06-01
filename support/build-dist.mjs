@@ -26,35 +26,15 @@ await build({
     ...common.build,
     minify: false,
     lib: {
-      entry: 'lib/index_vite_proxy.tmp.mjs',
-      name: 'jsyaml',
-      formats: ['umd'],
-      fileName: () => 'js-yaml.js'
+      entry: 'src/index.ts',
+      formats: ['cjs'],
+      fileName: () => 'js-yaml.cjs.js'
     },
     rollupOptions: {
       external: [],
       output: {
-        banner
-      }
-    }
-  }
-})
-
-await build({
-  ...common,
-  build: {
-    ...common.build,
-    minify: true,
-    lib: {
-      entry: 'lib/index_vite_proxy.tmp.mjs',
-      name: 'jsyaml',
-      formats: ['umd'],
-      fileName: () => 'js-yaml.min.js'
-    },
-    rollupOptions: {
-      external: [],
-      output: {
-        banner
+        banner,
+        exports: 'named'
       }
     }
   }
@@ -66,9 +46,52 @@ await build({
     ...common.build,
     minify: false,
     lib: {
-      entry: 'lib/index_vite_proxy.tmp.mjs',
+      entry: 'src/index.ts',
       formats: ['es'],
       fileName: () => 'js-yaml.mjs'
+    },
+    rollupOptions: {
+      external: [],
+      output: {
+        banner
+      }
+    }
+  }
+})
+
+await build({
+  ...common,
+  build: {
+    ...common.build,
+    outDir: 'dist/browser',
+    minify: true,
+    lib: {
+      entry: 'src/index.ts',
+      name: 'jsyaml',
+      formats: ['umd'],
+      fileName: () => 'js-yaml.umd.min.js'
+    },
+    rollupOptions: {
+      external: [],
+      output: {
+        banner,
+        exports: 'named',
+        name: 'jsyaml'
+      }
+    }
+  }
+})
+
+await build({
+  ...common,
+  build: {
+    ...common.build,
+    outDir: 'dist/browser',
+    minify: true,
+    lib: {
+      entry: 'src/index.ts',
+      formats: ['es'],
+      fileName: () => 'js-yaml.esm.min.mjs'
     },
     rollupOptions: {
       external: [],

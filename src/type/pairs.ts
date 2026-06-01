@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 const _toString = Object.prototype.toString
 
@@ -43,7 +41,7 @@ function constructYamlPairs (data) {
   return result
 }
 
-module.exports = new Type('tag:yaml.org,2002:pairs', {
+export default new Type('tag:yaml.org,2002:pairs', {
   kind: 'sequence',
   resolve: resolveYamlPairs,
   construct: constructYamlPairs

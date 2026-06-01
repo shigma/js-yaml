@@ -1,6 +1,4 @@
-'use strict'
-
-const common = require('./common')
+import * as common from './common.ts'
 
 // get snippet for a single line, respecting maxLength
 function getLine (buffer, lineStart, lineEnd, position, maxLineLength) {
@@ -93,4 +91,4 @@ function makeSnippet (mark, options) {
   return result.replace(/\n$/, '')
 }
 
-module.exports = makeSnippet
+export default makeSnippet

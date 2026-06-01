@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 const YAML_DATE_REGEXP = new RegExp(
   '^([0-9][0-9][0-9][0-9])' + // [1] year
@@ -79,7 +77,7 @@ function representYamlTimestamp (object /*, style */) {
   return object.toISOString()
 }
 
-module.exports = new Type('tag:yaml.org,2002:timestamp', {
+export default new Type('tag:yaml.org,2002:timestamp', {
   kind: 'scalar',
   resolve: resolveYamlTimestamp,
   construct: constructYamlTimestamp,

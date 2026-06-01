@@ -1,7 +1,5 @@
-'use strict'
-
-const common = require('../common')
-const Type = require('../type')
+import * as common from '../common.ts'
+import Type from '../type.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
   // 2.5e4, 2.5 and integers
@@ -89,7 +87,7 @@ function isFloat (object) {
          (object % 1 !== 0 || common.isNegativeZero(object))
 }
 
-module.exports = new Type('tag:yaml.org,2002:float', {
+export default new Type('tag:yaml.org,2002:float', {
   kind: 'scalar',
   resolve: resolveYamlFloat,
   construct: constructYamlFloat,

@@ -1,7 +1,5 @@
 // YAML error class. http://stackoverflow.com/questions/8458984
 //
-'use strict'
-
 function formatError (exception, compact) {
   let where = ''
   const message = exception.reason || '(unknown reason)'
@@ -48,4 +46,4 @@ YAMLException.prototype.toString = function toString (compact) {
   return this.name + ': ' + formatError(this, compact)
 }
 
-module.exports = YAMLException
+export default YAMLException

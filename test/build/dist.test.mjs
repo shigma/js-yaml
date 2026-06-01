@@ -19,7 +19,6 @@ const expectedKeys = [
   'Schema',
   'Type',
   'YAMLException',
-  'default',
   'dump',
   'load',
   'loadAll',
@@ -31,7 +30,6 @@ const expectedKeys = [
 
 function checkExports (yaml, options) {
   assert.deepStrictEqual(Object.keys(yaml).sort(), expectedKeys.slice().sort())
-  assert.strictEqual(yaml.default.load, yaml.load)
   assert.strictEqual(yaml.load('a: 1').a, 1)
   assert.strictEqual(typeof yaml.dump, 'function')
   assert.strictEqual(typeof yaml.types.binary, 'object')
@@ -50,35 +48,24 @@ function loadGlobal (filename) {
 }
 
 describe('dist build', function () {
-  it('keeps Vite proxy exports in sync with the CommonJS entry', async function () {
+  it('exports the expected CommonJS API from js-yaml.cjs.js', function () {
     const yaml = require('js-yaml')
-    const proxy = await import('../../lib/index_vite_proxy.tmp.mjs')
-
-    assert.deepStrictEqual(Object.keys(proxy).sort(), Object.keys(yaml).concat('default').sort())
-    assert.strictEqual(proxy.default, yaml)
-
-    Object.keys(yaml).forEach(function (key) {
-      assert.strictEqual(proxy[key], yaml[key])
-    })
-  })
-
-  it('exports the expected UMD API from js-yaml.js', function () {
-    checkExports(require('../../dist/js-yaml.js'), { checkEsModule: true })
-  })
-
-  it('exports the expected UMD API from js-yaml.min.js', function () {
-    checkExports(require('../../dist/js-yaml.min.js'), { checkEsModule: true })
+    checkExports(yaml)
   })
 
   it('exports the expected ESM API from js-yaml.mjs', async function () {
     checkExports(await import('../../dist/js-yaml.mjs'))
   })
 
-  it('exposes the expected browser global from js-yaml.js', function () {
-    checkExports(loadGlobal('js-yaml.js'))
+  it('exports the expected browser ESM API from js-yaml.esm.min.mjs', async function () {
+    checkExports(await import('../../dist/browser/js-yaml.esm.min.mjs'))
   })
 
-  it('exposes the expected browser global from js-yaml.min.js', function () {
-    checkExports(loadGlobal('js-yaml.min.js'))
+  it('exports the expected browser CommonJS API from js-yaml.umd.min.js', function () {
+    checkExports(require('../../dist/browser/js-yaml.umd.min.js'))
+  })
+
+  it('exposes the expected browser global from js-yaml.umd.min.js', function () {
+    checkExports(loadGlobal('browser/js-yaml.umd.min.js'))
   })
 })

@@ -1,9 +1,7 @@
-'use strict'
-
-const common = require('./common')
-const YAMLException = require('./exception')
-const makeSnippet = require('./snippet')
-const DEFAULT_SCHEMA = require('./schema/default')
+import * as common from './common.ts'
+import YAMLException from './exception.ts'
+import makeSnippet from './snippet.ts'
+import DEFAULT_SCHEMA from './schema/default.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -1790,5 +1788,4 @@ function load (input, options) {
   throw new YAMLException('expected a single document in the stream, but found more')
 }
 
-module.exports.loadAll = loadAll
-module.exports.load = load
+export { loadAll, load }

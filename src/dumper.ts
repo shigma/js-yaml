@@ -1,8 +1,6 @@
-'use strict'
-
-const common = require('./common')
-const YAMLException = require('./exception')
-const DEFAULT_SCHEMA = require('./schema/default')
+import * as common from './common.ts'
+import YAMLException from './exception.ts'
+import DEFAULT_SCHEMA from './schema/default.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -934,4 +932,4 @@ function dump (input, options) {
   return ''
 }
 
-module.exports.dump = dump
+export { dump }

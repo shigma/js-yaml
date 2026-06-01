@@ -4,7 +4,7 @@ import assert from 'node:assert'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import snippet from '../../../lib/snippet.js'
+import snippet from '../../../src/snippet.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

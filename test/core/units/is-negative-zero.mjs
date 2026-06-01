@@ -2,9 +2,7 @@ import { it } from 'node:test'
 
 import assert from 'node:assert'
 
-import common from '../../../lib/common.js'
-
-const { isNegativeZero } = common
+import { isNegativeZero } from '../../../src/common.ts'
 
 it('isNegativeZero', function () {
   assert(!isNegativeZero(0))

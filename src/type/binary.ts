@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 // [ 64, 65, 66 ] -> [ padding, CR, LF ]
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'
@@ -113,7 +111,7 @@ function isBinary (obj) {
   return Object.prototype.toString.call(obj) === '[object Uint8Array]'
 }
 
-module.exports = new Type('tag:yaml.org,2002:binary', {
+export default new Type('tag:yaml.org,2002:binary', {
   kind: 'scalar',
   resolve: resolveYamlBinary,
   construct: constructYamlBinary,

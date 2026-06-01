@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -22,7 +20,7 @@ function constructYamlSet (data) {
   return data !== null ? data : {}
 }
 
-module.exports = new Type('tag:yaml.org,2002:set', {
+export default new Type('tag:yaml.org,2002:set', {
   kind: 'mapping',
   resolve: resolveYamlSet,
   construct: constructYamlSet

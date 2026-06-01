@@ -1,7 +1,5 @@
-'use strict'
-
-const common = require('../common')
-const Type = require('../type')
+import * as common from '../common.ts'
+import Type from '../type.ts'
 
 function isHexCode (c) {
   return ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) ||
@@ -121,7 +119,7 @@ function isInteger (object) {
          (object % 1 === 0 && !common.isNegativeZero(object))
 }
 
-module.exports = new Type('tag:yaml.org,2002:int', {
+export default new Type('tag:yaml.org,2002:int', {
   kind: 'scalar',
   resolve: resolveYamlInteger,
   construct: constructYamlInteger,

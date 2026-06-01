@@ -1,6 +1,4 @@
-'use strict'
-
-const Type = require('../type')
+import Type from '../type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 const _toString = Object.prototype.toString
@@ -38,7 +36,7 @@ function constructYamlOmap (data) {
   return data !== null ? data : []
 }
 
-module.exports = new Type('tag:yaml.org,2002:omap', {
+export default new Type('tag:yaml.org,2002:omap', {
   kind: 'sequence',
   resolve: resolveYamlOmap,
   construct: constructYamlOmap
