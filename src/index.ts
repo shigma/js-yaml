@@ -6,6 +6,8 @@ import CORE_SCHEMA from './schema/core.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
 import { load, loadAll } from './loader.ts'
 import { dump } from './dumper.ts'
+import type { LoadOptions } from './loader.ts'
+import type { DumpOptions } from './dumper.ts'
 import YAMLException from './exception.ts'
 
 import binary from './type/binary.ts'
@@ -66,3 +68,5 @@ export {
   safeLoadAll,
   safeDump
 }
+
+export type { LoadOptions, DumpOptions }

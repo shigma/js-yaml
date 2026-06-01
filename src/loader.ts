@@ -2,6 +2,7 @@ import * as common from './common.ts'
 import YAMLException from './exception.ts'
 import makeSnippet from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
+import type Schema from './schema.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -137,21 +138,44 @@ for (let i = 0; i < 256; i++) {
   simpleEscapeMap[i] = simpleEscapeSequence(i)
 }
 
+interface LoadOptions {
+  filename?: string | null
+  schema?: Schema
+  onWarning?: ((this: null, e: YAMLException) => void) | null
+  // (Hidden) Remove? makes the loader to expect YAML 1.1 documents
+  // if such documents have no explicit %YAML directive
+  legacy?: boolean
+  json?: boolean
+  listener?: ((this: LoaderState, eventType: string, state: LoaderState) => void) | null
+  maxDepth?: number
+  maxMergeSeqLength?: number
+}
+
+const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
+  filename: null,
+  schema: DEFAULT_SCHEMA,
+  onWarning: null,
+  legacy: false,
+  json: false,
+  listener: null,
+  maxDepth: 100,
+  maxMergeSeqLength: 20
+}
+
 class LoaderState {
-  constructor (input, options) {
+  constructor (input, options: LoadOptions) {
     this.input = input
 
-    this.filename = options['filename'] || null
-    this.schema = options['schema'] || DEFAULT_SCHEMA
-    this.onWarning = options['onWarning'] || null
-    // (Hidden) Remove? makes the loader to expect YAML 1.1 documents
-    // if such documents have no explicit %YAML directive
-    this.legacy = options['legacy'] || false
+    const opts = Object.assign({}, DEFAULT_LOAD_OPTIONS, options)
 
-    this.json = options['json'] || false
-    this.listener = options['listener'] || null
-    this.maxDepth = typeof options['maxDepth'] === 'number' ? options['maxDepth'] : 100
-    this.maxMergeSeqLength = typeof options['maxMergeSeqLength'] === 'number' ? options['maxMergeSeqLength'] : 20
+    this.filename = opts.filename
+    this.schema = opts.schema
+    this.onWarning = opts.onWarning
+    this.legacy = opts.legacy
+    this.json = opts.json
+    this.listener = opts.listener
+    this.maxDepth = opts.maxDepth
+    this.maxMergeSeqLength = opts.maxMergeSeqLength
 
     this.implicitTypes = this.schema.compiledImplicit
     this.typeMap = this.schema.compiledTypeMap
@@ -1721,9 +1745,8 @@ function readDocument (state) {
   }
 }
 
-function loadDocuments (input, options) {
+function loadDocuments (input, options: LoadOptions = {}) {
   input = String(input)
-  options = options || {}
 
   if (input.length !== 0) {
     // Add tailing `\n` if not exists
@@ -1762,7 +1785,7 @@ function loadDocuments (input, options) {
   return state.documents
 }
 
-function loadAll (input, iterator, options) {
+function loadAll (input, iterator, options?: LoadOptions) {
   if (iterator !== null && typeof iterator === 'object' && typeof options === 'undefined') {
     options = iterator
     iterator = null
@@ -1779,7 +1802,7 @@ function loadAll (input, iterator, options) {
   }
 }
 
-function load (input, options) {
+function load (input, options?: LoadOptions) {
   const documents = loadDocuments(input, options)
 
   if (documents.length === 0) {
@@ -1791,3 +1814,4 @@ function load (input, options) {
 }
 
 export { loadAll, load }
+export type { LoadOptions }

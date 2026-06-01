@@ -1,6 +1,6 @@
-import * as common from './common.ts'
 import YAMLException from './exception.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
+import type Schema from './schema.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -106,22 +106,58 @@ function encodeHex (character) {
 const QUOTING_TYPE_SINGLE = 1
 const QUOTING_TYPE_DOUBLE = 2
 
+interface DumpOptions {
+  schema?: Schema
+  indent?: number
+  noArrayIndent?: boolean
+  skipInvalid?: boolean
+  flowLevel?: number
+  styles?: { [tag: string]: string } | null
+  sortKeys?: boolean | ((a: string, b: string) => number)
+  lineWidth?: number
+  noRefs?: boolean
+  noCompatMode?: boolean
+  condenseFlow?: boolean
+  quotingType?: "'" | '"'
+  forceQuotes?: boolean
+  replacer?: ((key: string, value: any) => any) | null
+}
+
+const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
+  schema: DEFAULT_SCHEMA,
+  indent: 2,
+  noArrayIndent: false,
+  skipInvalid: false,
+  flowLevel: -1,
+  styles: null,
+  sortKeys: false,
+  lineWidth: 80,
+  noRefs: false,
+  noCompatMode: false,
+  condenseFlow: false,
+  quotingType: "'",
+  forceQuotes: false,
+  replacer: null
+}
+
 class DumperState {
-  constructor (options) {
-    this.schema = options['schema'] || DEFAULT_SCHEMA
-    this.indent = Math.max(1, (options['indent'] || 2))
-    this.noArrayIndent = options['noArrayIndent'] || false
-    this.skipInvalid = options['skipInvalid'] || false
-    this.flowLevel = (common.isNothing(options['flowLevel']) ? -1 : options['flowLevel'])
-    this.styleMap = compileStyleMap(this.schema, options['styles'] || null)
-    this.sortKeys = options['sortKeys'] || false
-    this.lineWidth = options['lineWidth'] || 80
-    this.noRefs = options['noRefs'] || false
-    this.noCompatMode = options['noCompatMode'] || false
-    this.condenseFlow = options['condenseFlow'] || false
-    this.quotingType = options['quotingType'] === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE
-    this.forceQuotes = options['forceQuotes'] || false
-    this.replacer = typeof options['replacer'] === 'function' ? options['replacer'] : null
+  constructor (options: DumpOptions) {
+    const opts = Object.assign({}, DEFAULT_DUMP_OPTIONS, options)
+
+    this.schema = opts.schema
+    this.indent = opts.indent
+    this.noArrayIndent = opts.noArrayIndent
+    this.skipInvalid = opts.skipInvalid
+    this.flowLevel = opts.flowLevel
+    this.styleMap = compileStyleMap(this.schema, opts.styles)
+    this.sortKeys = opts.sortKeys
+    this.lineWidth = opts.lineWidth
+    this.noRefs = opts.noRefs
+    this.noCompatMode = opts.noCompatMode
+    this.condenseFlow = opts.condenseFlow
+    this.quotingType = opts.quotingType === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE
+    this.forceQuotes = opts.forceQuotes
+    this.replacer = opts.replacer
 
     this.implicitTypes = this.schema.compiledImplicit
     this.explicitTypes = this.schema.compiledExplicit
@@ -916,9 +952,7 @@ function inspectNode (object, objects, duplicatesIndexes) {
   }
 }
 
-function dump (input, options) {
-  options = options || {}
-
+function dump (input, options: DumpOptions = {}) {
   const state = new DumperState(options)
 
   if (!state.noRefs) getDuplicateReferences(input, state)
@@ -935,3 +969,4 @@ function dump (input, options) {
 }
 
 export { dump }
+export type { DumpOptions }
