@@ -13,8 +13,7 @@ const common = {
   build: {
     outDir: 'dist',
     emptyOutDir: false,
-    sourcemap: true,
-    target: 'es2015'
+    sourcemap: true
   }
 }
 
@@ -24,6 +23,7 @@ await build({
   ...common,
   build: {
     ...common.build,
+    target: 'es2015',
     minify: false,
     lib: {
       entry: 'src/index.ts',
@@ -63,6 +63,7 @@ await build({
   ...common,
   build: {
     ...common.build,
+    target: 'es2015',
     outDir: 'dist/browser',
     minify: true,
     lib: {
@@ -86,6 +87,7 @@ await build({
   ...common,
   build: {
     ...common.build,
+    target: 'es2015',
     outDir: 'dist/browser',
     minify: true,
     lib: {
