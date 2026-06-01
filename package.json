@@ -46,10 +46,8 @@
   "scripts": {
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
-    "test": "npm run lint && npm run test:core && npm run test:build",
-    "test:core": "node --test test/core/*.test.*",
-    "test:build": "npm run build && node --test test/build/*.test.*",
-    "coverage": "npm run build && c8 --include 'lib/**' -r text -r html -r lcov node --test test/core/*.test.*",
+    "test": "npm run lint && npm run build && node --test 'test/**/*.test.*'",
+    "coverage": "npm run build && c8 --include 'lib/**' -r text -r html -r lcov node --test 'test/**/*.test.*'",
     "build": "node support/build-dist.mjs",
     "build:demo": "npm run lint && node support/build_demo.mjs",
     "gh-demo": "npm run build:demo && gh-pages -d demo -f",
