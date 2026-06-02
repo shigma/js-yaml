@@ -1,6 +1,7 @@
 import YAMLException from './exception.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
 import type Schema from './schema.ts'
+import type Type from './type.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -31,7 +32,7 @@ const CHAR_LEFT_CURLY_BRACKET = 0x7B /* { */
 const CHAR_VERTICAL_LINE = 0x7C /* | */
 const CHAR_RIGHT_CURLY_BRACKET = 0x7D /* } */
 
-const ESCAPE_SEQUENCES = {}
+const ESCAPE_SEQUENCES: Record<number, string> = {}
 
 ESCAPE_SEQUENCES[0x00] = '\\0'
 ESCAPE_SEQUENCES[0x07] = '\\a'
@@ -56,10 +57,10 @@ const DEPRECATED_BOOLEANS_SYNTAX = [
 
 const DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/
 
-function compileStyleMap (schema, map) {
+function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null): Record<string, string> {
   if (map === null) return {}
 
-  const result = {}
+  const result: Record<string, string> = {}
   const keys = Object.keys(map)
 
   for (let index = 0, length = keys.length; index < length; index += 1) {
@@ -81,7 +82,7 @@ function compileStyleMap (schema, map) {
   return result
 }
 
-function encodeHex (character) {
+function encodeHex (character: number) {
   let handle
   let length
 
@@ -141,6 +142,30 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
 }
 
 class DumperState {
+  schema: Schema
+  indent: number
+  noArrayIndent: boolean
+  skipInvalid: boolean
+  flowLevel: number
+  styleMap: Record<string, string>
+  sortKeys: boolean | ((a: string, b: string) => number)
+  lineWidth: number
+  noRefs: boolean
+  noCompatMode: boolean
+  condenseFlow: boolean
+  quotingType: number
+  forceQuotes: boolean
+  replacer: ((key: string, value: any) => any) | null
+  implicitTypes: Type[]
+  explicitTypes: Type[]
+  tag: string | null
+  result: string
+  duplicates: any[]
+  usedDuplicates: boolean[] | null
+
+  // Holds the current serialized fragment; (re)assigned throughout writeNode & friends.
+  dump!: any
+
   constructor (options: DumpOptions) {
     const opts = Object.assign({}, DEFAULT_DUMP_OPTIONS, options)
 
@@ -171,7 +196,7 @@ class DumperState {
 }
 
 // Indents every line in a string. Empty lines (\n only) are not indented.
-function indentString (string, spaces) {
+function indentString (string: string, spaces: number) {
   const ind = ' '.repeat(spaces)
   let position = 0
   let result = ''
@@ -196,11 +221,11 @@ function indentString (string, spaces) {
   return result
 }
 
-function generateNextLine (state, level) {
+function generateNextLine (state: DumperState, level: number) {
   return `\n${' '.repeat(state.indent * level)}`
 }
 
-function testImplicitResolving (state, str) {
+function testImplicitResolving (state: DumperState, str: string) {
   for (let index = 0, length = state.implicitTypes.length; index < length; index += 1) {
     const type = state.implicitTypes[index]
 
@@ -213,7 +238,7 @@ function testImplicitResolving (state, str) {
 }
 
 // [33] s-white ::= s-space | s-tab
-function isWhitespace (c) {
+function isWhitespace (c: number) {
   return c === CHAR_SPACE || c === CHAR_TAB
 }
 
@@ -221,7 +246,7 @@ function isWhitespace (c) {
 // From YAML 1.2: "any allowed characters known to be non-printable
 // should also be escaped. [However,] This isn’t mandatory"
 // Derived from nb-char - \t - #x85 - #xA0 - #x2028 - #x2029.
-function isPrintable (c) {
+function isPrintable (c: number) {
   return (c >= 0x00020 && c <= 0x00007E) ||
     ((c >= 0x000A1 && c <= 0x00D7FF) && c !== 0x2028 && c !== 0x2029) ||
     ((c >= 0x0E000 && c <= 0x00FFFD) && c !== CHAR_BOM) ||
@@ -233,7 +258,7 @@ function isPrintable (c) {
 // [26] b-char  ::= b-line-feed | b-carriage-return
 // Including s-white (for some reason, examples doesn't match specs in this aspect)
 // ns-char ::= c-printable - b-line-feed - b-carriage-return - c-byte-order-mark
-function isNsCharOrWhitespace (c) {
+function isNsCharOrWhitespace (c: number) {
   return isPrintable(c) &&
     c !== CHAR_BOM &&
     // - b-char
@@ -250,7 +275,10 @@ function isNsCharOrWhitespace (c) {
 // [130]  ns-plain-char(c) ::=  ( ns-plain-safe(c) - “:” - “#” )
 //                            | ( /* An ns-char preceding */ “#” )
 //                            | ( “:” /* Followed by an ns-plain-safe(c) */ )
-function isPlainSafe (c, prev, inblock) {
+// `prev` is the previous code point, or -1 when `c` is the first character
+// (no preceding character). -1 is not a valid code point, so it can never
+// collide with a real one and safely disables the prev-dependent cases below.
+function isPlainSafe (c: number, prev: number, inblock: boolean) {
   const cIsNsCharOrWhitespace = isNsCharOrWhitespace(c)
   const cIsNsChar = cIsNsCharOrWhitespace && !isWhitespace(c)
   return (
@@ -275,7 +303,7 @@ function isPlainSafe (c, prev, inblock) {
 }
 
 // Simplified test for values allowed as the first character in plain style.
-function isPlainSafeFirst (c) {
+function isPlainSafeFirst (c: number) {
   // Uses a subset of ns-char - c-indicator
   // where ns-char = nb-char - s-white.
   // No support of ( ( “?” | “:” | “-” ) /* Followed by an ns-plain-safe(c)) */ ) part
@@ -309,13 +337,13 @@ function isPlainSafeFirst (c) {
 }
 
 // Simplified test for values allowed as the last character in plain style.
-function isPlainSafeLast (c) {
+function isPlainSafeLast (c: number) {
   // just not whitespace or colon, it will be checked to be plain character later
   return !isWhitespace(c) && c !== CHAR_COLON
 }
 
 // Same as 'string'.codePointAt(pos), but works in older browsers.
-function codePointAt (string, pos) {
+function codePointAt (string: string, pos: number) {
   const first = string.charCodeAt(pos)
   let second
 
@@ -330,7 +358,7 @@ function codePointAt (string, pos) {
 }
 
 // Determines whether block indentation indicator is required.
-function needIndentIndicator (string) {
+function needIndentIndicator (string: string) {
   const leadingSpaceRe = /^\n* /
   return leadingSpaceRe.test(string)
 }
@@ -348,11 +376,11 @@ const STYLE_DOUBLE = 5
 //    STYLE_PLAIN or STYLE_SINGLE => no \n are in the string.
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
-function chooseScalarStyle (string, singleLineOnly, indentPerLevel, lineWidth,
-  testAmbiguousType, quotingType, forceQuotes, inblock) {
+function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLevel: number, lineWidth: number,
+  testAmbiguousType: (s: string) => boolean, quotingType: number, forceQuotes: boolean, inblock: boolean) {
   let i
   let char = 0
-  let prevChar = null
+  let prevChar = -1 // -1 = no previous character yet (see isPlainSafe)
   let hasLineBreak = false
   let hasFoldableLine = false // only checked if shouldTrackWidth
   const shouldTrackWidth = lineWidth !== -1
@@ -425,7 +453,7 @@ function chooseScalarStyle (string, singleLineOnly, indentPerLevel, lineWidth,
 //    • No ending newline => unaffected; already using strip "-" chomping.
 //    • Ending newline    => removed then restored.
 //  Importantly, this keeps the "+" chomp indicator from gaining an extra line.
-function writeScalar (state, string, level, iskey, inblock) {
+function writeScalar (state: DumperState, string: string, level: number, iskey: boolean, inblock: boolean) {
   state.dump = (() => {
     if (string.length === 0) {
       return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''"
@@ -452,7 +480,7 @@ function writeScalar (state, string, level, iskey, inblock) {
     const singleLineOnly = iskey ||
       // No block styles in flow mode.
       (state.flowLevel > -1 && level >= state.flowLevel)
-    function testAmbiguity (string) {
+    function testAmbiguity (string: string) {
       return testImplicitResolving(state, string)
     }
 
@@ -469,7 +497,7 @@ function writeScalar (state, string, level, iskey, inblock) {
         return '>' + blockHeader(string, state.indent) +
           dropEndingNewline(indentString(foldString(string, lineWidth), indent))
       case STYLE_DOUBLE:
-        return `"${escapeString(string, lineWidth)}"`
+        return `"${escapeString(string)}"`
       default:
         throw new YAMLException('impossible error: invalid scalar style')
     }
@@ -477,7 +505,7 @@ function writeScalar (state, string, level, iskey, inblock) {
 }
 
 // Pre-conditions: string is valid for a block scalar, 1 <= indentPerLevel <= 9.
-function blockHeader (string, indentPerLevel) {
+function blockHeader (string: string, indentPerLevel: number) {
   const indentIndicator = needIndentIndicator(string) ? String(indentPerLevel) : ''
 
   // note the special case: the string '\n' counts as a "trailing" empty line.
@@ -489,13 +517,13 @@ function blockHeader (string, indentPerLevel) {
 }
 
 // (See the note for writeScalar.)
-function dropEndingNewline (string) {
+function dropEndingNewline (string: string) {
   return string[string.length - 1] === '\n' ? string.slice(0, -1) : string
 }
 
 // Note: a long line without a suitable break point will exceed the width limit.
 // Pre-conditions: every char in str isPrintable, str.length > 0, width > 0.
-function foldString (string, width) {
+function foldString (string: string, width: number) {
   // In folded style, $k$ consecutive newlines output as $k+1$ newlines—
   // unless they're before or after a more-indented line, or at the very
   // beginning or end, in which case $k$ maps to $k$.
@@ -533,7 +561,7 @@ function foldString (string, width) {
 // Picks the longest line under the limit each time,
 // otherwise settles for the shortest line over the limit.
 // NB. More-indented lines *cannot* be folded, as that would add an extra \n.
-function foldLine (line, width) {
+function foldLine (line: string, width: number) {
   if (line === '' || line[0] === ' ') return line
 
   // Since a more-indented line adds a \n, breaks can't be followed by a space.
@@ -576,7 +604,7 @@ function foldLine (line, width) {
 }
 
 // Escapes a double-quoted string.
-function escapeString (string) {
+function escapeString (string: string) {
   let result = ''
   let char = 0
 
@@ -595,7 +623,7 @@ function escapeString (string) {
   return result
 }
 
-function writeFlowSequence (state, level, object) {
+function writeFlowSequence (state: DumperState, level: number, object: any[]) {
   let _result = ''
   const _tag = state.tag
 
@@ -619,7 +647,7 @@ function writeFlowSequence (state, level, object) {
   state.dump = `[${_result}]`
 }
 
-function writeBlockSequence (state, level, object, compact) {
+function writeBlockSequence (state: DumperState, level: number, object: any[], compact: boolean) {
   let _result = ''
   const _tag = state.tag
 
@@ -652,7 +680,7 @@ function writeBlockSequence (state, level, object, compact) {
   state.dump = _result || '[]' // Empty sequence if no valid values.
 }
 
-function writeFlowMapping (state, level, object) {
+function writeFlowMapping (state: DumperState, level: number, object: any) {
   let _result = ''
   const _tag = state.tag
   const objectKeyList = Object.keys(object)
@@ -692,7 +720,7 @@ function writeFlowMapping (state, level, object) {
   state.dump = `{${_result}}`
 }
 
-function writeBlockMapping (state, level, object, compact) {
+function writeBlockMapping (state: DumperState, level: number, object: any, compact: boolean) {
   let _result = ''
   const _tag = state.tag
   const objectKeyList = Object.keys(object)
@@ -764,7 +792,7 @@ function writeBlockMapping (state, level, object, compact) {
   state.dump = _result || '{}' // Empty mapping if no valid pairs.
 }
 
-function detectType (state, object, explicit) {
+function detectType (state, object: any, explicit: boolean) {
   const typeList = explicit ? state.explicitTypes : state.implicitTypes
 
   for (let index = 0, length = typeList.length; index < length; index += 1) {
@@ -808,7 +836,7 @@ function detectType (state, object, explicit) {
 // Serializes `object` and writes it to global `result`.
 // Returns true on success, or false on invalid object.
 //
-function writeNode (state, level, object, block, compact, iskey, isblockseq) {
+function writeNode (state, level: number, object: any, block: boolean, compact: boolean, iskey = false, isblockseq = false) {
   state.tag = null
   state.dump = object
 
@@ -914,9 +942,9 @@ function writeNode (state, level, object, block, compact, iskey, isblockseq) {
   return true
 }
 
-function getDuplicateReferences (object, state) {
-  const objects = []
-  const duplicatesIndexes = []
+function getDuplicateReferences (object: any, state: DumperState) {
+  const objects: any[] = []
+  const duplicatesIndexes: number[] = []
 
   inspectNode(object, objects, duplicatesIndexes)
 
@@ -927,7 +955,7 @@ function getDuplicateReferences (object, state) {
   state.usedDuplicates = new Array(length)
 }
 
-function inspectNode (object, objects, duplicatesIndexes) {
+function inspectNode (object: any, objects: any[], duplicatesIndexes: number[]) {
   if (object !== null && typeof object === 'object') {
     const index = objects.indexOf(object)
     if (index !== -1) {
@@ -952,7 +980,7 @@ function inspectNode (object, objects, duplicatesIndexes) {
   }
 }
 
-function dump (input, options: DumpOptions = {}) {
+function dump (input: any, options: DumpOptions = {}) {
   const state = new DumperState(options)
 
   if (!state.noRefs) getDuplicateReferences(input, state)
