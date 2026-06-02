@@ -22,9 +22,6 @@ const expectedKeys = [
   'dump',
   'load',
   'loadAll',
-  'safeDump',
-  'safeLoad',
-  'safeLoadAll',
   'types'
 ]
 

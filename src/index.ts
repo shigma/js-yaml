@@ -24,13 +24,6 @@ import omap from './type/omap.ts'
 import seq from './type/seq.ts'
 import str from './type/str.ts'
 
-function renamed (from, to) {
-  return () => {
-    throw new Error(`Function yaml.${from} is removed in js-yaml 4. ` +
-      `Use yaml.${to} instead, which is now safe by default.`)
-  }
-}
-
 const types = {
   binary,
   float,
@@ -47,11 +40,6 @@ const types = {
   str
 }
 
-// Removed functions from JS-YAML 3.0.x
-const safeLoad = renamed('safeLoad', 'load')
-const safeLoadAll = renamed('safeLoadAll', 'loadAll')
-const safeDump = renamed('safeDump', 'dump')
-
 export {
   Type,
   Schema,
@@ -64,9 +52,6 @@ export {
   dump,
   YAMLException,
   types,
-  safeLoad,
-  safeLoadAll,
-  safeDump
 }
 
 export type { LoadOptions, DumpOptions }
