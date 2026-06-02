@@ -106,6 +106,8 @@ function encodeHex (character: number) {
 
 const QUOTING_TYPE_SINGLE = 1
 const QUOTING_TYPE_DOUBLE = 2
+const NO_TAG = ''
+const IMPLICIT_TAG = '?'
 
 interface DumpOptions {
   schema?: Schema
@@ -158,7 +160,7 @@ class DumperState {
   replacer: ((key: string, value: any) => any) | null
   implicitTypes: Type[]
   explicitTypes: Type[]
-  tag: string | null
+  tag: string
   result: string
   duplicates: Map<any, number>
   usedDuplicates: Set<any>
@@ -187,7 +189,7 @@ class DumperState {
     this.implicitTypes = this.schema.compiledImplicit
     this.explicitTypes = this.schema.compiledExplicit
 
-    this.tag = null
+    this.tag = NO_TAG
     this.result = ''
 
     this.duplicates = new Map()
@@ -755,7 +757,7 @@ function writeBlockMapping (state: DumperState, level: number, object: any, comp
       continue // Skip this pair because of invalid key.
     }
 
-    const explicitPair = (state.tag !== null && state.tag !== '?') ||
+    const explicitPair = (state.tag && state.tag !== IMPLICIT_TAG) ||
                    (state.dump && state.dump.length > 1024)
 
     if (explicitPair) {
@@ -792,7 +794,7 @@ function writeBlockMapping (state: DumperState, level: number, object: any, comp
   state.dump = _result || '{}' // Empty mapping if no valid pairs.
 }
 
-function detectType (state: DumperState, object: any, explicit: boolean) {
+function representType (state: DumperState, object: any, explicit: boolean) {
   const typeList = explicit ? state.explicitTypes : state.implicitTypes
 
   for (let index = 0, length = typeList.length; index < length; index += 1) {
@@ -806,7 +808,7 @@ function detectType (state: DumperState, object: any, explicit: boolean) {
           state.tag = type.tag
         }
       } else {
-        state.tag = '?'
+        state.tag = IMPLICIT_TAG
       }
 
       if (type.represent) {
@@ -835,11 +837,11 @@ function detectType (state: DumperState, object: any, explicit: boolean) {
 // Returns true on success, or false on invalid object.
 //
 function writeNode (state: DumperState, level: number, object: any, block: boolean, compact: boolean, iskey = false, isblockseq = false) {
-  state.tag = null
+  state.tag = NO_TAG
   state.dump = object
 
-  if (!detectType(state, object, false)) {
-    detectType(state, object, true)
+  if (!representType(state, object, false)) {
+    representType(state, object, true)
   }
 
   const type = _toString.call(state.dump)
@@ -858,7 +860,7 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
     duplicateIndex = state.duplicates.get(object)
   }
 
-  if ((state.tag !== null && state.tag !== '?') || duplicate || (state.indent !== 2 && level > 0)) {
+  if ((state.tag && state.tag !== IMPLICIT_TAG) || duplicate || (state.indent !== 2 && level > 0)) {
     compact = false
   }
 
@@ -897,7 +899,7 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
         }
       }
     } else if (type === '[object String]') {
-      if (state.tag !== '?') {
+      if (state.tag !== IMPLICIT_TAG) {
         writeScalar(state, state.dump, level, iskey, inblock)
       }
     } else if (type === '[object Undefined]') {
@@ -907,7 +909,7 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
       throw new YAMLException(`unacceptable kind of an object to dump ${type}`)
     }
 
-    if (state.tag !== null && state.tag !== '?') {
+    if (state.tag && state.tag !== IMPLICIT_TAG) {
       // Need to encode all characters except those allowed by the spec:
       //
       // [35] ns-dec-digit    ::=  [#x30-#x39] /* 0-9 */
