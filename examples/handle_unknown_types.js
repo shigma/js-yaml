@@ -21,7 +21,7 @@ const tags = ['scalar', 'sequence', 'mapping'].map((kind) => {
     represent: (object) => {
       return object.data
     },
-    instanceOf: CustomTag,
+    predicate: (object) => object instanceof CustomTag,
     construct: (data, type) => {
       return new CustomTag(type, data)
     }

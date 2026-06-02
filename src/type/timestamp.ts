@@ -81,6 +81,6 @@ export default new Type('tag:yaml.org,2002:timestamp', {
   kind: 'scalar',
   resolve: resolveYamlTimestamp,
   construct: constructYamlTimestamp,
-  instanceOf: Date,
+  predicate: (object) => object instanceof Date,
   represent: representYamlTimestamp
 })

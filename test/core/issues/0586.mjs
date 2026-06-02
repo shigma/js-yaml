@@ -20,7 +20,7 @@ it('Should allow custom formatting through implicit custom tags', () => {
   const CustomDumpType = new Type('!format', {
     kind: 'scalar',
     resolve: () => false,
-    instanceOf: CustomDump,
+    predicate: d => d instanceof CustomDump,
     represent: d => d.represent()
   })
 

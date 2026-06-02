@@ -798,9 +798,7 @@ function detectType (state, object: any, explicit: boolean) {
   for (let index = 0, length = typeList.length; index < length; index += 1) {
     const type = typeList[index]
 
-    if ((type.instanceOf || type.predicate) &&
-        (!type.instanceOf || ((typeof object === 'object') && (object instanceof type.instanceOf))) &&
-        (!type.predicate || type.predicate(object))) {
+    if (type.predicate && type.predicate(object)) {
       if (explicit) {
         if (type.multi && type.representName) {
           state.tag = type.representName(object)

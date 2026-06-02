@@ -7,7 +7,6 @@ interface TypeOptions {
   multi?: boolean
   resolve?: (data: any, tag?: string) => boolean
   construct?: (data: any, type?: string) => any
-  instanceOf?: object | null
   predicate?: ((data: object) => boolean) | null
   represent?: RepresentFn | { [style: string]: RepresentFn } | null
   representName?: ((data: object) => any) | null
@@ -19,7 +18,6 @@ const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'kind'>> = {
   multi: false,
   resolve: () => true,
   construct: (data: any) => data,
-  instanceOf: null,
   predicate: null,
   represent: null,
   representName: null,
@@ -47,7 +45,6 @@ class Type {
   kind: TypeKind
   resolve: (data: any, tag?: string) => boolean
   construct: (data: any, type?: string) => any
-  instanceOf: object | null
   predicate: ((data: object) => boolean) | null
   represent: RepresentFn | { [style: string]: RepresentFn } | null
   representName: ((data: object) => any) | null
@@ -64,7 +61,6 @@ class Type {
     this.kind = opts.kind
     this.resolve = opts.resolve
     this.construct = opts.construct
-    this.instanceOf = opts.instanceOf
     this.predicate = opts.predicate
     this.represent = opts.represent
     this.representName = opts.representName

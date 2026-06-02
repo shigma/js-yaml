@@ -43,7 +43,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     construct: (data) => {
       return new Tag3({ x: (data['='] || data.x), y: data.y, z: data.z })
     },
-    instanceOf: Tag3,
+    predicate: (object) => object instanceof Tag3,
     represent: (object) => {
       return { '=': object.x, y: object.y, z: object.z }
     }
@@ -53,7 +53,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     construct: (data) => {
       return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
     },
-    instanceOf: Tag2,
+    predicate: (object) => object instanceof Tag2,
     represent: (object) => {
       return String(object.x)
     }
@@ -71,7 +71,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     construct: (data) => {
       return new Tag1({ x: data.x, y: data.y, z: data.z })
     },
-    instanceOf: Tag1
+    predicate: (object) => object instanceof Tag1
   }),
   new Type('!foo', {
     kind: 'mapping',
@@ -88,7 +88,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
         myAnotherParameter: data['my-another-parameter']
       })
     },
-    instanceOf: Foo,
+    predicate: (object) => object instanceof Foo,
     represent: (object) => {
       return {
         'my-parameter': object.myParameter,

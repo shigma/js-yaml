@@ -49,7 +49,7 @@ const PointYamlType = new yaml.Type('!point', {
   },
 
   // Dumper must process instances of Point by rules of this YAML type.
-  instanceOf: Point,
+  predicate: (data) => data instanceof Point,
 
   // Dumper must represent Point objects as three-element sequence in YAML.
   represent: (point) => {
@@ -63,7 +63,7 @@ const SpaceYamlType = new yaml.Type('!space', {
     data = data || {} // in case of empty node
     return new Space(data.height || 0, data.width || 0, data.points || [])
   },
-  instanceOf: Space
+  predicate: (data) => data instanceof Space
   // `represent` is omitted here. So, Space objects will be dumped as is.
   // That is regular mapping with three key-value pairs but with !space tag.
 })

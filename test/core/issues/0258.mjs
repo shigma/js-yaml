@@ -8,7 +8,7 @@ it('should shorthand tags with !! whenever possible', () => {
     kind: 'scalar',
     resolve: () => true,
     construct: str => new RegExp(str),
-    instanceOf: RegExp,
+    predicate: object => object instanceof RegExp,
     represent: object => object.source
   })
 
