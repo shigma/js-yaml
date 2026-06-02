@@ -5,7 +5,7 @@ type RepresentFn = (data: any, style?: string) => any
 interface TypeOptions {
   kind: TypeKind
   multi?: boolean
-  resolve?: (data: any) => boolean
+  resolve?: (data: any, tag?: string) => boolean
   construct?: (data: any, type?: string) => any
   instanceOf?: object | null
   predicate?: ((data: object) => boolean) | null
@@ -45,7 +45,7 @@ class Type {
   options: TypeOptions
   tag: string
   kind: TypeKind
-  resolve: (data: any) => boolean
+  resolve: (data: any, tag?: string) => boolean
   construct: (data: any, type?: string) => any
   instanceOf: object | null
   predicate: ((data: object) => boolean) | null

@@ -2,6 +2,9 @@ import YAMLException from './exception.ts'
 import makeSnippet from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
 import type Schema from './schema.ts'
+import type { TypeMap } from './schema.ts'
+import type Type from './type.ts'
+import type { SnippetMark } from './snippet.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -24,24 +27,24 @@ const PATTERN_TAG_HANDLE = /^(?:!|!!|![0-9A-Za-z-]+!)$/
 // eslint-disable-next-line no-useless-escape
 const PATTERN_TAG_URI = /^(?:!|[^,\[\]{}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/?:@&=+$,_.!~*'()\[\]])*$/i
 
-function _class (obj) { return Object.prototype.toString.call(obj) }
+function _class (obj: any) { return Object.prototype.toString.call(obj) }
 
-function isEol (c) {
+function isEol (c: number) {
   return (c === 0x0A/* LF */) || (c === 0x0D/* CR */)
 }
 
-function isWhiteSpace (c) {
+function isWhiteSpace (c: number) {
   return (c === 0x09/* Tab */) || (c === 0x20/* Space */)
 }
 
-function isWsOrEol (c) {
+function isWsOrEol (c: number) {
   return (c === 0x09/* Tab */) ||
          (c === 0x20/* Space */) ||
          (c === 0x0A/* LF */) ||
          (c === 0x0D/* CR */)
 }
 
-function isFlowIndicator (c) {
+function isFlowIndicator (c: number) {
   return c === 0x2C/* , */ ||
          c === 0x5B/* [ */ ||
          c === 0x5D/* ] */ ||
@@ -49,7 +52,7 @@ function isFlowIndicator (c) {
          c === 0x7D/* } */
 }
 
-function fromHexCode (c) {
+function fromHexCode (c: number) {
   if ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) {
     return c - 0x30
   }
@@ -63,14 +66,14 @@ function fromHexCode (c) {
   return -1
 }
 
-function escapedHexLen (c) {
+function escapedHexLen (c: number) {
   if (c === 0x78/* x */) { return 2 }
   if (c === 0x75/* u */) { return 4 }
   if (c === 0x55/* U */) { return 8 }
   return 0
 }
 
-function fromDecimalCode (c) {
+function fromDecimalCode (c: number) {
   if ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) {
     return c - 0x30
   }
@@ -78,7 +81,7 @@ function fromDecimalCode (c) {
   return -1
 }
 
-function simpleEscapeSequence (c) {
+function simpleEscapeSequence (c: number) {
   switch (c) {
     case 0x30/* 0 */: return '\x00'
     case 0x61/* a */: return '\x07'
@@ -102,7 +105,7 @@ function simpleEscapeSequence (c) {
   }
 }
 
-function charFromCodepoint (c) {
+function charFromCodepoint (c: number) {
   if (c <= 0xFFFF) {
     return String.fromCharCode(c)
   }
@@ -116,7 +119,7 @@ function charFromCodepoint (c) {
 
 // set a property of a literal object, while protecting against prototype pollution,
 // see https://github.com/nodeca/js-yaml/issues/164 for more details
-function setProperty (object, key, value) {
+function setProperty (object: any, key: string, value: any) {
   // used for this specific key only because Object.defineProperty is slow
   if (key === '__proto__') {
     Object.defineProperty(object, key, {
@@ -162,7 +165,38 @@ const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
 }
 
 class LoaderState {
-  constructor (input, options: LoadOptions) {
+  input: string
+  filename: string | null
+  schema: Schema
+  onWarning: ((this: null, e: YAMLException) => void) | null
+  legacy: boolean
+  json: boolean
+  listener: ((this: LoaderState, eventType: string, state: LoaderState) => void) | null
+  maxDepth: number
+  maxMergeSeqLength: number
+  implicitTypes: Type[]
+  typeMap: TypeMap
+  length: number
+  position: number
+  line: number
+  lineStart: number
+  lineIndent: number
+  depth: number
+  firstTabInLine: number
+  documents: any[]
+  anchorMapTransactions: any[]
+
+  // Assigned later, during parsing (see readDocument / directive handlers / readNode)
+  version!: string | null
+  checkLineBreaks!: boolean
+  tagMap!: Record<string, string>
+  anchorMap!: Record<string, any>
+  tag!: string | null
+  anchor!: string | null
+  kind!: string | null
+  result!: any
+
+  constructor (input: string, options: LoadOptions) {
     this.input = input
 
     const opts = Object.assign({}, DEFAULT_LOAD_OPTIONS, options)
@@ -205,8 +239,8 @@ class LoaderState {
   }
 }
 
-function generateError (state, message) {
-  const mark = {
+function generateError (state: LoaderState, message: string) {
+  const mark: SnippetMark = {
     name: state.filename,
     buffer: state.input.slice(0, -1), // omit trailing \0
     position: state.position,
@@ -219,17 +253,17 @@ function generateError (state, message) {
   return new YAMLException(message, mark)
 }
 
-function throwError (state, message) {
+function throwError (state: LoaderState, message: string): never {
   throw generateError(state, message)
 }
 
-function throwWarning (state, message) {
+function throwWarning (state: LoaderState, message: string) {
   if (state.onWarning) {
     state.onWarning.call(null, generateError(state, message))
   }
 }
 
-function storeAnchor (state, name, value) {
+function storeAnchor (state: LoaderState, name: string, value: any) {
   const transactions = state.anchorMapTransactions
 
   if (transactions.length !== 0) {
@@ -246,11 +280,11 @@ function storeAnchor (state, name, value) {
   state.anchorMap[name] = value
 }
 
-function beginAnchorTransaction (state) {
+function beginAnchorTransaction (state: LoaderState) {
   state.anchorMapTransactions.push(Object.create(null))
 }
 
-function commitAnchorTransaction (state) {
+function commitAnchorTransaction (state: LoaderState) {
   const transaction = state.anchorMapTransactions.pop()
   const transactions = state.anchorMapTransactions
 
@@ -268,7 +302,7 @@ function commitAnchorTransaction (state) {
   }
 }
 
-function rollbackAnchorTransaction (state) {
+function rollbackAnchorTransaction (state: LoaderState) {
   const transaction = state.anchorMapTransactions.pop()
   const names = Object.keys(transaction)
 
@@ -283,7 +317,7 @@ function rollbackAnchorTransaction (state) {
   }
 }
 
-function snapshotState (state) {
+function snapshotState (state: LoaderState) {
   return {
     position: state.position,
     line: state.line,
@@ -297,7 +331,7 @@ function snapshotState (state) {
   }
 }
 
-function restoreState (state, snapshot) {
+function restoreState (state: LoaderState, snapshot: ReturnType<typeof snapshotState>) {
   state.position = snapshot.position
   state.line = snapshot.line
   state.lineStart = snapshot.lineStart
@@ -309,9 +343,9 @@ function restoreState (state, snapshot) {
   state.result = snapshot.result
 }
 
-const directiveHandlers = {
+const directiveHandlers: Record<string, (state: LoaderState, name: string, args: string[]) => void> = {
 
-  YAML: function handleYamlDirective (state, name, args) {
+  YAML: function handleYamlDirective (state: LoaderState, name: string, args: string[]) {
     if (state.version !== null) {
       throwError(state, 'duplication of %YAML directive')
     }
@@ -341,7 +375,7 @@ const directiveHandlers = {
     }
   },
 
-  TAG: function handleTagDirective (state, name, args) {
+  TAG: function handleTagDirective (state: LoaderState, name: string, args: string[]) {
     let prefix
 
     if (args.length !== 2) {
@@ -373,7 +407,7 @@ const directiveHandlers = {
   }
 }
 
-function captureSegment (state, start, end, checkJson) {
+function captureSegment (state: LoaderState, start: number, end: number, checkJson: boolean) {
   if (start < end) {
     const _result = state.input.slice(start, end)
 
@@ -404,7 +438,7 @@ function isPlainObject (subject: unknown) {
   return proto === null || proto === Object.prototype
 }
 
-function mergeMappings (state, destination, source, overridableKeys) {
+function mergeMappings (state: LoaderState, destination: any, source: any, overridableKeys: Record<string, boolean>) {
   if (!isPlainObject(source)) {
     throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
   }
@@ -421,8 +455,8 @@ function mergeMappings (state, destination, source, overridableKeys) {
   }
 }
 
-function storeMappingPair (state, _result, overridableKeys, keyTag, keyNode, valueNode,
-  startLine, startLineStart, startPos) {
+function storeMappingPair (state: LoaderState, _result: any, overridableKeys: Record<string, boolean>, keyTag: string | null, keyNode: any, valueNode: any,
+  startLine: number, startLineStart: number, startPos: number) {
   // The output is a plain object here, so keys can only be strings.
   // We need to convert keyNode to a string, but doing so can hang the process
   // (deeply nested arrays that explode exponentially using aliases).
@@ -487,7 +521,7 @@ function storeMappingPair (state, _result, overridableKeys, keyTag, keyNode, val
   return _result
 }
 
-function readLineBreak (state) {
+function readLineBreak (state: LoaderState) {
   const ch = state.input.charCodeAt(state.position)
 
   if (ch === 0x0A/* LF */) {
@@ -506,7 +540,7 @@ function readLineBreak (state) {
   state.firstTabInLine = -1
 }
 
-function skipSeparationSpace (state, allowComments, checkIndent) {
+function skipSeparationSpace (state: LoaderState, allowComments: boolean, checkIndent: number) {
   let lineBreaks = 0
   let ch = state.input.charCodeAt(state.position)
 
@@ -547,7 +581,7 @@ function skipSeparationSpace (state, allowComments, checkIndent) {
   return lineBreaks
 }
 
-function testDocumentSeparator (state) {
+function testDocumentSeparator (state: LoaderState) {
   let _position = state.position
   let ch = state.input.charCodeAt(_position)
 
@@ -568,7 +602,7 @@ function testDocumentSeparator (state) {
   return false
 }
 
-function writeFoldedLines (state, count) {
+function writeFoldedLines (state: LoaderState, count: number) {
   if (count === 1) {
     state.result += ' '
   } else if (count > 1) {
@@ -576,12 +610,12 @@ function writeFoldedLines (state, count) {
   }
 }
 
-function readPlainScalar (state, nodeIndent, withinFlowCollection) {
+function readPlainScalar (state: LoaderState, nodeIndent: number, withinFlowCollection: boolean) {
   let captureStart
   let captureEnd
   let hasPendingContent
-  let _line
-  let _lineStart
+  let _line!: number
+  let _lineStart!: number
   let _lineIndent
   const _kind = state.kind
   const _result = state.result
@@ -679,7 +713,7 @@ function readPlainScalar (state, nodeIndent, withinFlowCollection) {
   return false
 }
 
-function readSingleQuotedScalar (state, nodeIndent) {
+function readSingleQuotedScalar (state: LoaderState, nodeIndent: number) {
   let captureStart
   let captureEnd
 
@@ -723,7 +757,7 @@ function readSingleQuotedScalar (state, nodeIndent) {
   throwError(state, 'unexpected end of the stream within a single quoted scalar')
 }
 
-function readDoubleQuotedScalar (state, nodeIndent) {
+function readDoubleQuotedScalar (state: LoaderState, nodeIndent: number) {
   let captureStart
   let captureEnd
   let tmp
@@ -794,13 +828,13 @@ function readDoubleQuotedScalar (state, nodeIndent) {
   throwError(state, 'unexpected end of the stream within a double quoted scalar')
 }
 
-function readFlowCollection (state, nodeIndent) {
+function readFlowCollection (state: LoaderState, nodeIndent: number) {
   let readNext = true
   let _line
   let _lineStart
   let _pos
   const _tag = state.tag
-  let _result
+  let _result: any
   const _anchor = state.anchor
   let terminator
   let isPair
@@ -904,7 +938,7 @@ function readFlowCollection (state, nodeIndent) {
   throwError(state, 'unexpected end of the stream within a flow collection')
 }
 
-function readBlockScalar (state, nodeIndent) {
+function readBlockScalar (state: LoaderState, nodeIndent: number) {
   let folding
   let chomping = CHOMPING_CLIP
   let didReadContent = false
@@ -1046,10 +1080,10 @@ function readBlockScalar (state, nodeIndent) {
   return true
 }
 
-function readBlockSequence (state, nodeIndent) {
+function readBlockSequence (state: LoaderState, nodeIndent: number) {
   const _tag = state.tag
   const _anchor = state.anchor
-  const _result = []
+  const _result: any[] = []
   let detected = false
 
   // there is a leading tab before this token, so it can't be a block sequence/mapping;
@@ -1113,11 +1147,11 @@ function readBlockSequence (state, nodeIndent) {
   return false
 }
 
-function readBlockMapping (state, nodeIndent, flowIndent) {
+function readBlockMapping (state: LoaderState, nodeIndent: number, flowIndent: number) {
   let allowCompact
-  let _keyLine
-  let _keyLineStart
-  let _keyPos
+  let _keyLine!: number
+  let _keyLineStart!: number
+  let _keyPos!: number
   const _tag = state.tag
   const _anchor = state.anchor
   const _result = {}
@@ -1280,10 +1314,10 @@ function readBlockMapping (state, nodeIndent, flowIndent) {
   return detected
 }
 
-function readTagProperty (state) {
+function readTagProperty (state: LoaderState) {
   let isVerbatim = false
   let isNamed = false
-  let tagHandle
+  let tagHandle!: string
   let tagName
 
   let ch = state.input.charCodeAt(state.position)
@@ -1371,7 +1405,7 @@ function readTagProperty (state) {
   return true
 }
 
-function readAnchorProperty (state) {
+function readAnchorProperty (state: LoaderState) {
   let ch = state.input.charCodeAt(state.position)
 
   if (ch !== 0x26/* & */) return false
@@ -1395,7 +1429,7 @@ function readAnchorProperty (state) {
   return true
 }
 
-function readAlias (state) {
+function readAlias (state: LoaderState) {
   let ch = state.input.charCodeAt(state.position)
 
   if (ch !== 0x2A/* * */) return false
@@ -1422,7 +1456,7 @@ function readAlias (state) {
   return true
 }
 
-function tryReadBlockMappingFromProperty (state, propertyStart, nodeIndent, flowIndent) {
+function tryReadBlockMappingFromProperty (state: LoaderState, propertyStart: ReturnType<typeof snapshotState>, nodeIndent: number, flowIndent: number) {
   const fallbackState = snapshotState(state)
 
   beginAnchorTransaction(state)
@@ -1445,7 +1479,7 @@ function tryReadBlockMappingFromProperty (state, propertyStart, nodeIndent, flow
   return false
 }
 
-function composeNode (state, parentIndent, nodeContext, allowToSeek, allowCompact) {
+function composeNode (state: LoaderState, parentIndent: number, nodeContext: number, allowToSeek: boolean, allowCompact: boolean) {
   let allowBlockScalars
   let allowBlockCollections
   let indentStatus = 1 // 1: this>parent, 0: this=parent, -1: this<parent
@@ -1655,7 +1689,7 @@ function composeNode (state, parentIndent, nodeContext, allowToSeek, allowCompac
   return state.tag !== null || state.anchor !== null || hasContent
 }
 
-function readDocument (state) {
+function readDocument (state: LoaderState) {
   const documentStart = state.position
   let hasDirectives = false
   let ch
@@ -1755,7 +1789,7 @@ function readDocument (state) {
   }
 }
 
-function loadDocuments (input, options: LoadOptions = {}) {
+function loadDocuments (input: string, options: LoadOptions = {}) {
   input = String(input)
 
   if (input.length !== 0) {
@@ -1795,7 +1829,7 @@ function loadDocuments (input, options: LoadOptions = {}) {
   return state.documents
 }
 
-function loadAll (input, iterator, options?: LoadOptions) {
+function loadAll (input: string, iterator?: ((doc: any) => void) | LoadOptions | null, options?: LoadOptions) {
   if (iterator !== null && typeof iterator === 'object' && typeof options === 'undefined') {
     options = iterator
     iterator = null
@@ -1812,7 +1846,7 @@ function loadAll (input, iterator, options?: LoadOptions) {
   }
 }
 
-function load (input, options?: LoadOptions) {
+function load (input: string, options?: LoadOptions) {
   const documents = loadDocuments(input, options)
 
   if (documents.length === 0) {
