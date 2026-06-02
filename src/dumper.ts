@@ -792,7 +792,7 @@ function writeBlockMapping (state: DumperState, level: number, object: any, comp
   state.dump = _result || '{}' // Empty mapping if no valid pairs.
 }
 
-function detectType (state, object: any, explicit: boolean) {
+function detectType (state: DumperState, object: any, explicit: boolean) {
   const typeList = explicit ? state.explicitTypes : state.implicitTypes
 
   for (let index = 0, length = typeList.length; index < length; index += 1) {
@@ -813,12 +813,12 @@ function detectType (state, object: any, explicit: boolean) {
         const style = state.styleMap[type.tag] || type.defaultStyle
 
         let _result
-        if (_toString.call(type.represent) === '[object Function]') {
-          _result = type.represent(object, style)
-        } else if (_hasOwnProperty.call(type.represent, style)) {
+        if (typeof type.represent === 'function') {
+          _result = style ? type.represent(object, style) : type.represent(object)
+        } else if (style && _hasOwnProperty.call(type.represent, style)) {
           _result = type.represent[style](object, style)
         } else {
-          throw new YAMLException(`!<${type.tag}> tag resolver accepts not "${style}" style`)
+          throw new YAMLException(`!<${type.tag}> tag resolver does not accept "${style}" style`)
         }
 
         state.dump = _result
@@ -834,7 +834,7 @@ function detectType (state, object: any, explicit: boolean) {
 // Serializes `object` and writes it to global `result`.
 // Returns true on success, or false on invalid object.
 //
-function writeNode (state, level: number, object: any, block: boolean, compact: boolean, iskey = false, isblockseq = false) {
+function writeNode (state: DumperState, level: number, object: any, block: boolean, compact: boolean, iskey = false, isblockseq = false) {
   state.tag = null
   state.dump = object
 
