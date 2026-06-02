@@ -104,8 +104,8 @@ function encodeHex (character: number) {
   return `\\${handle}${'0'.repeat(length - string.length)}${string}`
 }
 
-const QUOTING_TYPE_SINGLE = 1
-const QUOTING_TYPE_DOUBLE = 2
+const QUOTING_TYPE_SINGLE = "'"
+const QUOTING_TYPE_DOUBLE = '"'
 const NO_TAG = ''
 const IMPLICIT_TAG = '?'
 
@@ -143,57 +143,34 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   replacer: null
 }
 
-class DumperState {
-  schema: Schema
-  indent: number
-  noArrayIndent: boolean
-  skipInvalid: boolean
-  flowLevel: number
+interface DumperState extends Required<DumpOptions> {
   styleMap: Record<string, string>
-  sortKeys: boolean | ((a: string, b: string) => number)
-  lineWidth: number
-  noRefs: boolean
-  noCompatMode: boolean
-  condenseFlow: boolean
-  quotingType: number
-  forceQuotes: boolean
-  replacer: ((key: string, value: any) => any) | null
   implicitTypes: Type[]
   explicitTypes: Type[]
-  tag: string
-  result: string
+
   duplicates: Map<any, number>
   usedDuplicates: Set<any>
 
-  // Holds the current serialized fragment; (re)assigned throughout writeNode & friends.
-  dump!: any
+  tag: string
+  dump: any
+}
 
-  constructor (options: DumpOptions) {
-    const opts = Object.assign({}, DEFAULT_DUMP_OPTIONS, options)
+function createDumperState (options: DumpOptions = {}): DumperState {
+  const opts = { ...DEFAULT_DUMP_OPTIONS, ...options }
+  const schema = opts.schema
 
-    this.schema = opts.schema
-    this.indent = opts.indent
-    this.noArrayIndent = opts.noArrayIndent
-    this.skipInvalid = opts.skipInvalid
-    this.flowLevel = opts.flowLevel
-    this.styleMap = compileStyleMap(this.schema, opts.styles)
-    this.sortKeys = opts.sortKeys
-    this.lineWidth = opts.lineWidth
-    this.noRefs = opts.noRefs
-    this.noCompatMode = opts.noCompatMode
-    this.condenseFlow = opts.condenseFlow
-    this.quotingType = opts.quotingType === '"' ? QUOTING_TYPE_DOUBLE : QUOTING_TYPE_SINGLE
-    this.forceQuotes = opts.forceQuotes
-    this.replacer = opts.replacer
+  return {
+    ...opts,
 
-    this.implicitTypes = this.schema.compiledImplicit
-    this.explicitTypes = this.schema.compiledExplicit
+    styleMap: compileStyleMap(schema, opts.styles),
+    implicitTypes: schema.compiledImplicit,
+    explicitTypes: schema.compiledExplicit,
 
-    this.tag = NO_TAG
-    this.result = ''
+    duplicates: new Map(),
+    usedDuplicates: new Set(),
 
-    this.duplicates = new Map()
-    this.usedDuplicates = new Set()
+    tag: NO_TAG,
+    dump: undefined
   }
 }
 
@@ -379,7 +356,7 @@ const STYLE_DOUBLE = 5
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
 function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLevel: number, lineWidth: number,
-  testAmbiguousType: (s: string) => boolean, quotingType: number, forceQuotes: boolean, inblock: boolean) {
+  testAmbiguousType: (s: string) => boolean, quotingType: DumperState['quotingType'], forceQuotes: boolean, inblock: boolean) {
   let i
   let char = 0
   let prevChar = -1 // -1 = no previous character yet (see isPlainSafe)
@@ -833,7 +810,7 @@ function representType (state: DumperState, object: any, explicit: boolean) {
   return false
 }
 
-// Serializes `object` and writes it to global `result`.
+// Serializes `object` and writes the serialized fragment to `state.dump`.
 // Returns true on success, or false on invalid object.
 //
 function writeNode (state: DumperState, level: number, object: any, block: boolean, compact: boolean, iskey = false, isblockseq = false) {
@@ -971,7 +948,7 @@ function inspectNode (object: any, seen: Set<any>, duplicates: Map<any, number>)
 }
 
 function dump (input: any, options: DumpOptions = {}) {
-  const state = new DumperState(options)
+  const state = createDumperState(options)
 
   if (!state.noRefs) getDuplicateReferences(input, state)
 

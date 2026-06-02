@@ -1,5 +1,7 @@
 type TypeKind = 'scalar' | 'sequence' | 'mapping'
 
+type StyleAlias = string | number
+
 type RepresentFn = (data: any, style?: string) => any
 
 interface TypeOptions {
@@ -11,7 +13,7 @@ interface TypeOptions {
   represent?: RepresentFn | { [style: string]: RepresentFn } | null
   representName?: ((data: object) => any) | null
   defaultStyle?: string | null
-  styleAliases?: { [style: string]: any[] } | null
+  styleAliases?: { [style: string]: StyleAlias[] } | null
 }
 
 const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'kind'>> = {
@@ -25,7 +27,7 @@ const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'kind'>> = {
   styleAliases: null
 }
 
-function compileStyleAliases (map: { [style: string]: any[] } | null) {
+function compileStyleAliases (map: { [style: string]: StyleAlias[] } | null) {
   const result: { [alias: string]: string } = {}
 
   if (map !== null) {
@@ -71,4 +73,4 @@ class Type {
 }
 
 export default Type
-export type { TypeKind, TypeOptions }
+export type { StyleAlias, TypeKind, TypeOptions }

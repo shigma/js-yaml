@@ -16,6 +16,9 @@ const CONTEXT_BLOCK_OUT = 4
 const CHOMPING_CLIP = 1
 const CHOMPING_STRIP = 2
 const CHOMPING_KEEP = 3
+const DEFAULT_YAML_VERSION = ''
+const NO_TAG = ''
+const NO_ANCHOR = ''
 
 // eslint-disable-next-line no-control-regex
 const PATTERN_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/
@@ -141,41 +144,34 @@ for (let i = 0; i < 256; i++) {
 }
 
 interface LoadOptions {
-  filename?: string | null
+  filename?: string
   schema?: Schema
-  onWarning?: ((this: null, e: YAMLException) => void) | null
   // (Hidden) Remove? makes the loader to expect YAML 1.1 documents
   // if such documents have no explicit %YAML directive
   legacy?: boolean
   json?: boolean
+  onWarning?: ((this: null, e: YAMLException) => void) | null
   listener?: ((this: LoaderState, eventType: string, state: LoaderState) => void) | null
   maxDepth?: number
   maxMergeSeqLength?: number
 }
 
 const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
-  filename: null,
+  filename: '',
   schema: DEFAULT_SCHEMA,
-  onWarning: null,
   legacy: false,
   json: false,
+  onWarning: null,
   listener: null,
   maxDepth: 100,
   maxMergeSeqLength: 20
 }
 
-class LoaderState {
+interface LoaderState extends Required<LoadOptions> {
   input: string
-  filename: string | null
-  schema: Schema
-  onWarning: ((this: null, e: YAMLException) => void) | null
-  legacy: boolean
-  json: boolean
-  listener: ((this: LoaderState, eventType: string, state: LoaderState) => void) | null
-  maxDepth: number
-  maxMergeSeqLength: number
   implicitTypes: Type[]
   typeMap: TypeMap
+
   length: number
   position: number
   line: number
@@ -183,59 +179,51 @@ class LoaderState {
   lineIndent: number
   depth: number
   firstTabInLine: number
+
   documents: any[]
   anchorMapTransactions: any[]
 
-  // Assigned later, during parsing (see readDocument / directive handlers / readNode)
-  version!: string | null
-  checkLineBreaks!: boolean
-  tagMap!: Record<string, string>
-  anchorMap!: Record<string, any>
-  tag!: string | null
-  anchor!: string | null
-  kind!: string | null
-  result!: any
+  version: string
+  checkLineBreaks: boolean
+  tagMap: Record<string, string>
+  anchorMap: Record<string, any>
+  tag: string
+  anchor: string
+  kind: string | null
+  result: any
+}
 
-  constructor (input: string, options: LoadOptions) {
-    this.input = input
+function createLoaderState (input: string, options: LoadOptions = {}): LoaderState {
+  const opts = { ...DEFAULT_LOAD_OPTIONS, ...options }
+  const schema = opts.schema
 
-    const opts = Object.assign({}, DEFAULT_LOAD_OPTIONS, options)
+  return {
+    ...opts,
+    input,
+    implicitTypes: schema.compiledImplicit,
+    typeMap: schema.compiledTypeMap,
 
-    this.filename = opts.filename
-    this.schema = opts.schema
-    this.onWarning = opts.onWarning
-    this.legacy = opts.legacy
-    this.json = opts.json
-    this.listener = opts.listener
-    this.maxDepth = opts.maxDepth
-    this.maxMergeSeqLength = opts.maxMergeSeqLength
+    length: input.length,
+    position: 0,
+    line: 0,
+    lineStart: 0,
+    lineIndent: 0,
+    depth: 0,
+    // Position of first leading tab in the current line, used to make sure
+    // there are no tabs in the indentation.
+    firstTabInLine: -1,
 
-    this.implicitTypes = this.schema.compiledImplicit
-    this.typeMap = this.schema.compiledTypeMap
+    documents: [],
+    anchorMapTransactions: [],
 
-    this.length = input.length
-    this.position = 0
-    this.line = 0
-    this.lineStart = 0
-    this.lineIndent = 0
-    this.depth = 0
-
-    // position of first leading tab in the current line,
-    // used to make sure there are no tabs in the indentation
-    this.firstTabInLine = -1
-
-    this.documents = []
-    this.anchorMapTransactions = []
-
-    /*
-    this.version;
-    this.checkLineBreaks;
-    this.tagMap;
-    this.anchorMap;
-    this.tag;
-    this.anchor;
-    this.kind;
-    this.result; */
+    version: DEFAULT_YAML_VERSION,
+    checkLineBreaks: false,
+    tagMap: Object.create(null),
+    anchorMap: Object.create(null),
+    tag: NO_TAG,
+    anchor: NO_ANCHOR,
+    kind: null,
+    result: undefined
   }
 }
 
@@ -346,7 +334,7 @@ function restoreState (state: LoaderState, snapshot: ReturnType<typeof snapshotS
 const directiveHandlers: Record<string, (state: LoaderState, name: string, args: string[]) => void> = {
 
   YAML: function handleYamlDirective (state: LoaderState, name: string, args: string[]) {
-    if (state.version !== null) {
+    if (state.version !== DEFAULT_YAML_VERSION) {
       throwError(state, 'duplication of %YAML directive')
     }
 
@@ -859,7 +847,7 @@ function readFlowCollection (state: LoaderState, nodeIndent: number) {
     return false
   }
 
-  if (state.anchor !== null) {
+  if (state.anchor) {
     storeAnchor(state, state.anchor, _result)
   }
 
@@ -1090,7 +1078,7 @@ function readBlockSequence (state: LoaderState, nodeIndent: number) {
   // it can still be flow sequence/mapping or a scalar
   if (state.firstTabInLine !== -1) return false
 
-  if (state.anchor !== null) {
+  if (state.anchor) {
     storeAnchor(state, state.anchor, _result)
   }
 
@@ -1166,7 +1154,7 @@ function readBlockMapping (state: LoaderState, nodeIndent: number, flowIndent: n
   // it can still be flow sequence/mapping or a scalar
   if (state.firstTabInLine !== -1) return false
 
-  if (state.anchor !== null) {
+  if (state.anchor) {
     storeAnchor(state, state.anchor, _result)
   }
 
@@ -1324,7 +1312,7 @@ function readTagProperty (state: LoaderState) {
 
   if (ch !== 0x21/* ! */) return false
 
-  if (state.tag !== null) {
+  if (state.tag) {
     throwError(state, 'duplication of a tag property')
   }
 
@@ -1410,7 +1398,7 @@ function readAnchorProperty (state: LoaderState) {
 
   if (ch !== 0x26/* & */) return false
 
-  if (state.anchor !== null) {
+  if (state.anchor) {
     throwError(state, 'duplication of an anchor property')
   }
 
@@ -1464,8 +1452,8 @@ function tryReadBlockMappingFromProperty (state: LoaderState, propertyStart: Ret
 
   // Re-read the leading properties as part of the first implicit key, not as
   // properties of the current node.
-  state.tag = null
-  state.anchor = null
+  state.tag = NO_TAG
+  state.anchor = NO_ANCHOR
   state.kind = null
   state.result = null
 
@@ -1500,8 +1488,8 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
     state.listener('open', state)
   }
 
-  state.tag = null
-  state.anchor = null
+  state.tag = NO_TAG
+  state.anchor = NO_ANCHOR
   state.kind = null
   state.result = null
 
@@ -1531,8 +1519,8 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       // A duplicate property token after a line break can be the first key of
       // a nested block mapping, e.g. `!!map\n  !!str key: value`.
       if (atNewLine &&
-          ((ch === 0x21/* ! */ && state.tag !== null) ||
-           (ch === 0x26/* & */ && state.anchor !== null))) {
+          ((ch === 0x21/* ! */ && state.tag) ||
+           (ch === 0x26/* & */ && state.anchor))) {
         break
       }
 
@@ -1598,18 +1586,18 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
         } else if (readAlias(state)) {
           hasContent = true
 
-          if (state.tag !== null || state.anchor !== null) {
+          if (state.tag || state.anchor) {
             throwError(state, 'alias node should not have any properties')
           }
         } else if (readPlainScalar(state, flowIndent, CONTEXT_FLOW_IN === nodeContext)) {
           hasContent = true
 
-          if (state.tag === null) {
+          if (!state.tag) {
             state.tag = '?'
           }
         }
 
-        if (state.anchor !== null) {
+        if (state.anchor) {
           storeAnchor(state, state.anchor, state.result)
         }
       }
@@ -1620,8 +1608,8 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
     }
   }
 
-  if (state.tag === null) {
-    if (state.anchor !== null) {
+  if (!state.tag) {
+    if (state.anchor) {
       storeAnchor(state, state.anchor, state.result)
     }
   } else if (state.tag === '?') {
@@ -1641,7 +1629,7 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       if (type.resolve(state.result)) { // `state.result` updated in resolver if matched
         state.result = type.construct(state.result)
         state.tag = type.tag
-        if (state.anchor !== null) {
+        if (state.anchor) {
           storeAnchor(state, state.anchor, state.result)
         }
         break
@@ -1675,7 +1663,7 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       throwError(state, `cannot resolve a node with !<${state.tag}> explicit tag`)
     } else {
       state.result = type.construct(state.result, state.tag)
-      if (state.anchor !== null) {
+      if (state.anchor) {
         storeAnchor(state, state.anchor, state.result)
       }
     }
@@ -1686,7 +1674,7 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
   }
 
   state.depth -= 1
-  return state.tag !== null || state.anchor !== null || hasContent
+  return Boolean(state.tag || state.anchor || hasContent)
 }
 
 function readDocument (state: LoaderState) {
@@ -1694,7 +1682,7 @@ function readDocument (state: LoaderState) {
   let hasDirectives = false
   let ch
 
-  state.version = null
+  state.version = DEFAULT_YAML_VERSION
   state.checkLineBreaks = state.legacy
   state.tagMap = Object.create(null)
   state.anchorMap = Object.create(null)
@@ -1805,7 +1793,7 @@ function loadDocuments (input: string, options: LoadOptions = {}) {
     }
   }
 
-  const state = new LoaderState(input, options)
+  const state = createLoaderState(input, options)
 
   const nullpos = input.indexOf('\0')
 
