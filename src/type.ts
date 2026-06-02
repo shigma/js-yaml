@@ -1,26 +1,34 @@
-import YAMLException from './exception.ts'
+type TypeKind = 'scalar' | 'sequence' | 'mapping'
 
-const TYPE_CONSTRUCTOR_OPTIONS = [
-  'kind',
-  'multi',
-  'resolve',
-  'construct',
-  'instanceOf',
-  'predicate',
-  'represent',
-  'representName',
-  'defaultStyle',
-  'styleAliases'
-]
+type RepresentFn = (data: any, style?: string) => any
 
-const YAML_NODE_KINDS = [
-  'scalar',
-  'sequence',
-  'mapping'
-]
+interface TypeOptions {
+  kind: TypeKind
+  multi?: boolean
+  resolve?: (data: any) => boolean
+  construct?: (data: any, type?: string) => any
+  instanceOf?: object | null
+  predicate?: ((data: object) => boolean) | null
+  represent?: RepresentFn | { [style: string]: RepresentFn } | null
+  representName?: ((data: object) => any) | null
+  defaultStyle?: string | null
+  styleAliases?: { [style: string]: any[] } | null
+}
 
-function compileStyleAliases (map) {
-  const result = {}
+const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'kind'>> = {
+  multi: false,
+  resolve: () => true,
+  construct: (data: any) => data,
+  instanceOf: null,
+  predicate: null,
+  represent: null,
+  representName: null,
+  defaultStyle: null,
+  styleAliases: null
+}
+
+function compileStyleAliases (map: { [style: string]: any[] } | null) {
+  const result: { [alias: string]: string } = {}
 
   if (map !== null) {
     Object.keys(map).forEach((style) => {
@@ -34,33 +42,37 @@ function compileStyleAliases (map) {
 }
 
 class Type {
-  constructor (tag, options) {
-    options = options || {}
+  options: TypeOptions
+  tag: string
+  kind: TypeKind
+  resolve: (data: any) => boolean
+  construct: (data: any, type?: string) => any
+  instanceOf: object | null
+  predicate: ((data: object) => boolean) | null
+  represent: RepresentFn | { [style: string]: RepresentFn } | null
+  representName: ((data: object) => any) | null
+  defaultStyle: string | null
+  multi: boolean
+  styleAliases: { [alias: string]: string }
 
-    Object.keys(options).forEach((name) => {
-      if (TYPE_CONSTRUCTOR_OPTIONS.indexOf(name) === -1) {
-        throw new YAMLException(`Unknown option "${name}" is met in definition of "${tag}" YAML type.`)
-      }
-    })
+  constructor (tag: string, options: TypeOptions) {
+    const opts = { ...DEFAULT_TYPE_OPTIONS, ...options }
 
     // TODO: Add tag format check.
     this.options = options // keep original options in case user wants to extend this type later
     this.tag = tag
-    this.kind = options['kind'] || null
-    this.resolve = options['resolve'] || (() => true)
-    this.construct = options['construct'] || ((data) => data)
-    this.instanceOf = options['instanceOf'] || null
-    this.predicate = options['predicate'] || null
-    this.represent = options['represent'] || null
-    this.representName = options['representName'] || null
-    this.defaultStyle = options['defaultStyle'] || null
-    this.multi = options['multi'] || false
-    this.styleAliases = compileStyleAliases(options['styleAliases'] || null)
-
-    if (YAML_NODE_KINDS.indexOf(this.kind) === -1) {
-      throw new YAMLException(`Unknown kind "${this.kind}" is specified for "${tag}" YAML type.`)
-    }
+    this.kind = opts.kind
+    this.resolve = opts.resolve
+    this.construct = opts.construct
+    this.instanceOf = opts.instanceOf
+    this.predicate = opts.predicate
+    this.represent = opts.represent
+    this.representName = opts.representName
+    this.defaultStyle = opts.defaultStyle
+    this.multi = opts.multi
+    this.styleAliases = compileStyleAliases(opts.styleAliases)
   }
 }
 
 export default Type
+export type { TypeKind, TypeOptions }

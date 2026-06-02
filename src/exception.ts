@@ -1,6 +1,8 @@
+import type { SnippetMark } from './snippet.ts'
+
 // YAML error class. http://stackoverflow.com/questions/8458984
 //
-function formatError (exception, compact) {
+function formatError (exception: YAMLException, compact?: boolean) {
   let where = ''
   const message = exception.reason || '(unknown reason)'
 
@@ -20,7 +22,10 @@ function formatError (exception, compact) {
 }
 
 class YAMLException extends Error {
-  constructor (reason, mark) {
+  reason: string
+  mark?: SnippetMark
+
+  constructor (reason: string, mark?: SnippetMark) {
     // Super constructor
     super()
 
@@ -39,7 +44,7 @@ class YAMLException extends Error {
     }
   }
 
-  toString (compact) {
+  toString (compact?: boolean) {
     return `${this.name}: ${formatError(this, compact)}`
   }
 }

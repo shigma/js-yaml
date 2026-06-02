@@ -1,8 +1,28 @@
 import YAMLException from './exception.ts'
 import Type from './type.ts'
 
-function compileList (schema, name) {
-  const result = []
+interface TypeMap {
+  scalar: { [tag: string]: Type }
+  sequence: { [tag: string]: Type }
+  mapping: { [tag: string]: Type }
+  fallback: { [tag: string]: Type }
+  multi: {
+    scalar: Type[]
+    sequence: Type[]
+    mapping: Type[]
+    fallback: Type[]
+  }
+}
+
+interface SchemaDefinitionObject {
+  implicit?: Type[]
+  explicit?: Type[]
+}
+
+type SchemaDefinition = Type | Type[] | SchemaDefinitionObject
+
+function compileList (schema: { implicit: Type[], explicit: Type[] }, name: 'implicit' | 'explicit') {
+  const result: Type[] = []
 
   schema[name].forEach((currentType) => {
     let newIndex = result.length
@@ -21,8 +41,11 @@ function compileList (schema, name) {
   return result
 }
 
-function compileMap (/* lists... */) {
-  const result = {
+// Builds an index for fast type lookup by kind + tag (plus multi-type lists),
+// so resolving a tag during load/dump is O(1) instead of scanning the type list.
+// `explicit` is collected after `implicit`, so explicit types win on tag clashes.
+function compileMap (implicit: Type[], explicit: Type[]) {
+  const result: TypeMap = {
     scalar: {},
     sequence: {},
     mapping: {},
@@ -34,7 +57,7 @@ function compileMap (/* lists... */) {
       fallback: []
     }
   }
-  function collectType (type) {
+  function collectType (type: Type) {
     if (type.multi) {
       result.multi[type.kind].push(type)
       result.multi['fallback'].push(type)
@@ -43,20 +66,25 @@ function compileMap (/* lists... */) {
     }
   }
 
-  for (let index = 0, length = arguments.length; index < length; index += 1) {
-    arguments[index].forEach(collectType)
-  }
+  implicit.forEach(collectType)
+  explicit.forEach(collectType)
   return result
 }
 
 class Schema {
-  constructor (definition) {
+  implicit!: Type[]
+  explicit!: Type[]
+  compiledImplicit!: Type[]
+  compiledExplicit!: Type[]
+  compiledTypeMap!: TypeMap
+
+  constructor (definition: SchemaDefinition) {
     return this.extend(definition)
   }
 
-  extend (definition) {
-    let implicit = []
-    let explicit = []
+  extend (definition: SchemaDefinition): Schema {
+    let implicit: Type[] = []
+    let explicit: Type[] = []
 
     if (definition instanceof Type) {
       // Schema.extend(type)
@@ -76,10 +104,6 @@ class Schema {
     implicit.forEach((type) => {
       if (!(type instanceof Type)) {
         throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
-      }
-
-      if (type.loadKind && type.loadKind !== 'scalar') {
-        throw new YAMLException('There is a non-scalar type in the implicit list of a schema. Implicit resolving of such types is not supported.')
       }
 
       if (type.multi) {
@@ -107,3 +131,4 @@ class Schema {
 }
 
 export default Schema
+export type { TypeMap, SchemaDefinition }

@@ -1,5 +1,28 @@
+export interface SnippetMark {
+  name?: string | null
+  buffer: string
+  position: number
+  line: number
+  column: number
+  snippet?: string | null
+}
+
+interface SnippetOptions {
+  maxLength?: number
+  indent?: number
+  linesBefore?: number
+  linesAfter?: number
+}
+
+const DEFAULT_SNIPPET_OPTIONS: Required<SnippetOptions> = {
+  maxLength: 79,
+  indent: 1,
+  linesBefore: 3,
+  linesAfter: 2
+}
+
 // get snippet for a single line, respecting maxLength
-function getLine (buffer, lineStart, lineEnd, position, maxLineLength) {
+function getLine (buffer: string, lineStart: number, lineEnd: number, position: number, maxLineLength: number) {
   let head = ''
   let tail = ''
   const maxHalfLength = Math.floor(maxLineLength / 2) - 1
@@ -20,25 +43,20 @@ function getLine (buffer, lineStart, lineEnd, position, maxLineLength) {
   }
 }
 
-function padStart (string, max) {
+function padStart (string: string, max: number) {
   // max() protects from negativa value, to avoid exception.
   return ' '.repeat(Math.max(max - string.length, 0)) + string
 }
 
-function makeSnippet (mark, options) {
-  options = Object.create(options || null)
-
+function makeSnippet (mark: SnippetMark, options?: SnippetOptions) {
   if (!mark.buffer) return null
 
-  if (!options.maxLength) options.maxLength = 79
-  if (typeof options.indent !== 'number') options.indent = 1
-  if (typeof options.linesBefore !== 'number') options.linesBefore = 3
-  if (typeof options.linesAfter !== 'number') options.linesAfter = 2
+  const opts = { ...DEFAULT_SNIPPET_OPTIONS, ...options }
 
   const re = /\r?\n|\r|\0/g
   const lineStarts = [0]
-  const lineEnds = []
-  let match
+  const lineEnds: number[] = []
+  let match: RegExpExecArray | null
   let foundLineNo = -1
 
   while ((match = re.exec(mark.buffer))) {
@@ -53,10 +71,10 @@ function makeSnippet (mark, options) {
   if (foundLineNo < 0) foundLineNo = lineStarts.length - 1
 
   let result = ''
-  const lineNoLength = Math.min(mark.line + options.linesAfter, lineEnds.length).toString().length
-  const maxLineLength = options.maxLength - (options.indent + lineNoLength + 3)
+  const lineNoLength = Math.min(mark.line + opts.linesAfter, lineEnds.length).toString().length
+  const maxLineLength = opts.maxLength - (opts.indent + lineNoLength + 3)
 
-  for (let i = 1; i <= options.linesBefore; i++) {
+  for (let i = 1; i <= opts.linesBefore; i++) {
     if (foundLineNo - i < 0) break
     const line = getLine(
       mark.buffer,
@@ -65,14 +83,14 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo - i]),
       maxLineLength
     )
-    result = `${' '.repeat(options.indent)}${padStart((mark.line - i + 1).toString(), lineNoLength)} | ${line.str}\n${result}`
+    result = `${' '.repeat(opts.indent)}${padStart((mark.line - i + 1).toString(), lineNoLength)} | ${line.str}\n${result}`
   }
 
   const line = getLine(mark.buffer, lineStarts[foundLineNo], lineEnds[foundLineNo], mark.position, maxLineLength)
-  result += `${' '.repeat(options.indent)}${padStart((mark.line + 1).toString(), lineNoLength)} | ${line.str}\n`
-  result += `${'-'.repeat(options.indent + lineNoLength + 3 + line.pos)}^\n`
+  result += `${' '.repeat(opts.indent)}${padStart((mark.line + 1).toString(), lineNoLength)} | ${line.str}\n`
+  result += `${'-'.repeat(opts.indent + lineNoLength + 3 + line.pos)}^\n`
 
-  for (let i = 1; i <= options.linesAfter; i++) {
+  for (let i = 1; i <= opts.linesAfter; i++) {
     if (foundLineNo + i >= lineEnds.length) break
     const line = getLine(
       mark.buffer,
@@ -81,7 +99,7 @@ function makeSnippet (mark, options) {
       mark.position - (lineStarts[foundLineNo] - lineStarts[foundLineNo + i]),
       maxLineLength
     )
-    result += `${' '.repeat(options.indent)}${padStart((mark.line + i + 1).toString(), lineNoLength)} | ${line.str}\n`
+    result += `${' '.repeat(opts.indent)}${padStart((mark.line + i + 1).toString(), lineNoLength)} | ${line.str}\n`
   }
 
   return result.replace(/\n$/, '')
