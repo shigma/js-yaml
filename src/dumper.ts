@@ -160,8 +160,8 @@ class DumperState {
   explicitTypes: Type[]
   tag: string | null
   result: string
-  duplicates: any[]
-  usedDuplicates: boolean[] | null
+  duplicates: Map<any, number>
+  usedDuplicates: Set<any>
 
   // Holds the current serialized fragment; (re)assigned throughout writeNode & friends.
   dump!: any
@@ -190,8 +190,8 @@ class DumperState {
     this.tag = null
     this.result = ''
 
-    this.duplicates = []
-    this.usedDuplicates = null
+    this.duplicates = new Map()
+    this.usedDuplicates = new Set()
   }
 }
 
@@ -854,19 +854,19 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
   let duplicate
 
   if (objectOrArray) {
-    duplicateIndex = state.duplicates.indexOf(object)
-    duplicate = duplicateIndex !== -1
+    duplicate = state.duplicates.has(object)
+    duplicateIndex = state.duplicates.get(object)
   }
 
   if ((state.tag !== null && state.tag !== '?') || duplicate || (state.indent !== 2 && level > 0)) {
     compact = false
   }
 
-  if (duplicate && state.usedDuplicates[duplicateIndex]) {
+  if (duplicate && state.usedDuplicates.has(object)) {
     state.dump = `*ref_${duplicateIndex}`
   } else {
-    if (objectOrArray && duplicate && !state.usedDuplicates[duplicateIndex]) {
-      state.usedDuplicates[duplicateIndex] = true
+    if (objectOrArray && duplicate && !state.usedDuplicates.has(object)) {
+      state.usedDuplicates.add(object)
     }
     if (type === '[object Object]') {
       if (block && (Object.keys(state.dump).length !== 0)) {
@@ -941,37 +941,27 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
 }
 
 function getDuplicateReferences (object: any, state: DumperState) {
-  const objects: any[] = []
-  const duplicatesIndexes: number[] = []
-
-  inspectNode(object, objects, duplicatesIndexes)
-
-  const length = duplicatesIndexes.length
-  for (let index = 0; index < length; index += 1) {
-    state.duplicates.push(objects[duplicatesIndexes[index]])
-  }
-  state.usedDuplicates = new Array(length)
+  inspectNode(object, new Set(), state.duplicates)
 }
 
-function inspectNode (object: any, objects: any[], duplicatesIndexes: number[]) {
+function inspectNode (object: any, seen: Set<any>, duplicates: Map<any, number>) {
   if (object !== null && typeof object === 'object') {
-    const index = objects.indexOf(object)
-    if (index !== -1) {
-      if (duplicatesIndexes.indexOf(index) === -1) {
-        duplicatesIndexes.push(index)
+    if (seen.has(object)) {
+      if (!duplicates.has(object)) {
+        duplicates.set(object, duplicates.size)
       }
     } else {
-      objects.push(object)
+      seen.add(object)
 
       if (Array.isArray(object)) {
         for (let i = 0, length = object.length; i < length; i += 1) {
-          inspectNode(object[i], objects, duplicatesIndexes)
+          inspectNode(object[i], seen, duplicates)
         }
       } else {
         const objectKeyList = Object.keys(object)
 
         for (let i = 0, length = objectKeyList.length; i < length; i += 1) {
-          inspectNode(object[objectKeyList[i]], objects, duplicatesIndexes)
+          inspectNode(object[objectKeyList[i]], seen, duplicates)
         }
       }
     }
