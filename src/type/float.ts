@@ -1,4 +1,3 @@
-import * as common from '../common.ts'
 import Type from '../type.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
@@ -70,7 +69,7 @@ function representYamlFloat (object, style) {
       case 'uppercase': return '-.INF'
       case 'camelcase': return '-.Inf'
     }
-  } else if (common.isNegativeZero(object)) {
+  } else if (Object.is(object, -0)) {
     return '-0.0'
   }
 
@@ -84,7 +83,7 @@ function representYamlFloat (object, style) {
 
 function isFloat (object) {
   return (Object.prototype.toString.call(object) === '[object Number]') &&
-         (object % 1 !== 0 || common.isNegativeZero(object))
+         (object % 1 !== 0 || Object.is(object, -0))
 }
 
 export default new Type('tag:yaml.org,2002:float', {

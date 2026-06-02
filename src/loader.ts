@@ -1,4 +1,3 @@
-import * as common from './common.ts'
 import YAMLException from './exception.ts'
 import makeSnippet from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
@@ -394,8 +393,19 @@ function captureSegment (state, start, end, checkJson) {
   }
 }
 
+// A merge source must be a plain mapping: a primitive, array or class
+// instance is not acceptable. Plain objects come both as `{}` (prototype is
+// Object.prototype) and as `Object.create(null)` (prototype is null).
+function isPlainObject (subject: unknown) {
+  if (subject === null || typeof subject !== 'object' || Array.isArray(subject)) {
+    return false
+  }
+  const proto = Object.getPrototypeOf(subject)
+  return proto === null || proto === Object.prototype
+}
+
 function mergeMappings (state, destination, source, overridableKeys) {
-  if (!common.isObject(source)) {
+  if (!isPlainObject(source)) {
     throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
   }
 

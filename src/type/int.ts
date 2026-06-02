@@ -1,4 +1,3 @@
-import * as common from '../common.ts'
 import Type from '../type.ts'
 
 function isHexCode (c) {
@@ -116,7 +115,7 @@ function constructYamlInteger (data) {
 
 function isInteger (object) {
   return (Object.prototype.toString.call(object)) === '[object Number]' &&
-         (object % 1 === 0 && !common.isNegativeZero(object))
+         (object % 1 === 0 && !Object.is(object, -0))
 }
 
 export default new Type('tag:yaml.org,2002:int', {
