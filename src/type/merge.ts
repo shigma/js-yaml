@@ -1,6 +1,6 @@
 import Type from '../type.ts'
 
-function resolveYamlMerge (data) {
+function resolveYamlMerge (data: any) {
   return data === '<<' || data === null
 }
 

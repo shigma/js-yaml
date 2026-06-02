@@ -2,7 +2,7 @@ import Type from '../type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
-function resolveYamlSet (data) {
+function resolveYamlSet (data: any) {
   if (data === null) return true
 
   const object = data
@@ -16,7 +16,7 @@ function resolveYamlSet (data) {
   return true
 }
 
-function constructYamlSet (data) {
+function constructYamlSet (data: any) {
   return data !== null ? data : {}
 }
 

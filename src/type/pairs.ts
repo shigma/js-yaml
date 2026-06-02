@@ -2,7 +2,7 @@ import Type from '../type.ts'
 
 const _toString = Object.prototype.toString
 
-function resolveYamlPairs (data) {
+function resolveYamlPairs (data: any) {
   if (data === null) return true
 
   const object = data
@@ -24,7 +24,7 @@ function resolveYamlPairs (data) {
   return true
 }
 
-function constructYamlPairs (data) {
+function constructYamlPairs (data: any) {
   if (data === null) return []
 
   const object = data

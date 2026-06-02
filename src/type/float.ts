@@ -18,21 +18,21 @@ const YAML_FLOAT_SPECIAL_PATTERN = new RegExp(
   // .nan
   '|\\.(?:nan|NaN|NAN))$')
 
-function resolveYamlFloat (data) {
+function resolveYamlFloat (data: any) {
   if (data === null) return false
 
   if (!YAML_FLOAT_PATTERN.test(data)) {
     return false
   }
 
-  if (Number.isFinite(parseFloat(data, 10))) {
+  if (Number.isFinite(parseFloat(data))) {
     return true
   }
 
   return YAML_FLOAT_SPECIAL_PATTERN.test(data)
 }
 
-function constructYamlFloat (data) {
+function constructYamlFloat (data: any) {
   let value = data.toLowerCase()
   const sign = value[0] === '-' ? -1 : 1
 
@@ -45,12 +45,12 @@ function constructYamlFloat (data) {
   } else if (value === '.nan') {
     return NaN
   }
-  return sign * parseFloat(value, 10)
+  return sign * parseFloat(value)
 }
 
 const SCIENTIFIC_WITHOUT_DOT = /^[-+]?[0-9]+e/
 
-function representYamlFloat (object, style) {
+function representYamlFloat (object: number, style?: string) {
   if (isNaN(object)) {
     switch (style) {
       case 'lowercase': return '.nan'
@@ -81,7 +81,7 @@ function representYamlFloat (object, style) {
   return SCIENTIFIC_WITHOUT_DOT.test(res) ? res.replace('e', '.e') : res
 }
 
-function isFloat (object) {
+function isFloat (object: any) {
   return (Object.prototype.toString.call(object) === '[object Number]') &&
          (object % 1 !== 0 || Object.is(object, -0))
 }

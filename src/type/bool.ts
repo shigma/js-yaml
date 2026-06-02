@@ -1,6 +1,6 @@
 import Type from '../type.ts'
 
-function resolveYamlBoolean (data) {
+function resolveYamlBoolean (data: any) {
   if (data === null) return false
 
   const max = data.length
@@ -9,13 +9,13 @@ function resolveYamlBoolean (data) {
          (max === 5 && (data === 'false' || data === 'False' || data === 'FALSE'))
 }
 
-function constructYamlBoolean (data) {
+function constructYamlBoolean (data: any) {
   return data === 'true' ||
          data === 'True' ||
          data === 'TRUE'
 }
 
-function isBoolean (object) {
+function isBoolean (object: any) {
   return Object.prototype.toString.call(object) === '[object Boolean]'
 }
 

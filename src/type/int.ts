@@ -1,20 +1,20 @@
 import Type from '../type.ts'
 
-function isHexCode (c) {
+function isHexCode (c: number) {
   return ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) ||
          ((c >= 0x41/* A */) && (c <= 0x46/* F */)) ||
          ((c >= 0x61/* a */) && (c <= 0x66/* f */))
 }
 
-function isOctCode (c) {
+function isOctCode (c: number) {
   return ((c >= 0x30/* 0 */) && (c <= 0x37/* 7 */))
 }
 
-function isDecCode (c) {
+function isDecCode (c: number) {
   return ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */))
 }
 
-function resolveYamlInteger (data) {
+function resolveYamlInteger (data: any) {
   if (data === null) return false
 
   const max = data.length
@@ -86,7 +86,7 @@ function resolveYamlInteger (data) {
   return Number.isFinite(parseYamlInteger(data))
 }
 
-function parseYamlInteger (data) {
+function parseYamlInteger (data: any) {
   let value = data
   let sign = 1
 
@@ -109,11 +109,11 @@ function parseYamlInteger (data) {
   return sign * parseInt(value, 10)
 }
 
-function constructYamlInteger (data) {
+function constructYamlInteger (data: any) {
   return parseYamlInteger(data)
 }
 
-function isInteger (object) {
+function isInteger (object: any) {
   return (Object.prototype.toString.call(object)) === '[object Number]' &&
          (object % 1 === 0 && !Object.is(object, -0))
 }
@@ -124,10 +124,10 @@ export default new Type('tag:yaml.org,2002:int', {
   construct: constructYamlInteger,
   predicate: isInteger,
   represent: {
-    binary: (obj) => { return obj >= 0 ? `0b${obj.toString(2)}` : `-0b${obj.toString(2).slice(1)}` },
-    octal: (obj) => { return obj >= 0 ? `0o${obj.toString(8)}` : `-0o${obj.toString(8).slice(1)}` },
-    decimal: (obj) => { return obj.toString(10) },
-    hexadecimal: (obj) => { return obj >= 0 ? `0x${obj.toString(16).toUpperCase()}` : `-0x${obj.toString(16).toUpperCase().slice(1)}` }
+    binary: (obj: number) => { return obj >= 0 ? `0b${obj.toString(2)}` : `-0b${obj.toString(2).slice(1)}` },
+    octal: (obj: number) => { return obj >= 0 ? `0o${obj.toString(8)}` : `-0o${obj.toString(8).slice(1)}` },
+    decimal: (obj: number) => { return obj.toString(10) },
+    hexadecimal: (obj: number) => { return obj >= 0 ? `0x${obj.toString(16).toUpperCase()}` : `-0x${obj.toString(16).toUpperCase().slice(1)}` }
   },
   defaultStyle: 'decimal',
   styleAliases: {

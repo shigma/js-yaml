@@ -3,7 +3,7 @@ import Type from '../type.ts'
 // [ 64, 65, 66 ] -> [ padding, CR, LF ]
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'
 
-function resolveYamlBinary (data) {
+function resolveYamlBinary (data: any) {
   if (data === null) return false
 
   let bitlen = 0
@@ -27,7 +27,7 @@ function resolveYamlBinary (data) {
   return (bitlen % 8) === 0
 }
 
-function constructYamlBinary (data) {
+function constructYamlBinary (data: any) {
   const input = data.replace(/[\r\n=]/g, '') // remove CR/LF & padding to simplify scan
   const max = input.length
   const map = BASE64_MAP
@@ -64,7 +64,7 @@ function constructYamlBinary (data) {
   return new Uint8Array(result)
 }
 
-function representYamlBinary (object /*, style */) {
+function representYamlBinary (object: Uint8Array /*, style */) {
   let result = ''
   let bits = 0
   const max = object.length
@@ -107,7 +107,7 @@ function representYamlBinary (object /*, style */) {
   return result
 }
 
-function isBinary (obj) {
+function isBinary (obj: any) {
   return Object.prototype.toString.call(obj) === '[object Uint8Array]'
 }
 

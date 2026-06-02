@@ -1,6 +1,6 @@
 import Type from '../type.ts'
 
-function resolveYamlNull (data) {
+function resolveYamlNull (data: any) {
   if (data === null) return true
 
   const max = data.length
@@ -13,7 +13,7 @@ function constructYamlNull () {
   return null
 }
 
-function isNull (object) {
+function isNull (object: any) {
   return object === null
 }
 

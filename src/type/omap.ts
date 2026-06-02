@@ -3,7 +3,7 @@ import Type from '../type.ts'
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 const _toString = Object.prototype.toString
 
-function resolveYamlOmap (data) {
+function resolveYamlOmap (data: any) {
   if (data === null) return true
 
   const objectKeys = []
@@ -32,7 +32,7 @@ function resolveYamlOmap (data) {
   return true
 }
 
-function constructYamlOmap (data) {
+function constructYamlOmap (data: any) {
   return data !== null ? data : []
 }
 
