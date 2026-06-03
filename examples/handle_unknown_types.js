@@ -10,10 +10,14 @@ class CustomTag {
   }
 }
 
-const tags = ['scalar', 'sequence', 'mapping'].map((kind) => {
+const tags = [
+  yaml.NODE_KIND_SCALAR,
+  yaml.NODE_KIND_SEQUENCE,
+  yaml.NODE_KIND_MAPPING
+].map((nodeKind) => {
   // first argument here is a prefix, so this type will handle anything starting with !
   return new yaml.Type('!', {
-    kind: kind,
+    nodeKind,
     multi: true,
     representName: (object) => {
       return object.type

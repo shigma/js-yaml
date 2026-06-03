@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_SCALAR } from '../type.ts'
 
 function resolveYamlNull (data: any) {
   if (data === null) return true
@@ -18,7 +18,7 @@ function isNull (object: any) {
 }
 
 export default new Type('tag:yaml.org,2002:null', {
-  kind: 'scalar',
+  nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlNull,
   construct: constructYamlNull,
   predicate: isNull,

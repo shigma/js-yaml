@@ -1,11 +1,26 @@
-type TypeKind = 'scalar' | 'sequence' | 'mapping'
+const NODE_KIND_UNKNOWN = 0
+const NODE_KIND_SCALAR = 1
+const NODE_KIND_SEQUENCE = 2
+const NODE_KIND_MAPPING = 3
+
+type NodeKind = typeof NODE_KIND_SCALAR | typeof NODE_KIND_SEQUENCE | typeof NODE_KIND_MAPPING
+type NodeKindOrUnknown = typeof NODE_KIND_UNKNOWN | NodeKind
+
+function nodeKindToString (kind: NodeKindOrUnknown) {
+  switch (kind) {
+    case NODE_KIND_SCALAR: return 'scalar'
+    case NODE_KIND_SEQUENCE: return 'sequence'
+    case NODE_KIND_MAPPING: return 'mapping'
+    case NODE_KIND_UNKNOWN: return 'unknown'
+  }
+}
 
 type StyleAlias = string | number
 
 type RepresentFn = (data: any, style?: string) => any
 
 interface TypeOptions {
-  kind: TypeKind
+  nodeKind: NodeKind
   multi?: boolean
   resolve?: (data: any, tag?: string) => boolean
   construct?: (data: any, type?: string) => any
@@ -16,7 +31,7 @@ interface TypeOptions {
   styleAliases?: { [style: string]: StyleAlias[] } | null
 }
 
-const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'kind'>> = {
+const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'nodeKind'>> = {
   multi: false,
   resolve: () => true,
   construct: (data: any) => data,
@@ -44,7 +59,7 @@ function compileStyleAliases (map: { [style: string]: StyleAlias[] } | null) {
 class Type {
   options: TypeOptions
   tag: string
-  kind: TypeKind
+  nodeKind: NodeKind
   resolve: (data: any, tag?: string) => boolean
   construct: (data: any, type?: string) => any
   predicate: ((data: object) => boolean) | null
@@ -60,7 +75,7 @@ class Type {
     // TODO: Add tag format check.
     this.options = options // keep original options in case user wants to extend this type later
     this.tag = tag
-    this.kind = opts.kind
+    this.nodeKind = opts.nodeKind
     this.resolve = opts.resolve
     this.construct = opts.construct
     this.predicate = opts.predicate
@@ -72,5 +87,12 @@ class Type {
   }
 }
 
-export default Type
-export type { StyleAlias, TypeKind, TypeOptions }
+export {
+  Type,
+  NODE_KIND_UNKNOWN,
+  NODE_KIND_SCALAR,
+  NODE_KIND_SEQUENCE,
+  NODE_KIND_MAPPING,
+  nodeKindToString
+}
+export type { StyleAlias, NodeKind, NodeKindOrUnknown, TypeOptions }

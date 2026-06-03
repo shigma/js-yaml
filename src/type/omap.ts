@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_SEQUENCE } from '../type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 const _toString = Object.prototype.toString
@@ -37,7 +37,7 @@ function constructYamlOmap (data: any) {
 }
 
 export default new Type('tag:yaml.org,2002:omap', {
-  kind: 'sequence',
+  nodeKind: NODE_KIND_SEQUENCE,
   resolve: resolveYamlOmap,
   construct: constructYamlOmap
 })

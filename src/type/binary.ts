@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_SCALAR } from '../type.ts'
 
 // [ 64, 65, 66 ] -> [ padding, CR, LF ]
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'
@@ -112,7 +112,7 @@ function isBinary (obj: any) {
 }
 
 export default new Type('tag:yaml.org,2002:binary', {
-  kind: 'scalar',
+  nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlBinary,
   construct: constructYamlBinary,
   predicate: isBinary,

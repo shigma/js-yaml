@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, Type } from 'js-yaml'
 
 function TestClass (data) {
   const self = this
@@ -9,7 +9,7 @@ function TestClass (data) {
 }
 
 const TestClassYaml = new Type('!test', {
-  kind: 'mapping',
+  nodeKind: NODE_KIND_MAPPING,
   construct: (data) => { return new TestClass(data) }
 })
 

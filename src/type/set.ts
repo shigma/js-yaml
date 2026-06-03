@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_MAPPING } from '../type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -21,7 +21,7 @@ function constructYamlSet (data: any) {
 }
 
 export default new Type('tag:yaml.org,2002:set', {
-  kind: 'mapping',
+  nodeKind: NODE_KIND_MAPPING,
   resolve: resolveYamlSet,
   construct: constructYamlSet
 })

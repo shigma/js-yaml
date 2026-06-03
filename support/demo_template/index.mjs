@@ -24,7 +24,7 @@ function decodeBase64 (str) {
 }
 
 const SexyYamlType = new jsyaml.Type('!sexy', {
-  kind: 'sequence', // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
+  nodeKind: jsyaml.NODE_KIND_SEQUENCE, // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
   construct: (data) => {
     return data.map((string) => { return `sexy ${string}` })
   }

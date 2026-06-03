@@ -1,6 +1,6 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_MAPPING } from '../type.ts'
 
 export default new Type('tag:yaml.org,2002:map', {
-  kind: 'mapping',
+  nodeKind: NODE_KIND_MAPPING,
   construct: (data) => { return data !== null ? data : {} }
 })

@@ -1,19 +1,19 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, NODE_KIND_SEQUENCE, Type } from 'js-yaml'
 
 describe('Multi tag', () => {
   it('should process multi tags', () => {
-    const tags = ['scalar', 'mapping', 'sequence'].map(kind =>
+    const tags = [NODE_KIND_SCALAR, NODE_KIND_MAPPING, NODE_KIND_SEQUENCE].map(nodeKind =>
       new Type('!', {
-        kind,
+        nodeKind,
         multi: true,
         resolve: () => {
           return true
         },
         construct: (value, tag) => {
-          return { kind, tag, value }
+          return { nodeKind, tag, value }
         }
       })
     )
@@ -22,17 +22,17 @@ describe('Multi tag', () => {
 
     const expected = [
       {
-        kind: 'scalar',
+        nodeKind: NODE_KIND_SCALAR,
         tag: '!t1',
         value: '123'
       },
       {
-        kind: 'sequence',
+        nodeKind: NODE_KIND_SEQUENCE,
         tag: '!t2',
         value: [1, 2, 3]
       },
       {
-        kind: 'mapping',
+        nodeKind: NODE_KIND_MAPPING,
         tag: '!t3',
         value: { a: 1, b: 2 }
       }
@@ -50,7 +50,7 @@ describe('Multi tag', () => {
   it('should process tags depending on prefix', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
       new Type(prefix, {
-        kind: 'scalar',
+        nodeKind: NODE_KIND_SCALAR,
         multi: true,
         resolve: () => {
           return true
@@ -63,7 +63,7 @@ describe('Multi tag', () => {
 
     tags.push(
       new Type('!bar', {
-        kind: 'scalar',
+        nodeKind: NODE_KIND_SCALAR,
         resolve: () => {
           return true
         },
@@ -97,7 +97,7 @@ describe('Multi tag', () => {
   it('should dump multi types with custom tag', () => {
     const tags = [
       new Type('!', {
-        kind: 'scalar',
+        nodeKind: NODE_KIND_SCALAR,
         multi: true,
         predicate: (obj) => {
           return !!obj.tag

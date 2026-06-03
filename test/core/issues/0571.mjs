@@ -1,11 +1,11 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, FAILSAFE_SCHEMA, load, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, FAILSAFE_SCHEMA, load, NODE_KIND_SCALAR, Type } from 'js-yaml'
 
 describe('Undefined', () => {
   const undef = new Type('!undefined', {
-    kind: 'scalar',
+    nodeKind: NODE_KIND_SCALAR,
     resolve: () => true,
     construct: () => {},
     predicate: object => typeof object === 'undefined',

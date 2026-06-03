@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_SCALAR } from '../type.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
   // 2.5e4, 2.5 and integers
@@ -87,7 +87,7 @@ function isFloat (object: any) {
 }
 
 export default new Type('tag:yaml.org,2002:float', {
-  kind: 'scalar',
+  nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlFloat,
   construct: constructYamlFloat,
   predicate: isFloat,

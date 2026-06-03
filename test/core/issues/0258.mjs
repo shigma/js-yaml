@@ -1,11 +1,11 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, Type } from 'js-yaml'
 
 it('should shorthand tags with !! whenever possible', () => {
   const regexp = new Type('tag:yaml.org,2002:js/regexp', {
-    kind: 'scalar',
+    nodeKind: NODE_KIND_SCALAR,
     resolve: () => true,
     construct: str => new RegExp(str),
     predicate: object => object instanceof RegExp,

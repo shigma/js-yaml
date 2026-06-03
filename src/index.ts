@@ -1,4 +1,11 @@
-import Type from './type.ts'
+import {
+  Type,
+  NODE_KIND_UNKNOWN,
+  NODE_KIND_SCALAR,
+  NODE_KIND_SEQUENCE,
+  NODE_KIND_MAPPING,
+  nodeKindToString
+} from './type.ts'
 import Schema from './schema.ts'
 import FAILSAFE_SCHEMA from './schema/failsafe.ts'
 import JSON_SCHEMA from './schema/json.ts'
@@ -8,6 +15,7 @@ import { load, loadAll } from './loader.ts'
 import { dump } from './dumper.ts'
 import type { LoadOptions } from './loader.ts'
 import type { DumpOptions } from './dumper.ts'
+import type { NodeKind, NodeKindOrUnknown } from './type.ts'
 import YAMLException from './exception.ts'
 
 import binary from './type/binary.ts'
@@ -52,6 +60,11 @@ export {
   dump,
   YAMLException,
   types,
+  NODE_KIND_UNKNOWN,
+  NODE_KIND_SCALAR,
+  NODE_KIND_SEQUENCE,
+  NODE_KIND_MAPPING,
+  nodeKindToString
 }
 
-export type { LoadOptions, DumpOptions }
+export type { LoadOptions, DumpOptions, NodeKind, NodeKindOrUnknown }

@@ -167,7 +167,7 @@ timestamp:
 # custom \`!sexy\` type:
 #
 # var SexyYamlType = new jsyaml.Type('!sexy', {
-#   kind: 'sequence',
+#   nodeKind: jsyaml.NODE_KIND_SEQUENCE,
 #   construct: function (data) {
 #     return data.map(function (string) { return 'sexy ' + string; });
 #   }

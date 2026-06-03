@@ -1,17 +1,21 @@
 import YAMLException from './exception.ts'
-import Type from './type.ts'
+import {
+  Type,
+  NODE_KIND_UNKNOWN,
+  NODE_KIND_SCALAR,
+  NODE_KIND_SEQUENCE,
+  NODE_KIND_MAPPING
+} from './type.ts'
+import type { NodeKindOrUnknown } from './type.ts'
+
+type TypeLookup = { [tag: string]: Type }
 
 interface TypeMap {
-  scalar: { [tag: string]: Type }
-  sequence: { [tag: string]: Type }
-  mapping: { [tag: string]: Type }
-  fallback: { [tag: string]: Type }
-  multi: {
-    scalar: Type[]
-    sequence: Type[]
-    mapping: Type[]
-    fallback: Type[]
-  }
+  [NODE_KIND_UNKNOWN]: TypeLookup
+  [NODE_KIND_SCALAR]: TypeLookup
+  [NODE_KIND_SEQUENCE]: TypeLookup
+  [NODE_KIND_MAPPING]: TypeLookup
+  multi: Record<NodeKindOrUnknown, Type[]>
 }
 
 interface SchemaDefinitionObject {
@@ -29,7 +33,7 @@ function compileList (schema: { implicit: Type[], explicit: Type[] }, name: 'imp
 
     result.forEach((previousType, previousIndex) => {
       if (previousType.tag === currentType.tag &&
-          previousType.kind === currentType.kind &&
+          previousType.nodeKind === currentType.nodeKind &&
           previousType.multi === currentType.multi) {
         newIndex = previousIndex
       }
@@ -41,28 +45,28 @@ function compileList (schema: { implicit: Type[], explicit: Type[] }, name: 'imp
   return result
 }
 
-// Builds an index for fast type lookup by kind + tag (plus multi-type lists),
+// Builds an index for fast type lookup by node kind + tag (plus multi-type lists),
 // so resolving a tag during load/dump is O(1) instead of scanning the type list.
 // `explicit` is collected after `implicit`, so explicit types win on tag clashes.
 function compileMap (implicit: Type[], explicit: Type[]) {
   const result: TypeMap = {
-    scalar: {},
-    sequence: {},
-    mapping: {},
-    fallback: {},
+    [NODE_KIND_UNKNOWN]: {},
+    [NODE_KIND_SCALAR]: {},
+    [NODE_KIND_SEQUENCE]: {},
+    [NODE_KIND_MAPPING]: {},
     multi: {
-      scalar: [],
-      sequence: [],
-      mapping: [],
-      fallback: []
+      [NODE_KIND_UNKNOWN]: [],
+      [NODE_KIND_SCALAR]: [],
+      [NODE_KIND_SEQUENCE]: [],
+      [NODE_KIND_MAPPING]: []
     }
   }
   function collectType (type: Type) {
     if (type.multi) {
-      result.multi[type.kind].push(type)
-      result.multi['fallback'].push(type)
+      result.multi[type.nodeKind].push(type)
+      result.multi[NODE_KIND_UNKNOWN].push(type)
     } else {
-      result[type.kind][type.tag] = result['fallback'][type.tag] = type
+      result[type.nodeKind][type.tag] = result[NODE_KIND_UNKNOWN][type.tag] = type
     }
   }
 

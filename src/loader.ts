@@ -3,8 +3,16 @@ import makeSnippet from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
 import type Schema from './schema.ts'
 import type { TypeMap } from './schema.ts'
-import type Type from './type.ts'
 import type { SnippetMark } from './snippet.ts'
+import {
+  type Type,
+  type NodeKindOrUnknown,
+  NODE_KIND_UNKNOWN,
+  NODE_KIND_SCALAR,
+  NODE_KIND_SEQUENCE,
+  NODE_KIND_MAPPING,
+  nodeKindToString
+} from './type.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -189,7 +197,7 @@ interface LoaderState extends Required<LoadOptions> {
   anchorMap: Record<string, any>
   tag: string
   anchor: string
-  kind: string | null
+  kind: NodeKindOrUnknown
   result: any
 }
 
@@ -222,7 +230,7 @@ function createLoaderState (input: string, options: LoadOptions = {}): LoaderSta
     anchorMap: Object.create(null),
     tag: NO_TAG,
     anchor: NO_ANCHOR,
-    kind: null,
+    kind: NODE_KIND_UNKNOWN,
     result: undefined
   }
 }
@@ -635,7 +643,7 @@ function readPlainScalar (state: LoaderState, nodeIndent: number, withinFlowColl
     }
   }
 
-  state.kind = 'scalar'
+  state.kind = NODE_KIND_SCALAR
   state.result = ''
   captureStart = captureEnd = state.position
   hasPendingContent = false
@@ -711,7 +719,7 @@ function readSingleQuotedScalar (state: LoaderState, nodeIndent: number) {
     return false
   }
 
-  state.kind = 'scalar'
+  state.kind = NODE_KIND_SCALAR
   state.result = ''
   state.position++
   captureStart = captureEnd = state.position
@@ -756,7 +764,7 @@ function readDoubleQuotedScalar (state: LoaderState, nodeIndent: number) {
     return false
   }
 
-  state.kind = 'scalar'
+  state.kind = NODE_KIND_SCALAR
   state.result = ''
   state.position++
   captureStart = captureEnd = state.position
@@ -862,7 +870,7 @@ function readFlowCollection (state: LoaderState, nodeIndent: number) {
       state.position++
       state.tag = _tag
       state.anchor = _anchor
-      state.kind = isMapping ? 'mapping' : 'sequence'
+      state.kind = isMapping ? NODE_KIND_MAPPING : NODE_KIND_SEQUENCE
       state.result = _result
       return true
     } else if (!readNext) {
@@ -946,7 +954,7 @@ function readBlockScalar (state: LoaderState, nodeIndent: number) {
     return false
   }
 
-  state.kind = 'scalar'
+  state.kind = NODE_KIND_SCALAR
   state.result = ''
 
   while (ch !== 0) {
@@ -1128,7 +1136,7 @@ function readBlockSequence (state: LoaderState, nodeIndent: number) {
   if (detected) {
     state.tag = _tag
     state.anchor = _anchor
-    state.kind = 'sequence'
+    state.kind = NODE_KIND_SEQUENCE
     state.result = _result
     return true
   }
@@ -1295,7 +1303,7 @@ function readBlockMapping (state: LoaderState, nodeIndent: number, flowIndent: n
   if (detected) {
     state.tag = _tag
     state.anchor = _anchor
-    state.kind = 'mapping'
+    state.kind = NODE_KIND_MAPPING
     state.result = _result
   }
 
@@ -1454,10 +1462,10 @@ function tryReadBlockMappingFromProperty (state: LoaderState, propertyStart: Ret
   // properties of the current node.
   state.tag = NO_TAG
   state.anchor = NO_ANCHOR
-  state.kind = null
+  state.kind = NODE_KIND_UNKNOWN
   state.result = null
 
-  if (readBlockMapping(state, nodeIndent, flowIndent) && state.kind === 'mapping') {
+  if (readBlockMapping(state, nodeIndent, flowIndent) && (state.kind as NodeKindOrUnknown) === NODE_KIND_MAPPING) {
     commitAnchorTransaction(state)
     return true
   }
@@ -1490,7 +1498,7 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
 
   state.tag = NO_TAG
   state.anchor = NO_ANCHOR
-  state.kind = null
+  state.kind = NODE_KIND_UNKNOWN
   state.result = null
 
   const allowBlockStyles = allowBlockScalars = allowBlockCollections =
@@ -1619,8 +1627,8 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
     // We only need to check kind conformity in case user explicitly assigns '?'
     // tag, for example like this: "!<?> [0]"
     //
-    if (state.result !== null && state.kind !== 'scalar') {
-      throwError(state, `unacceptable node kind for !<?> tag; it should be "scalar", not "${state.kind}"`)
+    if (state.result !== null && (state.kind as NodeKindOrUnknown) !== NODE_KIND_SCALAR) {
+      throwError(state, `unacceptable node kind for !<?> tag; it should be "scalar", not "${nodeKindToString(state.kind)}"`)
     }
 
     for (let typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
@@ -1636,12 +1644,12 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       }
     }
   } else if (state.tag !== '!') {
-    if (_hasOwnProperty.call(state.typeMap[state.kind || 'fallback'], state.tag)) {
-      type = state.typeMap[state.kind || 'fallback'][state.tag]
+    if (_hasOwnProperty.call(state.typeMap[state.kind], state.tag)) {
+      type = state.typeMap[state.kind][state.tag]
     } else {
       // looking for multi type
       type = null
-      const typeList = state.typeMap.multi[state.kind || 'fallback']
+      const typeList = state.typeMap.multi[state.kind]
 
       for (let typeIndex = 0, typeQuantity = typeList.length; typeIndex < typeQuantity; typeIndex += 1) {
         if (state.tag.slice(0, typeList[typeIndex].tag.length) === typeList[typeIndex].tag) {
@@ -1655,8 +1663,10 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       throwError(state, `unknown tag !<${state.tag}>`)
     }
 
-    if (state.result !== null && type.kind !== state.kind) {
-      throwError(state, `unacceptable node kind for !<${state.tag}> tag; it should be "${type.kind}", not "${state.kind}"`)
+    const nodeKind = state.kind as NodeKindOrUnknown
+
+    if (state.result !== null && type.nodeKind !== nodeKind) {
+      throwError(state, `unacceptable node kind for !<${state.tag}> tag; it should be "${nodeKindToString(type.nodeKind)}", not "${nodeKindToString(nodeKind)}"`)
     }
 
     if (!type.resolve(state.result, state.tag)) { // `state.result` updated in resolver if matched

@@ -16,12 +16,17 @@ const expectedKeys = [
   'DEFAULT_SCHEMA',
   'FAILSAFE_SCHEMA',
   'JSON_SCHEMA',
+  'NODE_KIND_MAPPING',
+  'NODE_KIND_SCALAR',
+  'NODE_KIND_SEQUENCE',
+  'NODE_KIND_UNKNOWN',
   'Schema',
   'Type',
   'YAMLException',
   'dump',
   'load',
   'loadAll',
+  'nodeKindToString',
   'types'
 ]
 
@@ -30,6 +35,14 @@ function checkExports (yaml, options) {
   assert.strictEqual(yaml.load('a: 1').a, 1)
   assert.strictEqual(typeof yaml.dump, 'function')
   assert.strictEqual(typeof yaml.types.binary, 'object')
+  assert.strictEqual(yaml.NODE_KIND_UNKNOWN, 0)
+  assert.strictEqual(yaml.NODE_KIND_SCALAR, 1)
+  assert.strictEqual(yaml.NODE_KIND_SEQUENCE, 2)
+  assert.strictEqual(yaml.NODE_KIND_MAPPING, 3)
+  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_UNKNOWN), 'unknown')
+  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_SCALAR), 'scalar')
+  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_SEQUENCE), 'sequence')
+  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_MAPPING), 'mapping')
 
   if (options && options.checkEsModule) {
     assert.strictEqual(yaml.__esModule, true)

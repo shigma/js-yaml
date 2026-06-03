@@ -1,5 +1,5 @@
 import util from 'node:util'
-import { DEFAULT_SCHEMA, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, NODE_KIND_MAPPING, NODE_KIND_SCALAR, Type } from 'js-yaml'
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -28,7 +28,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
   // doesn't inspect class inheritance and just picks first suitable
   // class from this array.
   new Type('!tag3', {
-    kind: 'mapping',
+    nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false
       if (!Object.prototype.hasOwnProperty.call(data, '=') &&
@@ -49,7 +49,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     }
   }),
   new Type('!tag2', {
-    kind: 'scalar',
+    nodeKind: NODE_KIND_SCALAR,
     construct: (data) => {
       return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
     },
@@ -59,7 +59,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     }
   }),
   new Type('!tag1', {
-    kind: 'mapping',
+    nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false
       if (!Object.prototype.hasOwnProperty.call(data, 'x')) return false
@@ -74,7 +74,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     predicate: (object) => object instanceof Tag1
   }),
   new Type('!foo', {
-    kind: 'mapping',
+    nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false
       if (!Object.keys(data).every((k) => { return k === 'my-parameter' || k === 'my-another-parameter' })) {

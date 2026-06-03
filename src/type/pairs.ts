@@ -1,4 +1,4 @@
-import Type from '../type.ts'
+import { Type, NODE_KIND_SEQUENCE } from '../type.ts'
 
 const _toString = Object.prototype.toString
 
@@ -42,7 +42,7 @@ function constructYamlPairs (data: any) {
 }
 
 export default new Type('tag:yaml.org,2002:pairs', {
-  kind: 'sequence',
+  nodeKind: NODE_KIND_SEQUENCE,
   resolve: resolveYamlPairs,
   construct: constructYamlPairs
 })

@@ -31,15 +31,15 @@ function Space (height, width, points) {
 
 const PointYamlType = new yaml.Type('!point', {
   // Loader must parse sequence nodes only for this type (i.e. arrays in JS terminology).
-  // Other available kinds are 'scalar' (string) and 'mapping' (object).
+  // Other available node kinds are yaml.NODE_KIND_SCALAR and yaml.NODE_KIND_MAPPING.
   // http://www.yaml.org/spec/1.2/spec.html#kind//
-  kind: 'sequence',
+  nodeKind: yaml.NODE_KIND_SEQUENCE,
 
   // Loader must check if the input object is suitable for this type.
   resolve: (data) => {
     // `data` may be either:
     // - Null in case of an "empty node" (http://www.yaml.org/spec/1.2/spec.html#id2786563)
-    // - Array since we specified `kind` to 'sequence'
+    // - Array since we specified `nodeKind` to yaml.NODE_KIND_SEQUENCE
     return data !== null && data.length === 3
   },
 
@@ -58,7 +58,7 @@ const PointYamlType = new yaml.Type('!point', {
 })
 
 const SpaceYamlType = new yaml.Type('!space', {
-  kind: 'mapping',
+  nodeKind: yaml.NODE_KIND_MAPPING,
   construct: (data) => {
     data = data || {} // in case of empty node
     return new Space(data.height || 0, data.width || 0, data.points || [])

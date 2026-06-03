@@ -1,7 +1,8 @@
 import YAMLException from './exception.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
+import { NODE_KIND_UNKNOWN } from './type.ts'
 import type Schema from './schema.ts'
-import type Type from './type.ts'
+import type { Type } from './type.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -70,7 +71,7 @@ function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null)
     if (tag.slice(0, 2) === '!!') {
       tag = `tag:yaml.org,2002:${tag.slice(2)}`
     }
-    const type = schema.compiledTypeMap['fallback'][tag]
+    const type = schema.compiledTypeMap[NODE_KIND_UNKNOWN][tag]
 
     if (type && _hasOwnProperty.call(type.styleAliases, style)) {
       style = type.styleAliases[style]
