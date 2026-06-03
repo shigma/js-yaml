@@ -131,9 +131,9 @@ export default createType('tag:yaml.org,2002:int', {
   },
   defaultStyle: 'decimal',
   styleAliases: {
-    binary: [2, 'bin'],
-    octal: [8, 'oct'],
-    decimal: [10, 'dec'],
-    hexadecimal: [16, 'hex']
+    binary: ['bin'],
+    octal: ['oct'],
+    decimal: ['dec'],
+    hexadecimal: ['hex']
   }
 })

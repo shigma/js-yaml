@@ -65,7 +65,7 @@ function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null)
 
   for (let index = 0, length = keys.length; index < length; index += 1) {
     let tag = keys[index]
-    let style = String(map[tag])
+    let style = map[tag]
 
     if (tag.slice(0, 2) === '!!') {
       tag = `tag:yaml.org,2002:${tag.slice(2)}`

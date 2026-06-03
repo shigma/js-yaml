@@ -15,8 +15,6 @@ function nodeKindToString (kind: NodeKindOrUnknown) {
   }
 }
 
-type StyleAlias = string | number
-
 type RepresentFn = (data: any, style?: string) => any
 
 interface TypePartial {
@@ -28,7 +26,7 @@ interface TypePartial {
   represent?: RepresentFn | { [style: string]: RepresentFn } | null
   representName?: ((data: object) => any) | null
   defaultStyle?: string | null
-  styleAliases?: { [style: string]: StyleAlias[] } | null
+  styleAliases?: { [style: string]: string[] } | null
 }
 
 interface Type extends Required<Omit<TypePartial, 'styleAliases'>> {
@@ -47,13 +45,13 @@ const DEFAULT_TYPE_OPTIONS: Required<Omit<TypePartial, 'nodeKind'>> = {
   styleAliases: null
 }
 
-function compileStyleAliases (map: { [style: string]: StyleAlias[] } | null) {
+function compileStyleAliases (map: { [style: string]: string[] } | null) {
   const result: { [alias: string]: string } = {}
 
   if (map !== null) {
     Object.keys(map).forEach((style) => {
       map[style].forEach((alias) => {
-        result[String(alias)] = style
+        result[alias] = style
       })
     })
   }
@@ -87,4 +85,4 @@ export {
   NODE_KIND_MAPPING,
   nodeKindToString
 }
-export type { StyleAlias, NodeKind, NodeKindOrUnknown, TypePartial, Type }
+export type { NodeKind, NodeKindOrUnknown, TypePartial, Type }
