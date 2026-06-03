@@ -51,7 +51,7 @@
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "type-check": "tsc --noEmit",
-    "test": "npm run lint && npm run build && node --test 'test/**/*.test.*'",
+    "test": "npm run lint && npm run build && npm run type-check && node --test 'test/**/*.test.*'",
     "coverage": "npm run build && c8 --include 'src/**' -r text -r html -r lcov node --test 'test/**/*.test.*'",
     "build": "node support/build-dist.mjs",
     "build:demo": "npm run lint && node support/build_demo.mjs",
