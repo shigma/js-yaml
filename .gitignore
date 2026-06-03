@@ -6,6 +6,7 @@ doc
 benchmark/implementations/*
 !/benchmark/implementations/current/
 dist/
+test/spec/yaml-test-suite/
 .claude/
 .codex/
 .agents/
