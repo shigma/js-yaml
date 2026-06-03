@@ -779,8 +779,8 @@ function representType (state: DumperState, object: any, explicit: boolean) {
 
     if (tagDefinition.predicate && tagDefinition.predicate(object)) {
       if (explicit) {
-        if (tagDefinition.multi && tagDefinition.representName) {
-          state.tag = tagDefinition.representName(object)
+        if (tagDefinition.matchByTagPrefix && tagDefinition.representTagName) {
+          state.tag = tagDefinition.representTagName(object)
         } else {
           state.tag = tagDefinition.tagName
         }

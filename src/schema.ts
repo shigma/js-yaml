@@ -15,7 +15,7 @@ interface TagDefinitionMap {
   [NODE_KIND_SCALAR]: TagDefinitionLookup
   [NODE_KIND_SEQUENCE]: TagDefinitionLookup
   [NODE_KIND_MAPPING]: TagDefinitionLookup
-  multi: Record<NodeKindOrUnknown, TagDefinition[]>
+  tagPrefixMatches: Record<NodeKindOrUnknown, TagDefinition[]>
 }
 
 type SchemaDefinitionObject =
@@ -33,7 +33,7 @@ function compileList (schema: { implicit: TagDefinition[], explicit: TagDefiniti
     result.forEach((previousTagDefinition, previousIndex) => {
       if (previousTagDefinition.tagName === currentTagDefinition.tagName &&
           previousTagDefinition.nodeKind === currentTagDefinition.nodeKind &&
-          previousTagDefinition.multi === currentTagDefinition.multi) {
+          previousTagDefinition.matchByTagPrefix === currentTagDefinition.matchByTagPrefix) {
         newIndex = previousIndex
       }
     })
@@ -44,7 +44,7 @@ function compileList (schema: { implicit: TagDefinition[], explicit: TagDefiniti
   return result
 }
 
-// Builds an index for fast tag definition lookup by node kind + tag name (plus multi-tag lists),
+// Builds an index for fast tag definition lookup by node kind + tag name (plus tag prefix match lists),
 // so resolving a tag during load/dump is O(1) instead of scanning the definition list.
 // `explicit` is collected after `implicit`, so explicit definitions win on tag clashes.
 function compileMap (implicit: TagDefinition[], explicit: TagDefinition[]) {
@@ -53,7 +53,7 @@ function compileMap (implicit: TagDefinition[], explicit: TagDefinition[]) {
     [NODE_KIND_SCALAR]: {},
     [NODE_KIND_SEQUENCE]: {},
     [NODE_KIND_MAPPING]: {},
-    multi: {
+    tagPrefixMatches: {
       [NODE_KIND_UNKNOWN]: [],
       [NODE_KIND_SCALAR]: [],
       [NODE_KIND_SEQUENCE]: [],
@@ -61,9 +61,9 @@ function compileMap (implicit: TagDefinition[], explicit: TagDefinition[]) {
     }
   }
   function collectTagDefinition (tagDefinition: TagDefinition) {
-    if (tagDefinition.multi) {
-      result.multi[tagDefinition.nodeKind].push(tagDefinition)
-      result.multi[NODE_KIND_UNKNOWN].push(tagDefinition)
+    if (tagDefinition.matchByTagPrefix) {
+      result.tagPrefixMatches[tagDefinition.nodeKind].push(tagDefinition)
+      result.tagPrefixMatches[NODE_KIND_UNKNOWN].push(tagDefinition)
     } else {
       result[tagDefinition.nodeKind][tagDefinition.tagName] = result[NODE_KIND_UNKNOWN][tagDefinition.tagName] = tagDefinition
     }
@@ -105,8 +105,8 @@ class Schema {
     }
 
     implicit.forEach((tagDefinition) => {
-      if (tagDefinition.multi) {
-        throw new YAMLException('There is a multi tag definition in the implicit list of a schema. Multi tags can only be listed as explicit.')
+      if (tagDefinition.matchByTagPrefix) {
+        throw new YAMLException('There is a tag prefix matching definition in the implicit list of a schema. Prefix matching tags can only be listed as explicit.')
       }
     })
 

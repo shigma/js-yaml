@@ -20,12 +20,12 @@ type RepresentFn = (data: any, style?: string) => any
 
 interface PartialTagDefinition {
   nodeKind: NodeKind | NodeKindString
-  multi?: boolean
+  matchByTagPrefix?: boolean
   resolve?: (data: any, tag?: string) => boolean
   construct?: (data: any, type?: string) => any
   predicate?: ((data: object) => boolean) | null
   represent?: RepresentFn | { [style: string]: RepresentFn } | null
-  representName?: ((data: object) => any) | null
+  representTagName?: ((data: object) => any) | null
   defaultStyle?: string | null
   styleAliases?: { [style: string]: string[] } | null
 }
@@ -37,12 +37,12 @@ interface TagDefinition extends Required<Omit<PartialTagDefinition, 'nodeKind' |
 }
 
 const DEFAULT_TAG_DEFINITION: Required<Omit<PartialTagDefinition, 'nodeKind'>> = {
-  multi: false,
+  matchByTagPrefix: false,
   resolve: () => true,
   construct: (data: any) => data,
   predicate: null,
   represent: null,
-  representName: null,
+  representTagName: null,
   defaultStyle: null,
   styleAliases: null
 }
@@ -84,9 +84,9 @@ function defineTag (tagName: string, options: PartialTagDefinition): TagDefiniti
     construct: opts.construct,
     predicate: opts.predicate,
     represent: opts.represent,
-    representName: opts.representName,
+    representTagName: opts.representTagName,
     defaultStyle: opts.defaultStyle,
-    multi: opts.multi,
+    matchByTagPrefix: opts.matchByTagPrefix,
     styleAliases: compileStyleAliases(opts.styleAliases)
   }
 }

@@ -1645,9 +1645,9 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
     if (_hasOwnProperty.call(state.tagDefinitionMap[state.kind], state.tag)) {
       tagDefinition = state.tagDefinitionMap[state.kind][state.tag]
     } else {
-      // looking for multi tag definition
+      // looking for a tag definition that matches by tag name prefix
       tagDefinition = null
-      const tagDefinitionList = state.tagDefinitionMap.multi[state.kind]
+      const tagDefinitionList = state.tagDefinitionMap.tagPrefixMatches[state.kind]
 
       for (let typeIndex = 0, typeQuantity = tagDefinitionList.length; typeIndex < typeQuantity; typeIndex += 1) {
         if (state.tag.slice(0, tagDefinitionList[typeIndex].tagName.length) === tagDefinitionList[typeIndex].tagName) {
