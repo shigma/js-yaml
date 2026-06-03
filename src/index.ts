@@ -1,4 +1,6 @@
 import {
+  type NodeKind,
+  type NodeKindOrUnknown,
   Type,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
@@ -11,11 +13,8 @@ import FAILSAFE_SCHEMA from './schema/failsafe.ts'
 import JSON_SCHEMA from './schema/json.ts'
 import CORE_SCHEMA from './schema/core.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
-import { load, loadAll } from './loader.ts'
-import { dump } from './dumper.ts'
-import type { LoadOptions } from './loader.ts'
-import type { DumpOptions } from './dumper.ts'
-import type { NodeKind, NodeKindOrUnknown } from './type.ts'
+import { load, loadAll, type LoadOptions } from './loader.ts'
+import { dump, type DumpOptions } from './dumper.ts'
 import YAMLException from './exception.ts'
 
 import binary from './type/binary.ts'

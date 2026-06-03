@@ -1,12 +1,12 @@
 import YAMLException from './exception.ts'
 import {
+  type NodeKindOrUnknown,
   Type,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING
 } from './type.ts'
-import type { NodeKindOrUnknown } from './type.ts'
 
 type TypeLookup = { [tag: string]: Type }
 
