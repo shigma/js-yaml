@@ -1,5 +1,5 @@
 import util from 'node:util'
-import { DEFAULT_SCHEMA, NODE_KIND_MAPPING, NODE_KIND_SCALAR, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, NODE_KIND_MAPPING, NODE_KIND_SCALAR, createType } from 'js-yaml'
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -27,7 +27,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
   // Inherited classes must precede their parents because the dumper
   // doesn't inspect class inheritance and just picks first suitable
   // class from this array.
-  new Type('!tag3', {
+  createType('!tag3', {
     nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false
@@ -48,7 +48,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
       return { '=': object.x, y: object.y, z: object.z }
     }
   }),
-  new Type('!tag2', {
+  createType('!tag2', {
     nodeKind: NODE_KIND_SCALAR,
     construct: (data) => {
       return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
@@ -58,7 +58,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
       return String(object.x)
     }
   }),
-  new Type('!tag1', {
+  createType('!tag1', {
     nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false
@@ -73,7 +73,7 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     },
     predicate: (object) => object instanceof Tag1
   }),
-  new Type('!foo', {
+  createType('!foo', {
     nodeKind: NODE_KIND_MAPPING,
     resolve: (data) => {
       if (data === null) return false

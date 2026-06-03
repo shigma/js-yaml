@@ -1,6 +1,6 @@
-import { Type, NODE_KIND_SCALAR } from '../type.ts'
+import { createType, NODE_KIND_SCALAR } from '../type.ts'
 
-export default new Type('tag:yaml.org,2002:str', {
+export default createType('tag:yaml.org,2002:str', {
   nodeKind: NODE_KIND_SCALAR,
   construct: (data) => { return data !== null ? data : '' }
 })

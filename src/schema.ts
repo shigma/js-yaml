@@ -1,7 +1,7 @@
 import YAMLException from './exception.ts'
 import {
   type NodeKindOrUnknown,
-  Type,
+  type Type,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
@@ -18,10 +18,9 @@ interface TypeMap {
   multi: Record<NodeKindOrUnknown, Type[]>
 }
 
-interface SchemaDefinitionObject {
-  implicit?: Type[]
-  explicit?: Type[]
-}
+type SchemaDefinitionObject =
+  | { implicit: Type[], explicit?: Type[] }
+  | { implicit?: Type[], explicit: Type[] }
 
 type SchemaDefinition = Type | Type[] | SchemaDefinitionObject
 
@@ -90,34 +89,24 @@ class Schema {
     let implicit: Type[] = []
     let explicit: Type[] = []
 
-    if (definition instanceof Type) {
-      // Schema.extend(type)
-      explicit.push(definition)
-    } else if (Array.isArray(definition)) {
+    if (Array.isArray(definition)) {
       // Schema.extend([ type1, type2, ... ])
       explicit = explicit.concat(definition)
-    } else if (definition && (Array.isArray(definition.implicit) || Array.isArray(definition.explicit))) {
+    } else if (Array.isArray((definition as SchemaDefinitionObject).implicit) ||
+               Array.isArray((definition as SchemaDefinitionObject).explicit)) {
       // Schema.extend({ explicit: [ type1, type2, ... ], implicit: [ type1, type2, ... ] })
-      if (definition.implicit) implicit = implicit.concat(definition.implicit)
-      if (definition.explicit) explicit = explicit.concat(definition.explicit)
+      const schema = definition as SchemaDefinitionObject
+
+      if (schema.implicit) implicit = implicit.concat(schema.implicit)
+      if (schema.explicit) explicit = explicit.concat(schema.explicit)
     } else {
-      throw new YAMLException('Schema.extend argument should be a Type, [ Type ], ' +
-        'or a schema definition ({ implicit: [...], explicit: [...] })')
+      // Schema.extend(type)
+      explicit.push(definition as Type)
     }
 
     implicit.forEach((type) => {
-      if (!(type instanceof Type)) {
-        throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
-      }
-
       if (type.multi) {
         throw new YAMLException('There is a multi type in the implicit list of a schema. Multi tags can only be listed as explicit.')
-      }
-    })
-
-    explicit.forEach((type) => {
-      if (!(type instanceof Type)) {
-        throw new YAMLException('Specified list of YAML types (or a single Type object) contains a non-Type object.')
       }
     })
 

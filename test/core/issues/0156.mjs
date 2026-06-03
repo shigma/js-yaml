@@ -1,11 +1,11 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_SCALAR, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, NODE_KIND_SCALAR, createType } from 'js-yaml'
 
 function SuccessSignal () {}
 
-const TestClassYaml = new Type('!test', {
+const TestClassYaml = createType('!test', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: () => { throw new SuccessSignal() }
 })

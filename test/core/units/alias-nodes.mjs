@@ -1,14 +1,14 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, createType } from 'js-yaml'
 
 function TestClass (data) {
   const self = this
   Object.keys(data).forEach((key) => { self[key] = data[key] })
 }
 
-const TestClassYaml = new Type('!test', {
+const TestClassYaml = createType('!test', {
   nodeKind: NODE_KIND_MAPPING,
   construct: (data) => { return new TestClass(data) }
 })

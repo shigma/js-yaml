@@ -1,7 +1,7 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, NODE_KIND_SCALAR, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, NODE_KIND_SCALAR, createType } from 'js-yaml'
 
 it('Should allow custom formatting through implicit custom tags', () => {
   function CustomDump (data, opts) {
@@ -17,7 +17,7 @@ it('Should allow custom formatting through implicit custom tags', () => {
     return result
   }
 
-  const CustomDumpType = new Type('!format', {
+  const CustomDumpType = createType('!format', {
     nodeKind: NODE_KIND_SCALAR,
     resolve: () => false,
     predicate: d => d instanceof CustomDump,

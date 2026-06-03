@@ -3,28 +3,28 @@ import { it } from 'node:test'
 /* global BigInt */
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, Type, types } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, createType, types } from 'js-yaml'
 
 it('Should allow int override', () => {
-  const options = Object.assign({}, types.int.options)
+  const BigIntType = createType('tag:yaml.org,2002:int', {
+    nodeKind: types.int.nodeKind,
+    resolve: types.int.resolve,
+    construct: data => {
+      let value = data
+      let sign = 1n
+      let ch
 
-  options.construct = data => {
-    let value = data
-    let sign = 1n
-    let ch
-
-    ch = value[0]
-
-    if (ch === '-' || ch === '+') {
-      if (ch === '-') sign = -1n
-      value = value.slice(1)
       ch = value[0]
+
+      if (ch === '-' || ch === '+') {
+        if (ch === '-') sign = -1n
+        value = value.slice(1)
+        ch = value[0]
+      }
+
+      return sign * BigInt(value)
     }
-
-    return sign * BigInt(value)
-  }
-
-  const BigIntType = new Type('tag:yaml.org,2002:int', options)
+  })
 
   const SCHEMA = DEFAULT_SCHEMA.extend({ implicit: [BigIntType] })
 

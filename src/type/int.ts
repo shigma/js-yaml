@@ -1,4 +1,4 @@
-import { Type, NODE_KIND_SCALAR } from '../type.ts'
+import { createType, NODE_KIND_SCALAR } from '../type.ts'
 
 function isHexCode (c: number) {
   return ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) ||
@@ -118,7 +118,7 @@ function isInteger (object: any) {
          (object % 1 === 0 && !Object.is(object, -0))
 }
 
-export default new Type('tag:yaml.org,2002:int', {
+export default createType('tag:yaml.org,2002:int', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlInteger,
   construct: constructYamlInteger,

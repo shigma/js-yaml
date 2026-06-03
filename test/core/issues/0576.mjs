@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, Type } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, createType } from 'js-yaml'
 
 describe('Custom tags', () => {
   const tagNames = ['tag', '!tag', '!!tag', '!<!tag>', 'tag*-!< >{\n}', '!tagαβγ']
@@ -9,7 +9,7 @@ describe('Custom tags', () => {
     '!<tag*-%21%3C%20%3E%7B%0A%7D>', '!tag%CE%B1%CE%B2%CE%B3']
 
   const tags = tagNames.map(tag =>
-    new Type(tag, {
+    createType(tag, {
       nodeKind: NODE_KIND_SCALAR,
       resolve: () => true,
       construct: object => [tag, object],

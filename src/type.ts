@@ -19,7 +19,7 @@ type StyleAlias = string | number
 
 type RepresentFn = (data: any, style?: string) => any
 
-interface TypeOptions {
+interface TypePartial {
   nodeKind: NodeKind
   multi?: boolean
   resolve?: (data: any, tag?: string) => boolean
@@ -31,7 +31,12 @@ interface TypeOptions {
   styleAliases?: { [style: string]: StyleAlias[] } | null
 }
 
-const DEFAULT_TYPE_OPTIONS: Required<Omit<TypeOptions, 'nodeKind'>> = {
+interface Type extends Required<Omit<TypePartial, 'styleAliases'>> {
+  tag: string
+  styleAliases: { [alias: string]: string }
+}
+
+const DEFAULT_TYPE_OPTIONS: Required<Omit<TypePartial, 'nodeKind'>> = {
   multi: false,
   resolve: () => true,
   construct: (data: any) => data,
@@ -56,43 +61,30 @@ function compileStyleAliases (map: { [style: string]: StyleAlias[] } | null) {
   return result
 }
 
-class Type {
-  options: TypeOptions
-  tag: string
-  nodeKind: NodeKind
-  resolve: (data: any, tag?: string) => boolean
-  construct: (data: any, type?: string) => any
-  predicate: ((data: object) => boolean) | null
-  represent: RepresentFn | { [style: string]: RepresentFn } | null
-  representName: ((data: object) => any) | null
-  defaultStyle: string | null
-  multi: boolean
-  styleAliases: { [alias: string]: string }
+function createType (tag: string, options: TypePartial): Type {
+  const opts = { ...DEFAULT_TYPE_OPTIONS, ...options }
 
-  constructor (tag: string, options: TypeOptions) {
-    const opts = { ...DEFAULT_TYPE_OPTIONS, ...options }
-
-    // TODO: Add tag format check.
-    this.options = options // keep original options in case user wants to extend this type later
-    this.tag = tag
-    this.nodeKind = opts.nodeKind
-    this.resolve = opts.resolve
-    this.construct = opts.construct
-    this.predicate = opts.predicate
-    this.represent = opts.represent
-    this.representName = opts.representName
-    this.defaultStyle = opts.defaultStyle
-    this.multi = opts.multi
-    this.styleAliases = compileStyleAliases(opts.styleAliases)
+  // TODO: Add tag format check.
+  return {
+    tag,
+    nodeKind: opts.nodeKind,
+    resolve: opts.resolve,
+    construct: opts.construct,
+    predicate: opts.predicate,
+    represent: opts.represent,
+    representName: opts.representName,
+    defaultStyle: opts.defaultStyle,
+    multi: opts.multi,
+    styleAliases: compileStyleAliases(opts.styleAliases)
   }
 }
 
 export {
-  Type,
+  createType,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING,
   nodeKindToString
 }
-export type { StyleAlias, NodeKind, NodeKindOrUnknown, TypeOptions }
+export type { StyleAlias, NodeKind, NodeKindOrUnknown, TypePartial, Type }

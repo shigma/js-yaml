@@ -1,7 +1,9 @@
 import {
   type NodeKind,
   type NodeKindOrUnknown,
-  Type,
+  type Type,
+  type TypePartial,
+  createType,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
@@ -48,7 +50,7 @@ const types = {
 }
 
 export {
-  Type,
+  createType,
   Schema,
   FAILSAFE_SCHEMA,
   JSON_SCHEMA,
@@ -66,4 +68,4 @@ export {
   nodeKindToString
 }
 
-export type { LoadOptions, DumpOptions, NodeKind, NodeKindOrUnknown }
+export type { LoadOptions, DumpOptions, NodeKind, NodeKindOrUnknown, Type, TypePartial }
