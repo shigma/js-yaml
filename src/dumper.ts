@@ -1,6 +1,6 @@
 import YAMLException from './exception.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
-import { type Type, NODE_KIND_UNKNOWN } from './type.ts'
+import { type TagDefinition, NODE_KIND_UNKNOWN } from './tag.ts'
 import type { Schema } from './schema.ts'
 
 const _toString = Object.prototype.toString
@@ -70,10 +70,10 @@ function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null)
     if (tag.slice(0, 2) === '!!') {
       tag = `tag:yaml.org,2002:${tag.slice(2)}`
     }
-    const type = schema.compiledTypeMap[NODE_KIND_UNKNOWN][tag]
+    const tagDefinition = schema.compiledTagDefinitionMap[NODE_KIND_UNKNOWN][tag]
 
-    if (type && _hasOwnProperty.call(type.styleAliases, style)) {
-      style = type.styleAliases[style]
+    if (tagDefinition && _hasOwnProperty.call(tagDefinition.styleAliases, style)) {
+      style = tagDefinition.styleAliases[style]
     }
 
     result[tag] = style
@@ -145,8 +145,8 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
 
 interface DumperState extends Required<DumpOptions> {
   styleMap: Record<string, string>
-  implicitTypes: Type[]
-  explicitTypes: Type[]
+  implicitTypes: TagDefinition[]
+  explicitTypes: TagDefinition[]
 
   duplicates: Map<any, number>
   usedDuplicates: Set<any>
@@ -206,9 +206,9 @@ function generateNextLine (state: DumperState, level: number) {
 
 function testImplicitResolving (state: DumperState, str: string) {
   for (let index = 0, length = state.implicitTypes.length; index < length; index += 1) {
-    const type = state.implicitTypes[index]
+    const tagDefinition = state.implicitTypes[index]
 
-    if (type.resolve(str)) {
+    if (tagDefinition.resolve(str)) {
       return true
     }
   }
@@ -772,32 +772,32 @@ function writeBlockMapping (state: DumperState, level: number, object: any, comp
 }
 
 function representType (state: DumperState, object: any, explicit: boolean) {
-  const typeList = explicit ? state.explicitTypes : state.implicitTypes
+  const tagDefinitionList = explicit ? state.explicitTypes : state.implicitTypes
 
-  for (let index = 0, length = typeList.length; index < length; index += 1) {
-    const type = typeList[index]
+  for (let index = 0, length = tagDefinitionList.length; index < length; index += 1) {
+    const tagDefinition = tagDefinitionList[index]
 
-    if (type.predicate && type.predicate(object)) {
+    if (tagDefinition.predicate && tagDefinition.predicate(object)) {
       if (explicit) {
-        if (type.multi && type.representName) {
-          state.tag = type.representName(object)
+        if (tagDefinition.multi && tagDefinition.representName) {
+          state.tag = tagDefinition.representName(object)
         } else {
-          state.tag = type.tag
+          state.tag = tagDefinition.tagName
         }
       } else {
         state.tag = IMPLICIT_TAG
       }
 
-      if (type.represent) {
-        const style = state.styleMap[type.tag] || type.defaultStyle
+      if (tagDefinition.represent) {
+        const style = state.styleMap[tagDefinition.tagName] || tagDefinition.defaultStyle
 
         let _result
-        if (typeof type.represent === 'function') {
-          _result = style ? type.represent(object, style) : type.represent(object)
-        } else if (style && _hasOwnProperty.call(type.represent, style)) {
-          _result = type.represent[style](object, style)
+        if (typeof tagDefinition.represent === 'function') {
+          _result = style ? tagDefinition.represent(object, style) : tagDefinition.represent(object)
+        } else if (style && _hasOwnProperty.call(tagDefinition.represent, style)) {
+          _result = tagDefinition.represent[style](object, style)
         } else {
-          throw new YAMLException(`!<${type.tag}> tag resolver does not accept "${style}" style`)
+          throw new YAMLException(`!<${tagDefinition.tagName}> tag resolver does not accept "${style}" style`)
         }
 
         state.dump = _result
@@ -963,5 +963,8 @@ function dump (input: any, options: DumpOptions = {}) {
   return ''
 }
 
-export { dump }
-export type { DumpOptions }
+export {
+  dump,
+
+  type DumpOptions
+}

@@ -3,12 +3,12 @@ import { it } from 'node:test'
 /* global BigInt */
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, createType, types } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, defineTag, intTag } from 'js-yaml'
 
 it('Should allow int override', () => {
-  const BigIntType = createType('tag:yaml.org,2002:int', {
-    nodeKind: types.int.nodeKind,
-    resolve: types.int.resolve,
+  const BigIntType = defineTag('tag:yaml.org,2002:int', {
+    nodeKind: intTag.nodeKind,
+    resolve: intTag.resolve,
     construct: data => {
       let value = data
       let sign = 1n

@@ -1,7 +1,7 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, createType } from 'js-yaml'
+import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
 
 const tags = [{
   tag: 'Include',
@@ -10,7 +10,7 @@ const tags = [{
   tag: 'Include',
   type: NODE_KIND_MAPPING
 }].map((fn) => {
-  return createType(`!${fn.tag}`, {
+  return defineTag(`!${fn.tag}`, {
     nodeKind: fn.type,
     resolve: () => {
       return true

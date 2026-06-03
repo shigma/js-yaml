@@ -6,16 +6,16 @@
 // It allows numbers in binary notaion, use `Null` and `NULL` as `null`, etc.
 
 import FAILSAFE_SCHEMA from './failsafe.ts'
-import nullType from '../type/null.ts'
-import bool from '../type/bool.ts'
-import int from '../type/int.ts'
-import float from '../type/float.ts'
+import { nullTag } from '../tag/null.ts'
+import { boolTag } from '../tag/bool.ts'
+import { intTag } from '../tag/int.ts'
+import { floatTag } from '../tag/float.ts'
 
 export default FAILSAFE_SCHEMA.extend({
   implicit: [
-    nullType,
-    bool,
-    int,
-    float
+    nullTag,
+    boolTag,
+    intTag,
+    floatTag
   ]
 })

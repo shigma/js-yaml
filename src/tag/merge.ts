@@ -1,10 +1,12 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 function resolveYamlMerge (data: any) {
   return data === '<<' || data === null
 }
 
-export default createType('tag:yaml.org,2002:merge', {
+const mergeTag = defineTag('tag:yaml.org,2002:merge', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlMerge
 })
+
+export { mergeTag }

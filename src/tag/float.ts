@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
   // 2.5e4, 2.5 and integers
@@ -86,7 +86,7 @@ function isFloat (object: any) {
          (object % 1 !== 0 || Object.is(object, -0))
 }
 
-export default createType('tag:yaml.org,2002:float', {
+const floatTag = defineTag('tag:yaml.org,2002:float', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlFloat,
   construct: constructYamlFloat,
@@ -94,3 +94,5 @@ export default createType('tag:yaml.org,2002:float', {
   represent: representYamlFloat,
   defaultStyle: 'lowercase'
 })
+
+export { floatTag }

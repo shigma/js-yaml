@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SEQUENCE } from '../type.ts'
+import { defineTag, NODE_KIND_SEQUENCE } from '../tag.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 const _toString = Object.prototype.toString
@@ -36,8 +36,10 @@ function constructYamlOmap (data: any) {
   return data !== null ? data : []
 }
 
-export default createType('tag:yaml.org,2002:omap', {
+const omapTag = defineTag('tag:yaml.org,2002:omap', {
   nodeKind: NODE_KIND_SEQUENCE,
   resolve: resolveYamlOmap,
   construct: constructYamlOmap
 })
+
+export { omapTag }

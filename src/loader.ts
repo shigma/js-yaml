@@ -1,16 +1,16 @@
 import YAMLException from './exception.ts'
 import makeSnippet, { type SnippetMark } from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
-import type { Schema, TypeMap } from './schema.ts'
+import type { Schema, TagDefinitionMap } from './schema.ts'
 import {
-  type Type,
+  type TagDefinition,
   type NodeKindOrUnknown,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING,
   nodeKindToString
-} from './type.ts'
+} from './tag.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -175,8 +175,8 @@ const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
 
 interface LoaderState extends Required<LoadOptions> {
   input: string
-  implicitTypes: Type[]
-  typeMap: TypeMap
+  implicitTypes: TagDefinition[]
+  tagDefinitionMap: TagDefinitionMap
 
   length: number
   position: number
@@ -207,7 +207,7 @@ function createLoaderState (input: string, options: LoadOptions = {}): LoaderSta
     ...opts,
     input,
     implicitTypes: schema.compiledImplicit,
-    typeMap: schema.compiledTypeMap,
+    tagDefinitionMap: schema.compiledTagDefinitionMap,
 
     length: input.length,
     position: 0,
@@ -1480,7 +1480,7 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
   let atNewLine = false
   let hasContent = false
   let propertyStart = null
-  let type
+  let tagDefinition
   let flowIndent
   let blockIndent
 
@@ -1630,11 +1630,11 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
     }
 
     for (let typeIndex = 0, typeQuantity = state.implicitTypes.length; typeIndex < typeQuantity; typeIndex += 1) {
-      type = state.implicitTypes[typeIndex]
+      tagDefinition = state.implicitTypes[typeIndex]
 
-      if (type.resolve(state.result)) { // `state.result` updated in resolver if matched
-        state.result = type.construct(state.result)
-        state.tag = type.tag
+      if (tagDefinition.resolve(state.result)) { // `state.result` updated in resolver if matched
+        state.result = tagDefinition.construct(state.result)
+        state.tag = tagDefinition.tagName
         if (state.anchor) {
           storeAnchor(state, state.anchor, state.result)
         }
@@ -1642,35 +1642,35 @@ function composeNode (state: LoaderState, parentIndent: number, nodeContext: num
       }
     }
   } else if (state.tag !== '!') {
-    if (_hasOwnProperty.call(state.typeMap[state.kind], state.tag)) {
-      type = state.typeMap[state.kind][state.tag]
+    if (_hasOwnProperty.call(state.tagDefinitionMap[state.kind], state.tag)) {
+      tagDefinition = state.tagDefinitionMap[state.kind][state.tag]
     } else {
-      // looking for multi type
-      type = null
-      const typeList = state.typeMap.multi[state.kind]
+      // looking for multi tag definition
+      tagDefinition = null
+      const tagDefinitionList = state.tagDefinitionMap.multi[state.kind]
 
-      for (let typeIndex = 0, typeQuantity = typeList.length; typeIndex < typeQuantity; typeIndex += 1) {
-        if (state.tag.slice(0, typeList[typeIndex].tag.length) === typeList[typeIndex].tag) {
-          type = typeList[typeIndex]
+      for (let typeIndex = 0, typeQuantity = tagDefinitionList.length; typeIndex < typeQuantity; typeIndex += 1) {
+        if (state.tag.slice(0, tagDefinitionList[typeIndex].tagName.length) === tagDefinitionList[typeIndex].tagName) {
+          tagDefinition = tagDefinitionList[typeIndex]
           break
         }
       }
     }
 
-    if (!type) {
+    if (!tagDefinition) {
       throwError(state, `unknown tag !<${state.tag}>`)
     }
 
     const nodeKind = state.kind as NodeKindOrUnknown
 
-    if (state.result !== null && type.nodeKind !== nodeKind) {
-      throwError(state, `unacceptable node kind for !<${state.tag}> tag; it should be "${nodeKindToString(type.nodeKind)}", not "${nodeKindToString(nodeKind)}"`)
+    if (state.result !== null && tagDefinition.nodeKind !== nodeKind) {
+      throwError(state, `unacceptable node kind for !<${state.tag}> tag; it should be "${nodeKindToString(tagDefinition.nodeKind)}", not "${nodeKindToString(nodeKind)}"`)
     }
 
-    if (!type.resolve(state.result, state.tag)) { // `state.result` updated in resolver if matched
+    if (!tagDefinition.resolve(state.result, state.tag)) { // `state.result` updated in resolver if matched
       throwError(state, `cannot resolve a node with !<${state.tag}> explicit tag`)
     } else {
-      state.result = type.construct(state.result, state.tag)
+      state.result = tagDefinition.construct(state.result, state.tag)
       if (state.anchor) {
         storeAnchor(state, state.anchor, state.result)
       }
@@ -1853,5 +1853,9 @@ function load (input: string, options?: LoadOptions) {
   throw new YAMLException('expected a single document in the stream, but found more')
 }
 
-export { loadAll, load }
-export type { LoadOptions }
+export {
+  loadAll,
+  load,
+
+  type LoadOptions
+}

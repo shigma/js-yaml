@@ -1,10 +1,10 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, createType } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
 
 it('should shorthand tags with !! whenever possible', () => {
-  const regexp = createType('tag:yaml.org,2002:js/regexp', {
+  const regexp = defineTag('tag:yaml.org,2002:js/regexp', {
     nodeKind: NODE_KIND_SCALAR,
     resolve: () => true,
     construct: str => new RegExp(str),

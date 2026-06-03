@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 const YAML_DATE_REGEXP = new RegExp(
   '^([0-9][0-9][0-9][0-9])' + // [1] year
@@ -77,10 +77,12 @@ function representYamlTimestamp (object: Date /*, style */) {
   return object.toISOString()
 }
 
-export default createType('tag:yaml.org,2002:timestamp', {
+const timestampTag = defineTag('tag:yaml.org,2002:timestamp', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlTimestamp,
   construct: constructYamlTimestamp,
   predicate: (object) => object instanceof Date,
   represent: representYamlTimestamp
 })
+
+export { timestampTag }

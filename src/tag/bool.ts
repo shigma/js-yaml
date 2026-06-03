@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 function resolveYamlBoolean (data: any) {
   if (data === null) return false
@@ -19,7 +19,7 @@ function isBoolean (object: any) {
   return Object.prototype.toString.call(object) === '[object Boolean]'
 }
 
-export default createType('tag:yaml.org,2002:bool', {
+const boolTag = defineTag('tag:yaml.org,2002:bool', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlBoolean,
   construct: constructYamlBoolean,
@@ -31,3 +31,5 @@ export default createType('tag:yaml.org,2002:bool', {
   },
   defaultStyle: 'lowercase'
 })
+
+export { boolTag }

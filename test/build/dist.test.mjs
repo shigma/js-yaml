@@ -22,19 +22,32 @@ const expectedKeys = [
   'NODE_KIND_UNKNOWN',
   'Schema',
   'YAMLException',
-  'createType',
+  'binaryTag',
+  'boolTag',
+  'defineTag',
   'dump',
+  'floatTag',
+  'intTag',
   'load',
   'loadAll',
+  'mapTag',
+  'mergeTag',
+  'nullTag',
   'nodeKindToString',
-  'types'
+  'omapTag',
+  'pairsTag',
+  'seqTag',
+  'setTag',
+  'strTag',
+  'timestampTag'
 ]
 
 function checkExports (yaml, options) {
   assert.deepStrictEqual(Object.keys(yaml).sort(), expectedKeys.slice().sort())
   assert.strictEqual(yaml.load('a: 1').a, 1)
   assert.strictEqual(typeof yaml.dump, 'function')
-  assert.strictEqual(typeof yaml.types.binary, 'object')
+  assert.strictEqual(typeof yaml.intTag, 'object')
+  assert.strictEqual(yaml.intTag.tagName, 'tag:yaml.org,2002:int')
   assert.strictEqual(yaml.NODE_KIND_UNKNOWN, 0)
   assert.strictEqual(yaml.NODE_KIND_SCALAR, 1)
   assert.strictEqual(yaml.NODE_KIND_SEQUENCE, 2)

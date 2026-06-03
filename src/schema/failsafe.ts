@@ -2,14 +2,14 @@
 // http://www.yaml.org/spec/1.2/spec.html#id2802346
 
 import { Schema } from '../schema.ts'
-import str from '../type/str.ts'
-import seq from '../type/seq.ts'
-import map from '../type/map.ts'
+import { strTag } from '../tag/str.ts'
+import { seqTag } from '../tag/seq.ts'
+import { mapTag } from '../tag/map.ts'
 
 export default new Schema({
   explicit: [
-    str,
-    seq,
-    map
+    strTag,
+    seqTag,
+    mapTag
   ]
 })

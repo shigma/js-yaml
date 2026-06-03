@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_MAPPING } from '../type.ts'
+import { defineTag, NODE_KIND_MAPPING } from '../tag.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
@@ -20,8 +20,10 @@ function constructYamlSet (data: any) {
   return data !== null ? data : {}
 }
 
-export default createType('tag:yaml.org,2002:set', {
+const setTag = defineTag('tag:yaml.org,2002:set', {
   nodeKind: NODE_KIND_MAPPING,
   resolve: resolveYamlSet,
   construct: constructYamlSet
 })
+
+export { setTag }

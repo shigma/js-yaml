@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 // [ 64, 65, 66 ] -> [ padding, CR, LF ]
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'
@@ -111,10 +111,12 @@ function isBinary (obj: any) {
   return Object.prototype.toString.call(obj) === '[object Uint8Array]'
 }
 
-export default createType('tag:yaml.org,2002:binary', {
+const binaryTag = defineTag('tag:yaml.org,2002:binary', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlBinary,
   construct: constructYamlBinary,
   predicate: isBinary,
   represent: representYamlBinary
 })
+
+export { binaryTag }

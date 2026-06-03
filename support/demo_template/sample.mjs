@@ -158,22 +158,22 @@ timestamp:
   date (00:00:00Z): 2002-12-14
 
 
-# Custom types #################################################################
+# Custom tag definitions #######################################################
 ################################################################################
 
 
-# JS-YAML allows you to specify a custom YAML types for your structures.
+# JS-YAML allows you to specify custom YAML tag definitions for your structures.
 # This is a simple example of custom constructor defined in \`index.mjs\` for
-# custom \`!sexy\` type:
+# custom \`!sexy\` tag:
 #
-# var SexyYamlType = new jsyaml.Type('!sexy', {
+# var SexyYamlTag = jsyaml.defineTag('!sexy', {
 #   nodeKind: jsyaml.NODE_KIND_SEQUENCE,
 #   construct: function (data) {
 #     return data.map(function (string) { return 'sexy ' + string; });
 #   }
 # });
 #
-# var SEXY_SCHEMA = jsyaml.Schema.create([ SexyYamlType ]);
+# var SEXY_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([ SexyYamlTag ]);
 #
 # result = jsyaml.load(yourData, { schema: SEXY_SCHEMA });
 

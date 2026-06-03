@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SEQUENCE } from '../type.ts'
+import { defineTag, NODE_KIND_SEQUENCE } from '../tag.ts'
 
 const _toString = Object.prototype.toString
 
@@ -41,8 +41,10 @@ function constructYamlPairs (data: any) {
   return result
 }
 
-export default createType('tag:yaml.org,2002:pairs', {
+const pairsTag = defineTag('tag:yaml.org,2002:pairs', {
   nodeKind: NODE_KIND_SEQUENCE,
   resolve: resolveYamlPairs,
   construct: constructYamlPairs
 })
+
+export { pairsTag }

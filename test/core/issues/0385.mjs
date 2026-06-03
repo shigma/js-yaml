@@ -1,12 +1,12 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, NODE_KIND_SEQUENCE, createType } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, NODE_KIND_SEQUENCE, defineTag } from 'js-yaml'
 
 describe('Multi tag', () => {
   it('should process multi tags', () => {
     const tags = [NODE_KIND_SCALAR, NODE_KIND_MAPPING, NODE_KIND_SEQUENCE].map(nodeKind =>
-      createType('!', {
+      defineTag('!', {
         nodeKind,
         multi: true,
         resolve: () => {
@@ -49,7 +49,7 @@ describe('Multi tag', () => {
 
   it('should process tags depending on prefix', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
-      createType(prefix, {
+      defineTag(prefix, {
         nodeKind: NODE_KIND_SCALAR,
         multi: true,
         resolve: () => {
@@ -62,7 +62,7 @@ describe('Multi tag', () => {
     )
 
     tags.push(
-      createType('!bar', {
+      defineTag('!bar', {
         nodeKind: NODE_KIND_SCALAR,
         resolve: () => {
           return true
@@ -96,7 +96,7 @@ describe('Multi tag', () => {
 
   it('should dump multi types with custom tag', () => {
     const tags = [
-      createType('!', {
+      defineTag('!', {
         nodeKind: NODE_KIND_SCALAR,
         multi: true,
         predicate: (obj) => {

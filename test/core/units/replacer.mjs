@@ -1,10 +1,10 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, createType } from 'js-yaml'
+import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
 
 describe('replacer', () => {
-  const undef = createType('!undefined', {
+  const undef = defineTag('!undefined', {
     nodeKind: NODE_KIND_SCALAR,
     resolve: () => true,
     construct: () => {},

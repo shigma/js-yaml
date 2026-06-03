@@ -4,6 +4,7 @@ const NODE_KIND_SEQUENCE = 2
 const NODE_KIND_MAPPING = 3
 
 type NodeKind = typeof NODE_KIND_SCALAR | typeof NODE_KIND_SEQUENCE | typeof NODE_KIND_MAPPING
+type NodeKindString = 'scalar' | 'sequence' | 'mapping'
 type NodeKindOrUnknown = typeof NODE_KIND_UNKNOWN | NodeKind
 
 function nodeKindToString (kind: NodeKindOrUnknown) {
@@ -17,8 +18,8 @@ function nodeKindToString (kind: NodeKindOrUnknown) {
 
 type RepresentFn = (data: any, style?: string) => any
 
-interface TypePartial {
-  nodeKind: NodeKind
+interface PartialTagDefinition {
+  nodeKind: NodeKind | NodeKindString
   multi?: boolean
   resolve?: (data: any, tag?: string) => boolean
   construct?: (data: any, type?: string) => any
@@ -29,12 +30,13 @@ interface TypePartial {
   styleAliases?: { [style: string]: string[] } | null
 }
 
-interface Type extends Required<Omit<TypePartial, 'styleAliases'>> {
-  tag: string
+interface TagDefinition extends Required<Omit<PartialTagDefinition, 'nodeKind' | 'styleAliases'>> {
+  tagName: string
+  nodeKind: NodeKind
   styleAliases: { [alias: string]: string }
 }
 
-const DEFAULT_TYPE_OPTIONS: Required<Omit<TypePartial, 'nodeKind'>> = {
+const DEFAULT_TAG_DEFINITION: Required<Omit<PartialTagDefinition, 'nodeKind'>> = {
   multi: false,
   resolve: () => true,
   construct: (data: any) => data,
@@ -59,13 +61,25 @@ function compileStyleAliases (map: { [style: string]: string[] } | null) {
   return result
 }
 
-function createType (tag: string, options: TypePartial): Type {
-  const opts = { ...DEFAULT_TYPE_OPTIONS, ...options }
+function toNumericNodeKind (kind: NodeKind | NodeKindString): NodeKind {
+  switch (kind) {
+    case NODE_KIND_SCALAR:
+    case 'scalar': return NODE_KIND_SCALAR
+    case NODE_KIND_SEQUENCE:
+    case 'sequence': return NODE_KIND_SEQUENCE
+    case NODE_KIND_MAPPING:
+    case 'mapping': return NODE_KIND_MAPPING
+    default: throw new Error(`Unknown node kind "${kind}"`)
+  }
+}
+
+function defineTag (tagName: string, options: PartialTagDefinition): TagDefinition {
+  const opts = { ...DEFAULT_TAG_DEFINITION, ...options }
 
   // TODO: Add tag format check.
   return {
-    tag,
-    nodeKind: opts.nodeKind,
+    tagName,
+    nodeKind: toNumericNodeKind(opts.nodeKind),
     resolve: opts.resolve,
     construct: opts.construct,
     predicate: opts.predicate,
@@ -78,11 +92,16 @@ function createType (tag: string, options: TypePartial): Type {
 }
 
 export {
-  createType,
+  defineTag,
   NODE_KIND_UNKNOWN,
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING,
-  nodeKindToString
+  nodeKindToString,
+
+  type NodeKind,
+  type NodeKindString,
+  type NodeKindOrUnknown,
+  type PartialTagDefinition,
+  type TagDefinition
 }
-export type { NodeKind, NodeKindOrUnknown, TypePartial, Type }

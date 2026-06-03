@@ -1,4 +1,4 @@
-import { createType, NODE_KIND_SCALAR } from '../type.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
 
 function resolveYamlNull (data: any) {
   if (data === null) return true
@@ -17,7 +17,7 @@ function isNull (object: any) {
   return object === null
 }
 
-export default createType('tag:yaml.org,2002:null', {
+const nullTag = defineTag('tag:yaml.org,2002:null', {
   nodeKind: NODE_KIND_SCALAR,
   resolve: resolveYamlNull,
   construct: constructYamlNull,
@@ -31,3 +31,5 @@ export default createType('tag:yaml.org,2002:null', {
   },
   defaultStyle: 'lowercase'
 })
+
+export { nullTag }
