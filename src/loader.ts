@@ -1,7 +1,7 @@
 import YAMLException from './exception.ts'
 import makeSnippet, { type SnippetMark } from './snippet.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
-import type { default as Schema, TypeMap } from './schema.ts'
+import type { Schema, TypeMap } from './schema.ts'
 import {
   type Type,
   type NodeKindOrUnknown,

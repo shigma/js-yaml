@@ -134,5 +134,5 @@ class Schema {
   }
 }
 
-export default Schema
+export { Schema }
 export type { TypeMap, SchemaDefinition }

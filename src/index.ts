@@ -8,7 +8,7 @@ import {
   NODE_KIND_MAPPING,
   nodeKindToString
 } from './type.ts'
-import Schema from './schema.ts'
+import { Schema } from './schema.ts'
 import FAILSAFE_SCHEMA from './schema/failsafe.ts'
 import JSON_SCHEMA from './schema/json.ts'
 import CORE_SCHEMA from './schema/core.ts'

@@ -1,7 +1,7 @@
 import YAMLException from './exception.ts'
 import DEFAULT_SCHEMA from './schema/default.ts'
 import { type Type, NODE_KIND_UNKNOWN } from './type.ts'
-import type Schema from './schema.ts'
+import type { Schema } from './schema.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
