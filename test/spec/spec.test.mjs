@@ -4,8 +4,23 @@ import assert from 'node:assert'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { JSONParser } from '@streamparser/json'
-import { load, loadAll } from 'js-yaml'
+import { load } from 'js-yaml'
+
+import {
+  EVENT_DOCUMENT,
+  EVENT_SEQUENCE,
+  EVENT_MAPPING,
+  EVENT_SCALAR,
+  EVENT_ALIAS,
+  EVENT_POP,
+  SCALAR_STYLE_SINGLE_QUOTED,
+  SCALAR_STYLE_DOUBLE_QUOTED,
+  SCALAR_STYLE_LITERAL_BLOCK,
+  SCALAR_STYLE_FOLDED_BLOCK,
+  COLLECTION_STYLE_FLOW
+} from '../../src/events.ts'
+import { createParserState, parseEvents } from '../../src/parser.ts'
+import { getScalarValue } from '../../src/scalar.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteDir = path.join(__dirname, 'yaml-test-suite')
@@ -23,22 +38,117 @@ function unescapeFixtureText (text) {
     .replace(/∎\n$/u, '')
 }
 
-// JSON samples contains multiple "documents" in concatenated form.
-// This parser handles them right, returning array of docs.
-function parseConcatenatedJSON (str) {
-  const parser = new JSONParser({ separator: '' })
-  const out = []
+function expectedTreeLines (tree) {
+  const lines = []
 
-  parser.onValue = ({ value, stack }) => {
-    if (stack.length === 0) out.push(value)
+  for (const line of tree.split('\n')) {
+    const trimmed = line.trim()
+
+    if (trimmed === '' || trimmed === '+STR' || trimmed === '-STR') continue
+    // Significant (e.g. trailing) spaces in scalar values are visualized with ␣.
+    lines.push(trimmed.replaceAll('␣', ' '))
   }
 
-  parser.write(str)
-  parser.end()
-  return out
+  return lines
 }
 
-describe('yaml-test-suite yaml/json fixtures', () => {
+function escapeTreeValue (value) {
+  return value
+    .replaceAll('\\', '\\\\')
+    .replaceAll('\n', '\\n')
+    .replaceAll('\r', '\\r')
+    .replaceAll('\t', '\\t')
+    .replaceAll('\b', '\\b')
+}
+
+function formatRange (input, start, end) {
+  return start === -1 ? '' : input.slice(start, end)
+}
+
+const DEFAULT_TAG_HANDLES = { '!': '!', '!!': 'tag:yaml.org,2002:' }
+
+function percentDecode (suffix) {
+  return suffix.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+}
+
+// Resolve a raw tag (e.g. !foo, !!str, !e!tag%21, !<verbatim>) into its full
+// form using the current document's TAG directives, mirroring what the
+// yaml-test-suite tree expects. The parser stores raw tag ranges; the directives
+// needed to resolve them are carried on the DOCUMENT event.
+function formatTag (tag, tagDirectives) {
+  if (tag === '') return ''
+  if (tag.startsWith('!<') && tag.endsWith('>')) return `<${tag.slice(2, -1)}>`
+
+  const handle = (/^(![\w-]*!|!)/.exec(tag))[1]
+  const prefix = tagDirectives[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
+  return `<${prefix}${percentDecode(tag.slice(handle.length))}>`
+}
+
+function formatProperties (input, event, tagDirectives) {
+  const parts = []
+  const anchor = formatRange(input, event.anchorStart, event.anchorEnd)
+  const tag = formatRange(input, event.tagStart, event.tagEnd)
+
+  if (anchor) parts.push(`&${anchor}`)
+  if (tag) parts.push(formatTag(tag, tagDirectives))
+
+  return parts.length > 0 ? `${parts.join(' ')} ` : ''
+}
+
+function scalarStyleMarker (style) {
+  if (style === SCALAR_STYLE_SINGLE_QUOTED) return "'"
+  if (style === SCALAR_STYLE_DOUBLE_QUOTED) return '"'
+  if (style === SCALAR_STYLE_LITERAL_BLOCK) return '|'
+  if (style === SCALAR_STYLE_FOLDED_BLOCK) return '>'
+  return ':'
+}
+
+function actualTreeLines (input) {
+  const state = createParserState(input)
+  parseEvents(state)
+
+  const lines = []
+  const stack = []
+  let tagDirectives = {}
+
+  for (const event of state.events) {
+    if (event.type === EVENT_DOCUMENT) {
+      tagDirectives = event.tagDirectives
+      lines.push(event.explicitStart ? '+DOC ---' : '+DOC')
+      stack.push(event)
+    } else if (event.type === EVENT_SEQUENCE) {
+      const style = event.style === COLLECTION_STYLE_FLOW ? ' []' : ''
+      const props = formatProperties(input, event, tagDirectives)
+      lines.push(`+SEQ${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
+      stack.push(event)
+    } else if (event.type === EVENT_MAPPING) {
+      const style = event.style === COLLECTION_STYLE_FLOW ? ' {}' : ''
+      const props = formatProperties(input, event, tagDirectives)
+      lines.push(`+MAP${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
+      stack.push(event)
+    } else if (event.type === EVENT_SCALAR) {
+      const props = formatProperties(input, event, tagDirectives)
+      const value = escapeTreeValue(getScalarValue(state, event))
+      lines.push(`=VAL ${props}${scalarStyleMarker(event.style)}${value}`)
+    } else if (event.type === EVENT_ALIAS) {
+      lines.push(`=ALI *${formatRange(input, event.anchorStart, event.anchorEnd)}`)
+    } else if (event.type === EVENT_POP) {
+      const opened = stack.pop()
+
+      if (opened?.type === EVENT_DOCUMENT) {
+        lines.push(opened.explicitEnd ? '-DOC ...' : '-DOC')
+      } else if (opened?.type === EVENT_SEQUENCE) {
+        lines.push('-SEQ')
+      } else if (opened?.type === EVENT_MAPPING) {
+        lines.push('-MAP')
+      }
+    }
+  }
+
+  return lines
+}
+
+describe('yaml-test-suite parser tree', () => {
   if (!fs.existsSync(srcDir)) {
     throw new Error('Missing yaml-test-suite fixtures. Run npm run spec:get first.')
   }
@@ -54,20 +164,29 @@ describe('yaml-test-suite yaml/json fixtures', () => {
       const name = fixture.name || id
       const suffix = fixtures.length > 1 ? `/${String(index).padStart(2, '0')}` : ''
 
-      if (fixture.fail || fixture.yaml == null || fixture.json == null) {
-        it(`${id}${suffix} ${name}`, { skip: 'no yaml/json success expectation' }, () => {})
+      if (fixture.yaml == null) {
+        it(`${id}${suffix} ${name}`, { skip: 'no yaml/tree success expectation' }, () => {})
+        return
+      }
+
+      if (fixture.fail) {
+        it(`${id}${suffix} ${name}`, () => {
+          const input = unescapeFixtureText(fixture.yaml)
+
+          assert.throws(() => actualTreeLines(input))
+        })
+        return
+      }
+
+      if (fixture.tree == null) {
+        it(`${id}${suffix} ${name}`, { skip: 'no tree success expectation' }, () => {})
         return
       }
 
       it(`${id}${suffix} ${name}`, () => {
-        const expectedDocs = parseConcatenatedJSON(unescapeFixtureText(fixture.json))
-        const actualDocs = loadAll(unescapeFixtureText(fixture.yaml), null, { filename: `${fixtureFile}${suffix}` })
+        const input = unescapeFixtureText(fixture.yaml)
 
-        // Unwrap single-document fixtures for better error messages.
-        const expected = expectedDocs.length === 1 ? expectedDocs[0] : expectedDocs
-        const actual = actualDocs.length === 1 ? actualDocs[0] : actualDocs
-
-        assert.deepStrictEqual(actual, expected)
+        assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
       })
     })
   }
