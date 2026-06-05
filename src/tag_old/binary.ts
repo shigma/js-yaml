@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag_old.ts'
 
 // [ 64, 65, 66 ] -> [ padding, CR, LF ]
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'

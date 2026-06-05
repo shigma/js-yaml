@@ -1,7 +1,7 @@
 import YAMLException from './exception.ts'
 import makeSnippet, { type SnippetMark } from './snippet.ts'
-import DEFAULT_SCHEMA from './schema/default.ts'
-import type { Schema, TagDefinitionMap } from './schema.ts'
+import DEFAULT_SCHEMA from './schema_old/default.ts'
+import type { Schema, TagDefinitionMap } from './schema_old.ts'
 import {
   type TagDefinition,
   type NodeKindOrUnknown,
@@ -10,7 +10,7 @@ import {
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING,
   nodeKindToString
-} from './tag.ts'
+} from './tag_old.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 

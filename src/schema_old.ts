@@ -6,7 +6,7 @@ import {
   NODE_KIND_SCALAR,
   NODE_KIND_SEQUENCE,
   NODE_KIND_MAPPING
-} from './tag.ts'
+} from './tag_old.ts'
 
 type TagDefinitionLookup = { [tagName: string]: TagDefinition }
 

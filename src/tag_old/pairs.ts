@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SEQUENCE } from '../tag.ts'
+import { defineTag, NODE_KIND_SEQUENCE } from '../tag_old.ts'
 
 const _toString = Object.prototype.toString
 

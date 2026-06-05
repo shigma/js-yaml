@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag_old.ts'
 
 const YAML_DATE_REGEXP = new RegExp(
   '^([0-9][0-9][0-9][0-9])' + // [1] year

@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag_old.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
   // 2.5e4, 2.5 and integers

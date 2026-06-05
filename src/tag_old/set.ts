@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_MAPPING } from '../tag.ts'
+import { defineTag, NODE_KIND_MAPPING } from '../tag_old.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 

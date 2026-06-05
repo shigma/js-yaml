@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_MAPPING } from '../tag.ts'
+import { defineTag, NODE_KIND_MAPPING } from '../tag_old.ts'
 
 const mapTag = defineTag('tag:yaml.org,2002:map', {
   nodeKind: NODE_KIND_MAPPING,

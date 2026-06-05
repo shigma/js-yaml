@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag_old.ts'
 
 const strTag = defineTag('tag:yaml.org,2002:str', {
   nodeKind: NODE_KIND_SCALAR,

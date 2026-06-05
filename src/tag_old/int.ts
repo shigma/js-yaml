@@ -1,4 +1,4 @@
-import { defineTag, NODE_KIND_SCALAR } from '../tag.ts'
+import { defineTag, NODE_KIND_SCALAR } from '../tag_old.ts'
 
 function isHexCode (c: number) {
   return ((c >= 0x30/* 0 */) && (c <= 0x39/* 9 */)) ||

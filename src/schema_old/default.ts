@@ -5,12 +5,12 @@
 // extra types described at YAML tag repository. (http://yaml.org/type/)
 
 import CORE_SCHEMA from './core.ts'
-import { timestampTag } from '../tag/timestamp.ts'
-import { mergeTag } from '../tag/merge.ts'
-import { binaryTag } from '../tag/binary.ts'
-import { omapTag } from '../tag/omap.ts'
-import { pairsTag } from '../tag/pairs.ts'
-import { setTag } from '../tag/set.ts'
+import { timestampTag } from '../tag_old/timestamp.ts'
+import { mergeTag } from '../tag_old/merge.ts'
+import { binaryTag } from '../tag_old/binary.ts'
+import { omapTag } from '../tag_old/omap.ts'
+import { pairsTag } from '../tag_old/pairs.ts'
+import { setTag } from '../tag_old/set.ts'
 
 export default CORE_SCHEMA.extend({
   implicit: [
