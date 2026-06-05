@@ -12,50 +12,42 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.resolve(__dirname, '../../dist')
 
 const expectedKeys = [
+  'Schema',
   'CORE_SCHEMA',
-  'DEFAULT_SCHEMA',
   'FAILSAFE_SCHEMA',
   'JSON_SCHEMA',
-  'NODE_KIND_MAPPING',
-  'NODE_KIND_SCALAR',
-  'NODE_KIND_SEQUENCE',
-  'NODE_KIND_UNKNOWN',
-  'Schema',
-  'YAMLException',
-  'binaryTag',
-  'boolTag',
-  'defineTag',
-  'dump',
-  'floatTag',
-  'intTag',
-  'load',
-  'loadAll',
-  'mapTag',
-  'mergeTag',
+  'YAML11_SCHEMA',
+
+  'MERGE_KEY',
+  'NOT_RESOLVED',
+  'defineMappingTag',
+  'defineScalarTag',
+  'defineSequenceTag',
+
+  'strTag',
   'nullTag',
-  'nodeKindToString',
+  'boolTag',
+  'intTag',
+  'floatTag',
+  'seqTag',
+  'mapTag',
+
+  'mergeTag',
+  'binaryTag',
+  'timestampTag',
   'omapTag',
   'pairsTag',
-  'seqTag',
   'setTag',
-  'strTag',
-  'timestampTag'
+
+  'YAMLException',
+  'load',
+  'loadAll',
+  'dump'
 ]
 
 function checkExports (yaml, options) {
   assert.deepStrictEqual(Object.keys(yaml).sort(), expectedKeys.slice().sort())
   assert.strictEqual(yaml.load('a: 1').a, 1)
-  assert.strictEqual(typeof yaml.dump, 'function')
-  assert.strictEqual(typeof yaml.intTag, 'object')
-  assert.strictEqual(yaml.intTag.tagName, 'tag:yaml.org,2002:int')
-  assert.strictEqual(yaml.NODE_KIND_UNKNOWN, 0)
-  assert.strictEqual(yaml.NODE_KIND_SCALAR, 1)
-  assert.strictEqual(yaml.NODE_KIND_SEQUENCE, 2)
-  assert.strictEqual(yaml.NODE_KIND_MAPPING, 3)
-  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_UNKNOWN), 'unknown')
-  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_SCALAR), 'scalar')
-  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_SEQUENCE), 'sequence')
-  assert.strictEqual(yaml.nodeKindToString(yaml.NODE_KIND_MAPPING), 'mapping')
 
   if (options && options.checkEsModule) {
     assert.strictEqual(yaml.__esModule, true)

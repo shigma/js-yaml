@@ -1,18 +1,18 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, load, defineScalarTag } from 'js-yaml'
 
 describe('replacer', () => {
-  const undef = defineTag('!undefined', {
-    nodeKind: NODE_KIND_SCALAR,
+  const undef = defineScalarTag('!undefined', {
+    nodeKind: 'scalar',
     resolve: () => true,
     construct: () => {},
     predicate: object => typeof object === 'undefined',
     represent: () => ''
   })
 
-  const undefSchema = DEFAULT_SCHEMA.extend(undef)
+  const undefSchema = CORE_SCHEMA.withTags(undef)
 
   it('should be called on the root of the document', () => {
     let called = 0

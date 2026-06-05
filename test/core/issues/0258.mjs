@@ -1,18 +1,18 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, load, defineScalarTag } from 'js-yaml'
 
 it('should shorthand tags with !! whenever possible', () => {
-  const regexp = defineTag('tag:yaml.org,2002:js/regexp', {
-    nodeKind: NODE_KIND_SCALAR,
+  const regexp = defineScalarTag('tag:yaml.org,2002:js/regexp', {
+    nodeKind: 'scalar',
     resolve: () => true,
     construct: str => new RegExp(str),
     predicate: object => object instanceof RegExp,
     represent: object => object.source
   })
 
-  const schema = DEFAULT_SCHEMA.extend(regexp)
+  const schema = CORE_SCHEMA.withTags(regexp)
 
   const source = 're: !!js/regexp .*\n'
 

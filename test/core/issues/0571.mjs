@@ -1,18 +1,18 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, FAILSAFE_SCHEMA, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, FAILSAFE_SCHEMA, load, defineScalarTag } from 'js-yaml'
 
 describe('Undefined', () => {
-  const undef = defineTag('!undefined', {
-    nodeKind: NODE_KIND_SCALAR,
+  const undef = defineScalarTag('!undefined', {
+    nodeKind: 'scalar',
     resolve: () => true,
     construct: () => {},
     predicate: object => typeof object === 'undefined',
     represent: () => ''
   })
 
-  const undefSchema = DEFAULT_SCHEMA.extend(undef)
+  const undefSchema = CORE_SCHEMA.withTags(undef)
 
   it('Should replace undefined with null in collections', () => {
     let str

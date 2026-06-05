@@ -1,17 +1,16 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, load, defineMappingTag, defineScalarTag } from 'js-yaml'
 
 const tags = [{
   tag: 'Include',
-  type: NODE_KIND_SCALAR
+  defineTag: defineScalarTag
 }, {
   tag: 'Include',
-  type: NODE_KIND_MAPPING
+  defineTag: defineMappingTag
 }].map((fn) => {
-  return defineTag(`!${fn.tag}`, {
-    nodeKind: fn.type,
+  return fn.defineTag(`!${fn.tag}`, {
     resolve: () => {
       return true
     },
@@ -21,7 +20,7 @@ const tags = [{
   })
 })
 
-const schema = DEFAULT_SCHEMA.extend(tags)
+const schema = CORE_SCHEMA.withTags(tags)
 
 it('Process tag with nodeKind: scalar', () => {
   assert.deepStrictEqual(load('!Include foobar', {

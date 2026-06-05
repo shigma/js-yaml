@@ -1,16 +1,16 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, load, defineScalarTag } from 'js-yaml'
 
 function SuccessSignal () {}
 
-const TestClassYaml = defineTag('!test', {
-  nodeKind: NODE_KIND_SCALAR,
+const TestClassYaml = defineScalarTag('!test', {
+  nodeKind: 'scalar',
   resolve: () => { throw new SuccessSignal() }
 })
 
-const TEST_SCHEMA = DEFAULT_SCHEMA.extend([TestClassYaml])
+const TEST_SCHEMA = CORE_SCHEMA.withTags(TestClassYaml)
 
 it('Resolving of empty nodes are skipped in some cases', () => {
   assert.throws(() => { load('- foo: !test\n- bar: baz', { schema: TEST_SCHEMA }) }, SuccessSignal)

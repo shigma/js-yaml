@@ -3,10 +3,10 @@ import { it } from 'node:test'
 /* global BigInt */
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, defineTag, intTag } from 'js-yaml'
+import { CORE_SCHEMA, load, defineScalarTag, intTag } from 'js-yaml'
 
 it('Should allow int override', () => {
-  const BigIntType = defineTag('tag:yaml.org,2002:int', {
+  const BigIntType = defineScalarTag('tag:yaml.org,2002:int', {
     nodeKind: intTag.nodeKind,
     resolve: intTag.resolve,
     construct: data => {
@@ -26,7 +26,7 @@ it('Should allow int override', () => {
     }
   })
 
-  const SCHEMA = DEFAULT_SCHEMA.extend({ implicit: [BigIntType] })
+  const SCHEMA = CORE_SCHEMA.withTags(BigIntType)
 
   const data = `
 int: -123456789

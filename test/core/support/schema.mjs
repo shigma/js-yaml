@@ -1,5 +1,5 @@
 import util from 'node:util'
-import { DEFAULT_SCHEMA, NODE_KIND_MAPPING, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, defineMappingTag, defineScalarTag } from 'js-yaml'
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -22,13 +22,13 @@ function Foo (parameters) {
   this.myAnotherParameter = parameters.myAnotherParameter
 }
 
-const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
+const TEST_SCHEMA = CORE_SCHEMA.withTags([
   // NOTE: TagDefinition order matters!
   // Inherited classes must precede their parents because the dumper
   // doesn't inspect class inheritance and just picks first suitable
   // class from this array.
-  defineTag('!tag3', {
-    nodeKind: NODE_KIND_MAPPING,
+  defineMappingTag('!tag3', {
+    nodeKind: 'mapping',
     resolve: (data) => {
       if (data === null) return false
       if (!Object.prototype.hasOwnProperty.call(data, '=') &&
@@ -48,8 +48,8 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
       return { '=': object.x, y: object.y, z: object.z }
     }
   }),
-  defineTag('!tag2', {
-    nodeKind: NODE_KIND_SCALAR,
+  defineScalarTag('!tag2', {
+    nodeKind: 'scalar',
     construct: (data) => {
       return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
     },
@@ -58,8 +58,8 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
       return String(object.x)
     }
   }),
-  defineTag('!tag1', {
-    nodeKind: NODE_KIND_MAPPING,
+  defineMappingTag('!tag1', {
+    nodeKind: 'mapping',
     resolve: (data) => {
       if (data === null) return false
       if (!Object.prototype.hasOwnProperty.call(data, 'x')) return false
@@ -73,8 +73,8 @@ const TEST_SCHEMA = DEFAULT_SCHEMA.extend([
     },
     predicate: (object) => object instanceof Tag1
   }),
-  defineTag('!foo', {
-    nodeKind: NODE_KIND_MAPPING,
+  defineMappingTag('!foo', {
+    nodeKind: 'mapping',
     resolve: (data) => {
       if (data === null) return false
       if (!Object.keys(data).every((k) => { return k === 'my-parameter' || k === 'my-another-parameter' })) {

@@ -1,12 +1,18 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_MAPPING, NODE_KIND_SCALAR, NODE_KIND_SEQUENCE, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, load, defineMappingTag, defineScalarTag, defineSequenceTag } from 'js-yaml'
 
 describe('Tag prefix matching', () => {
   it('should process tags matched by prefix', () => {
-    const tags = [NODE_KIND_SCALAR, NODE_KIND_MAPPING, NODE_KIND_SEQUENCE].map(nodeKind =>
-      defineTag('!', {
+    const defineTagByKind = {
+      scalar: defineScalarTag,
+      mapping: defineMappingTag,
+      sequence: defineSequenceTag
+    }
+
+    const tags = ['scalar', 'mapping', 'sequence'].map(nodeKind =>
+      defineTagByKind[nodeKind]('!', {
         nodeKind,
         matchByTagPrefix: true,
         resolve: () => {
@@ -18,21 +24,21 @@ describe('Tag prefix matching', () => {
       })
     )
 
-    const schema = DEFAULT_SCHEMA.extend(tags)
+    const schema = CORE_SCHEMA.withTags(tags)
 
     const expected = [
       {
-        nodeKind: NODE_KIND_SCALAR,
+        nodeKind: 'scalar',
         tag: '!t1',
         value: '123'
       },
       {
-        nodeKind: NODE_KIND_SEQUENCE,
+        nodeKind: 'sequence',
         tag: '!t2',
         value: [1, 2, 3]
       },
       {
-        nodeKind: NODE_KIND_MAPPING,
+        nodeKind: 'mapping',
         tag: '!t3',
         value: { a: 1, b: 2 }
       }
@@ -49,8 +55,8 @@ describe('Tag prefix matching', () => {
 
   it('should process tags depending on prefix', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
-      defineTag(prefix, {
-        nodeKind: NODE_KIND_SCALAR,
+      defineScalarTag(prefix, {
+        nodeKind: 'scalar',
         matchByTagPrefix: true,
         resolve: () => {
           return true
@@ -62,8 +68,8 @@ describe('Tag prefix matching', () => {
     )
 
     tags.push(
-      defineTag('!bar', {
-        nodeKind: NODE_KIND_SCALAR,
+      defineScalarTag('!bar', {
+        nodeKind: 'scalar',
         resolve: () => {
           return true
         },
@@ -73,7 +79,7 @@ describe('Tag prefix matching', () => {
       })
     )
 
-    const schema = DEFAULT_SCHEMA.extend(tags)
+    const schema = CORE_SCHEMA.withTags(tags)
 
     const expected = [
       { prefix: '!foo', tag: '!foo', value: '1' },
@@ -96,8 +102,8 @@ describe('Tag prefix matching', () => {
 
   it('should dump prefix-matched tags with custom tag names', () => {
     const tags = [
-      defineTag('!', {
-        nodeKind: NODE_KIND_SCALAR,
+      defineScalarTag('!', {
+        nodeKind: 'scalar',
         matchByTagPrefix: true,
         predicate: (obj) => {
           return !!obj.tag
@@ -111,7 +117,7 @@ describe('Tag prefix matching', () => {
       })
     ]
 
-    const schema = DEFAULT_SCHEMA.extend(tags)
+    const schema = CORE_SCHEMA.withTags(tags)
 
     assert.strictEqual(dump({ test: { tag: 'foo', value: 'bar' } }, {
       schema: schema

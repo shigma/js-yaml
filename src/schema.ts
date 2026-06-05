@@ -111,6 +111,13 @@ class Schema {
     this.exact = exact
     this.prefix = prefix
   }
+
+  withTags (...tags: Array<TagDefinition | readonly TagDefinition[]>): Schema {
+    return new Schema([
+      ...this.tags,
+      ...tags.flat()
+    ])
+  }
 }
 
 const FAILSAFE_SCHEMA = new Schema([

@@ -1,19 +1,19 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, load, NODE_KIND_MAPPING, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, load, defineMappingTag } from 'js-yaml'
 
 function TestClass (data) {
   const self = this
   Object.keys(data).forEach((key) => { self[key] = data[key] })
 }
 
-const TestClassYaml = defineTag('!test', {
-  nodeKind: NODE_KIND_MAPPING,
+const TestClassYaml = defineMappingTag('!test', {
+  nodeKind: 'mapping',
   construct: (data) => { return new TestClass(data) }
 })
 
-const TEST_SCHEMA = DEFAULT_SCHEMA.extend([TestClassYaml])
+const TEST_SCHEMA = CORE_SCHEMA.withTags(TestClassYaml)
 
 describe('Alias nodes', () => {
   describe('Resolving of an alias node should result the resolved and contructed value of the anchored node', () => {

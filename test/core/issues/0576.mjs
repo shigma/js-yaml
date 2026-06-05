@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { DEFAULT_SCHEMA, dump, load, NODE_KIND_SCALAR, defineTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, load, defineScalarTag } from 'js-yaml'
 
 describe('Custom tags', () => {
   const tagNames = ['tag', '!tag', '!!tag', '!<!tag>', 'tag*-!< >{\n}', '!tagαβγ']
@@ -9,8 +9,8 @@ describe('Custom tags', () => {
     '!<tag*-%21%3C%20%3E%7B%0A%7D>', '!tag%CE%B1%CE%B2%CE%B3']
 
   const tags = tagNames.map(tag =>
-    defineTag(tag, {
-      nodeKind: NODE_KIND_SCALAR,
+    defineScalarTag(tag, {
+      nodeKind: 'scalar',
       resolve: () => true,
       construct: object => [tag, object],
       predicate: object => object.tag === tag,
@@ -18,7 +18,7 @@ describe('Custom tags', () => {
     })
   )
 
-  const schema = DEFAULT_SCHEMA.extend(tags)
+  const schema = CORE_SCHEMA.withTags(tags)
 
   it('Should dump tags with proper encoding', () => {
     tagNames.forEach((tag, idx) => {
