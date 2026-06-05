@@ -133,6 +133,21 @@ function resolveTagName (state: ConstructorState, rawTag: string) {
   }
 }
 
+function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
+  exact: Record<string, T>,
+  prefix: readonly T[],
+  tagName: string
+): T | undefined {
+  const exactTag = exact[tagName]
+  if (exactTag) return exactTag
+
+  for (const tag of prefix) {
+    if (tagName.startsWith(tag.tagName)) return tag
+  }
+
+  return undefined
+}
+
 function findExplicitTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
   state: ConstructorState,
   exact: Record<string, T>,
@@ -140,12 +155,8 @@ function findExplicitTag<T extends ScalarTagDefinition | SequenceTagDefinition |
   tagName: string,
   nodeKind: T['nodeKind']
 ) {
-  const exactTag = exact[tagName]
-  if (exactTag) return exactTag
-
-  for (const tag of prefix) {
-    if (tagName.startsWith(tag.tagName)) return tag
-  }
+  const tag = lookupTag(exact, prefix, tagName)
+  if (tag) return tag
 
   throwError(state, `unknown ${nodeKind} tag !<${tagName}>`)
 }
@@ -163,14 +174,34 @@ function constructScalar (
     if (rawTag === '!') return source
 
     const tagName = resolveTagName(state, rawTag)
-    const tag = findExplicitTag(state, state.schema.exact.scalar, state.schema.prefix.scalar, tagName, 'scalar')
-    const result = tag.resolve(source, tagName)
+    const scalarTag = lookupTag(state.schema.exact.scalar, state.schema.prefix.scalar, tagName)
 
-    if (result === NOT_RESOLVED) {
-      throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
+    if (scalarTag) {
+      const result = scalarTag.resolve(source, tagName)
+
+      if (result === NOT_RESOLVED) {
+        throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
+      }
+
+      return result
     }
 
-    return result
+    // An empty node carrying a collection tag (e.g. `!!map`, `!!seq`) is emitted
+    // by the parser as a scalar event, since there is no collection syntax to key
+    // off. Resolve it here by the explicit tag's kind into an empty collection.
+    const collectionTagDef =
+      lookupTag(state.schema.exact.mapping, state.schema.prefix.mapping, tagName) ??
+      lookupTag(state.schema.exact.sequence, state.schema.prefix.sequence, tagName)
+
+    if (collectionTagDef) {
+      if (source !== '') {
+        throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
+      }
+
+      return collectionTagDef.create(tagName)
+    }
+
+    throwError(state, `unknown scalar tag !<${tagName}>`)
   }
 
   if (event.style === SCALAR_STYLE_PLAIN) {

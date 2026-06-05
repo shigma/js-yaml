@@ -3,22 +3,19 @@ import { it } from 'node:test'
 import assert from 'node:assert'
 import { CORE_SCHEMA, load, defineMappingTag, defineScalarTag } from 'js-yaml'
 
-const tags = [{
-  tag: 'Include',
-  defineTag: defineScalarTag
-}, {
-  tag: 'Include',
-  defineTag: defineMappingTag
-}].map((fn) => {
-  return fn.defineTag(`!${fn.tag}`, {
-    resolve: () => {
-      return true
-    },
-    construct: (obj) => {
+const tags = [
+  defineScalarTag('!Include', {
+    resolve: (obj) => {
       return obj
     }
+  }),
+  defineMappingTag('!Include', {
+    create: () => ({}),
+    addPair: (container, key, value) => {
+      container[String(key)] = value
+    }
   })
-})
+]
 
 const schema = CORE_SCHEMA.withTags(tags)
 

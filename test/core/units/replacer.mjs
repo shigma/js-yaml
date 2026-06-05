@@ -5,10 +5,8 @@ import { CORE_SCHEMA, dump, load, defineScalarTag } from 'js-yaml'
 
 describe('replacer', () => {
   const undef = defineScalarTag('!undefined', {
-    nodeKind: 'scalar',
-    resolve: () => true,
-    construct: () => {},
-    predicate: object => typeof object === 'undefined',
+    resolve: () => {},
+    identify: object => typeof object === 'undefined',
     represent: () => ''
   })
 

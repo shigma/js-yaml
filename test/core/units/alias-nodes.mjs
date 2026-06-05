@@ -9,8 +9,10 @@ function TestClass (data) {
 }
 
 const TestClassYaml = defineMappingTag('!test', {
-  nodeKind: 'mapping',
-  construct: (data) => { return new TestClass(data) }
+  create: () => new TestClass({}),
+  addPair: (container, key, value) => {
+    container[key] = value
+  }
 })
 
 const TEST_SCHEMA = CORE_SCHEMA.withTags(TestClassYaml)
@@ -44,7 +46,7 @@ describe('Alias nodes', () => {
     })
 
     // TODO: Not implemented yet (see issue #141)
-    it.skip('Recursive custom objects', () => {
+    it('Recursive custom objects', () => {
       const actual = load('[&1 !test {self: *1}, *1]', { schema: TEST_SCHEMA })[1]
 
       assert(actual instanceof TestClass)

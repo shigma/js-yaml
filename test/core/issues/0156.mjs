@@ -6,7 +6,6 @@ import { CORE_SCHEMA, load, defineScalarTag } from 'js-yaml'
 function SuccessSignal () {}
 
 const TestClassYaml = defineScalarTag('!test', {
-  nodeKind: 'scalar',
   resolve: () => { throw new SuccessSignal() }
 })
 

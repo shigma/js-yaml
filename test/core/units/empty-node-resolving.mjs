@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { load, YAMLException } from 'js-yaml'
+import { load, YAMLException, YAML11_SCHEMA } from 'js-yaml'
 
 describe('Resolving explicit tags on empty nodes', () => {
   it('!!binary', () => {
@@ -25,7 +25,7 @@ describe('Resolving explicit tags on empty nodes', () => {
   })
 
   it('!!merge', () => {
-    assert.doesNotThrow(() => { load('? !!merge\n: []') })
+    assert.doesNotThrow(() => { load('? !!merge\n: []', { schema: YAML11_SCHEMA }) })
   })
 
   it('!!null', () => {
@@ -34,11 +34,11 @@ describe('Resolving explicit tags on empty nodes', () => {
   })
 
   it('!!omap', () => {
-    assert.deepStrictEqual(load('!!omap'), [])
+    assert.deepStrictEqual(load('!!omap', { schema: YAML11_SCHEMA }), [])
   })
 
   it('!!pairs', () => {
-    assert.deepStrictEqual(load('!!pairs'), [])
+    assert.deepStrictEqual(load('!!pairs', { schema: YAML11_SCHEMA }), [])
   })
 
   it('!!seq', () => {
@@ -46,7 +46,7 @@ describe('Resolving explicit tags on empty nodes', () => {
   })
 
   it('!!set', () => {
-    assert.deepStrictEqual(load('!!set'), {})
+    assert.deepStrictEqual(load('!!set', { schema: YAML11_SCHEMA }), {})
   })
 
   it('!!str', () => {
@@ -54,6 +54,6 @@ describe('Resolving explicit tags on empty nodes', () => {
   })
 
   it('!!timestamp', () => {
-    assert.throws(() => { load('!!timestamp') }, YAMLException)
+    assert.throws(() => { load('!!timestamp', { schema: YAML11_SCHEMA }) }, YAMLException)
   })
 })
