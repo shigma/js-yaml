@@ -28,67 +28,40 @@ const TEST_SCHEMA = CORE_SCHEMA.withTags([
   // doesn't inspect class inheritance and just picks first suitable
   // class from this array.
   defineMappingTag('!tag3', {
-    nodeKind: 'mapping',
-    resolve: (data) => {
-      if (data === null) return false
-      if (!Object.prototype.hasOwnProperty.call(data, '=') &&
-          !Object.prototype.hasOwnProperty.call(data, 'x')) {
-        return false
-      }
-      if (!Object.keys(data).every((k) => { return k === '=' || k === 'x' || k === 'y' || k === 'z' })) {
-        return false
-      }
-      return true
+    create: () => new Tag3({}),
+    addPair: (container, key, value) => {
+      if (key === '=' || key === 'x') container.x = value
+      else if (key === 'y') container.y = value
+      else if (key === 'z') container.z = value
     },
-    construct: (data) => {
-      return new Tag3({ x: (data['='] || data.x), y: data.y, z: data.z })
-    },
-    predicate: (object) => object instanceof Tag3,
+    identify: (object) => object instanceof Tag3,
     represent: (object) => {
       return { '=': object.x, y: object.y, z: object.z }
     }
   }),
   defineScalarTag('!tag2', {
-    nodeKind: 'scalar',
-    construct: (data) => {
-      return new Tag2({ x: (typeof data === 'number') ? data : parseInt(data, 10) })
-    },
-    predicate: (object) => object instanceof Tag2,
+    resolve: (source) => new Tag2({ x: parseInt(source, 10) }),
+    identify: (object) => object instanceof Tag2,
     represent: (object) => {
       return String(object.x)
     }
   }),
   defineMappingTag('!tag1', {
-    nodeKind: 'mapping',
-    resolve: (data) => {
-      if (data === null) return false
-      if (!Object.prototype.hasOwnProperty.call(data, 'x')) return false
-      if (!Object.keys(data).every((k) => { return k === 'x' || k === 'y' || k === 'z' })) {
-        return false
-      }
-      return true
+    create: () => new Tag1({}),
+    addPair: (container, key, value) => {
+      if (key === 'x') container.x = value
+      else if (key === 'y') container.y = value
+      else if (key === 'z') container.z = value
     },
-    construct: (data) => {
-      return new Tag1({ x: data.x, y: data.y, z: data.z })
-    },
-    predicate: (object) => object instanceof Tag1
+    identify: (object) => object instanceof Tag1
   }),
   defineMappingTag('!foo', {
-    nodeKind: 'mapping',
-    resolve: (data) => {
-      if (data === null) return false
-      if (!Object.keys(data).every((k) => { return k === 'my-parameter' || k === 'my-another-parameter' })) {
-        return false
-      }
-      return true
+    create: () => new Foo({}),
+    addPair: (container, key, value) => {
+      if (key === 'my-parameter') container.myParameter = value
+      else if (key === 'my-another-parameter') container.myAnotherParameter = value
     },
-    construct: (data) => {
-      return new Foo({
-        myParameter: data['my-parameter'],
-        myAnotherParameter: data['my-another-parameter']
-      })
-    },
-    predicate: (object) => object instanceof Foo,
+    identify: (object) => object instanceof Foo,
     represent: (object) => {
       return {
         'my-parameter': object.myParameter,

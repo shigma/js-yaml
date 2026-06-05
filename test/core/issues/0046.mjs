@@ -1,14 +1,14 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { load } from 'js-yaml'
+import { load, YAML11_SCHEMA } from 'js-yaml'
 
 it('Timestamps are incorrectly parsed in local time', () => {
   const src = `
 date1: 2010-10-20T20:45:00Z
 date2: 2010-10-20T20:45:00+01:00
 `
-  const data = load(src)
+  const data = load(src, { schema: YAML11_SCHEMA })
 
   const date1 = data.date1 // date1: 2010-10-20T20:45:00Z
   assert.strictEqual(date1.getUTCFullYear(), 2010, 'year')

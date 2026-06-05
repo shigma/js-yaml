@@ -1,7 +1,7 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { load } from 'js-yaml'
+import { load, YAML11_SCHEMA } from 'js-yaml'
 
 it('should define __proto__ as a value (not invoke setter)', () => {
   const object = load('{ __proto__: {polluted: bar} }')
@@ -19,7 +19,7 @@ payload: &ref
 foo:
   <<:
     __proto__: *ref
-  `)
+  `, { schema: YAML11_SCHEMA })
 
   assert.strictEqual(({}).hasOwnProperty.call(load('{}'), '__proto__'), false)
   assert.strictEqual(({}).hasOwnProperty.call(object.foo, '__proto__'), true)

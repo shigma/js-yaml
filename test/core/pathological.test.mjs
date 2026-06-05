@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { load, YAMLException } from 'js-yaml'
+import { load, YAMLException, YAML11_SCHEMA } from 'js-yaml'
 import workerpool from 'workerpool'
 
 // Resolved in the main thread; passed into the worker since the worker's
@@ -65,7 +65,7 @@ describe('Pathological tests', () => {
         load(`
 a: &a { k: 0 }
 b: { <<: [ ${'*a, '.repeat(20)}*a ] }
-`)
+`, { schema: YAML11_SCHEMA })
       }, /merge sequence length exceeded maxMergeSeqLength/)
     })
   })
