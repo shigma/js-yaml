@@ -43,6 +43,7 @@ interface DocumentEvent {
 
 interface SequenceEvent {
   type: typeof EVENT_SEQUENCE
+  start: number
   anchorStart: number
   anchorEnd: number
   tagStart: number
@@ -52,6 +53,7 @@ interface SequenceEvent {
 
 interface MappingEvent {
   type: typeof EVENT_MAPPING
+  start: number
   anchorStart: number
   anchorEnd: number
   tagStart: number

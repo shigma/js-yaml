@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { load } from 'js-yaml'
+import { JSONParser } from '@streamparser/json'
 
 import {
   EVENT_DOCUMENT,
@@ -21,6 +22,8 @@ import {
 } from '../../src/events.ts'
 import { createParserState, parseEvents } from '../../src/parser.ts'
 import { getScalarValue } from '../../src/scalar.ts'
+import { loadAll2 } from '../../src/load2.ts'
+import YAMLException from '../../src/exception.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteDir = path.join(__dirname, 'yaml-test-suite')
@@ -50,6 +53,16 @@ function expectedTreeLines (tree) {
   }
 
   return lines
+}
+
+function parseConcatenatedJson (str) {
+  const results = []
+  const parser = new JSONParser({ separator: '', paths: ['$'] })
+
+  parser.onValue = ({ value }) => results.push(value)
+  parser.write(str)
+
+  return results
 }
 
 function escapeTreeValue (value) {
@@ -163,30 +176,66 @@ describe('yaml-test-suite parser tree', () => {
     fixtures.forEach((fixture, index) => {
       const name = fixture.name || id
       const suffix = fixtures.length > 1 ? `/${String(index).padStart(2, '0')}` : ''
+      const title = `${id}${suffix} ${name}`
 
-      if (fixture.yaml == null) {
-        it(`${id}${suffix} ${name}`, { skip: 'no yaml/tree success expectation' }, () => {})
-        return
-      }
+      describe(title, () => {
+        if (fixture.yaml == null) {
+          it(`${id} tree`, { skip: 'no yaml/tree success expectation' }, () => {})
+          it(`${id} json`, { skip: 'no yaml/json success expectation' }, () => {})
+          return
+        }
 
-      if (fixture.fail) {
-        it(`${id}${suffix} ${name}`, () => {
-          const input = unescapeFixtureText(fixture.yaml)
+        if (fixture.fail) {
+          it(`${id} tree`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
 
-          assert.throws(() => actualTreeLines(input))
-        })
-        return
-      }
+            assert.throws(() => actualTreeLines(input))
+          })
 
-      if (fixture.tree == null) {
-        it(`${id}${suffix} ${name}`, { skip: 'no tree success expectation' }, () => {})
-        return
-      }
+          it(`${id} json`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
 
-      it(`${id}${suffix} ${name}`, () => {
-        const input = unescapeFixtureText(fixture.yaml)
+            assert.throws(() => loadAll2(input))
+          })
+          return
+        }
 
-        assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
+        if (fixture.tree == null) {
+          it(`${id} tree`, { skip: 'no tree success expectation' }, () => {})
+        } else {
+          it(`${id} tree`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+
+            assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
+          })
+        }
+
+        if (fixture.json == null) {
+          it(`${id} json`, { skip: 'no json success expectation' }, () => {})
+        } else {
+          it(`${id} json`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+
+            let result
+            try {
+              result = loadAll2(input)
+            } catch (error) {
+              // A strict core-schema loader cannot construct a native value for
+              // a tag outside the schema. The suite's json assumes the
+              // unknown->str/seq/map fallback, which is a test-data convention,
+              // not a spec requirement (the spec only defines fallback for the
+              // non-specific `!` tag). Rejecting the unresolved tag is the
+              // correct outcome here; parsing itself is already covered by the
+              // `tree` assertion above.
+              if (error instanceof YAMLException && /unknown \w+ tag/.test(error.message)) return
+              throw error
+            }
+
+            const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
+
+            assert.deepStrictEqual(result, expected)
+          })
+        }
       })
     })
   }

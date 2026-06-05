@@ -127,6 +127,7 @@ function addDocumentEvent (
 
 function addSequenceEvent (
   state: ParserState,
+  start: number,
   anchorStart: number,
   anchorEnd: number,
   tagStart: number,
@@ -135,6 +136,7 @@ function addSequenceEvent (
 ) {
   state.events.push({
     type: EVENT_SEQUENCE,
+    start,
     anchorStart,
     anchorEnd,
     tagStart,
@@ -145,6 +147,7 @@ function addSequenceEvent (
 
 function addMappingEvent (
   state: ParserState,
+  start: number,
   anchorStart: number,
   anchorEnd: number,
   tagStart: number,
@@ -153,6 +156,7 @@ function addMappingEvent (
 ) {
   state.events.push({
     type: EVENT_MAPPING,
+    start,
     anchorStart,
     anchorEnd,
     tagStart,
@@ -880,6 +884,7 @@ function skipFlowSeparationSpace (state: ParserState, nodeIndent: number) {
 function readFlowCollection (state: ParserState, nodeIndent: number, props: NodeProperties) {
   const ch = state.input.charCodeAt(state.position)
   const isMapping = ch === 0x7B/* { */
+  const start = state.position
   let readNext = true
 
   if (ch !== 0x5B/* [ */ && ch !== 0x7B/* { */) return false
@@ -887,9 +892,9 @@ function readFlowCollection (state: ParserState, nodeIndent: number, props: Node
   const terminator = isMapping ? 0x7D/* } */ : 0x5D/* ] */
 
   if (isMapping) {
-    addMappingEvent(state, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_FLOW)
+    addMappingEvent(state, start, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_FLOW)
   } else {
-    addSequenceEvent(state, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_FLOW)
+    addSequenceEvent(state, start, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_FLOW)
   }
 
   state.position++
@@ -932,7 +937,7 @@ function readFlowCollection (state: ParserState, nodeIndent: number, props: Node
       skipFlowSeparationSpace(state, nodeIndent)
       if (!isMapping) {
         restoreState(state, entryStart)
-        addMappingEvent(state, NO_RANGE, NO_RANGE, NO_RANGE, NO_RANGE, COLLECTION_STYLE_FLOW)
+        addMappingEvent(state, entryStart.position, NO_RANGE, NO_RANGE, NO_RANGE, NO_RANGE, COLLECTION_STYLE_FLOW)
         if (!parseNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true)) {
           addEmptyScalarEvent(state)
         }
@@ -954,7 +959,7 @@ function readFlowCollection (state: ParserState, nodeIndent: number, props: Node
       addEmptyScalarEvent(state)
     } else if (isPair) {
       restoreState(state, entryStart)
-      addMappingEvent(state, NO_RANGE, NO_RANGE, NO_RANGE, NO_RANGE, COLLECTION_STYLE_FLOW)
+      addMappingEvent(state, entryStart.position, NO_RANGE, NO_RANGE, NO_RANGE, NO_RANGE, COLLECTION_STYLE_FLOW)
       parseNode(state, nodeIndent, CONTEXT_FLOW_IN, false, true)
       addEmptyScalarEvent(state)
       addPopEvent(state)
@@ -978,7 +983,7 @@ function readBlockSequence (state: ParserState, nodeIndent: number, props: NodeP
     return false
   }
 
-  addSequenceEvent(state, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
+  addSequenceEvent(state, state.position, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
 
   while (state.input.charCodeAt(state.position) === 0x2D/* - */ && isWsOrEolOrEnd(state.input.charCodeAt(state.position + 1))) {
     const entryLine = state.line
@@ -1033,7 +1038,7 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
 
     if ((ch === 0x3F/* ? */ || ch === 0x3A/* : */) && isWsOrEolOrEnd(following)) {
       if (!mappingOpened) {
-        addMappingEvent(state, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
+        addMappingEvent(state, state.position, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
         mappingOpened = true
       }
 
@@ -1076,13 +1081,13 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
         if (ch === 0x3A/* : */) {
           ch = state.input.charCodeAt(++state.position)
 
-          if (!isWsOrEol(ch)) {
+          if (!isWsOrEolOrEnd(ch)) {
             throwError(state, 'a whitespace character is expected after the key-value separator within a block mapping')
           }
 
           if (!mappingOpened) {
             restoreState(state, beforeKey)
-            addMappingEvent(state, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
+            addMappingEvent(state, beforeKey.position, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
             mappingOpened = true
             if (!parseNode(state, flowIndent, CONTEXT_FLOW_OUT, false, true)) {
               throwError(state, 'can not read an implicit mapping key')
@@ -1098,7 +1103,7 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
             }
 
             ch = state.input.charCodeAt(++state.position)
-            if (!isWsOrEol(ch)) {
+            if (!isWsOrEolOrEnd(ch)) {
               throwError(state, 'a whitespace character is expected after the key-value separator within a block mapping')
             }
           }
@@ -1400,7 +1405,7 @@ function readDocument (state: ParserState) {
       state.input.charCodeAt(state.position) === 0x2D/* - */ &&
       state.input.charCodeAt(state.position + 1) === 0x2D/* - */ &&
       state.input.charCodeAt(state.position + 2) === 0x2D/* - */ &&
-      isWsOrEol(state.input.charCodeAt(state.position + 3))) {
+      isWsOrEolOrEnd(state.input.charCodeAt(state.position + 3))) {
     explicitStart = true
     const markerLine = state.line
     state.position += 3
