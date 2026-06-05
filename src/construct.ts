@@ -13,14 +13,14 @@ import {
   type SequenceEvent
 } from './events.ts'
 import { getScalarValue } from './scalar.ts'
-import { CORE_SCHEMA2, type Schema2 } from './schema2.ts'
+import { CORE_SCHEMA, type Schema } from './schema.ts'
 import {
   MERGE_KEY,
   NOT_RESOLVED,
   type MappingTagDefinition,
   type ScalarTagDefinition,
   type SequenceTagDefinition
-} from './tag2.ts'
+} from './tag.ts'
 import { throwErrorAt, type ParserState } from './parser.ts'
 
 const NO_RANGE = -1
@@ -60,14 +60,14 @@ type Frame = DocumentFrame | SequenceFrame | MappingFrame
 
 interface ConstructOptions {
   filename?: string
-  schema?: Schema2
+  schema?: Schema
   json?: boolean
   maxMergeSeqLength?: number
 }
 
 const DEFAULT_CONSTRUCT_OPTIONS: Required<ConstructOptions> = {
   filename: '',
-  schema: CORE_SCHEMA2,
+  schema: CORE_SCHEMA,
   json: false,
   maxMergeSeqLength: 20
 }

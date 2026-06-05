@@ -3,20 +3,20 @@ import {
   type ScalarTagDefinition,
   type SequenceTagDefinition,
   type TagDefinition
-} from './tag2.ts'
-import { strTag } from './tag2/scalar/str.ts'
-import { nullTag } from './tag2/scalar/null.ts'
-import { boolTag } from './tag2/scalar/bool.ts'
-import { intTag } from './tag2/scalar/int.ts'
-import { floatTag } from './tag2/scalar/float.ts'
-import { mergeTag } from './tag2/scalar/merge.ts'
-import { binaryTag } from './tag2/scalar/binary.ts'
-import { timestampTag } from './tag2/scalar/timestamp.ts'
-import { seqTag } from './tag2/sequence/seq.ts'
-import { omapTag } from './tag2/sequence/omap.ts'
-import { pairsTag } from './tag2/sequence/pairs.ts'
-import { mapTag } from './tag2/mapping/map.ts'
-import { setTag } from './tag2/mapping/set.ts'
+} from './tag.ts'
+import { strTag } from './tag/scalar/str.ts'
+import { nullTag } from './tag/scalar/null.ts'
+import { boolTag } from './tag/scalar/bool.ts'
+import { intTag } from './tag/scalar/int.ts'
+import { floatTag } from './tag/scalar/float.ts'
+import { mergeTag } from './tag/scalar/merge.ts'
+import { binaryTag } from './tag/scalar/binary.ts'
+import { timestampTag } from './tag/scalar/timestamp.ts'
+import { seqTag } from './tag/sequence/seq.ts'
+import { omapTag } from './tag/sequence/omap.ts'
+import { pairsTag } from './tag/sequence/pairs.ts'
+import { mapTag } from './tag/mapping/map.ts'
+import { setTag } from './tag/mapping/set.ts'
 
 interface TagDefinitionMap {
   scalar: Record<string, ScalarTagDefinition>
@@ -69,7 +69,7 @@ function compileTags (tags: readonly TagDefinition[]) {
   return result
 }
 
-class Schema2 {
+class Schema {
   readonly tags: readonly TagDefinition[]
   readonly implicitScalarTags: readonly ScalarTagDefinition[]
   readonly exact: TagDefinitionMap
@@ -113,22 +113,22 @@ class Schema2 {
   }
 }
 
-const FAILSAFE_SCHEMA2 = new Schema2([
+const FAILSAFE_SCHEMA = new Schema([
   strTag,
   seqTag,
   mapTag
 ])
 
-const JSON_SCHEMA2 = new Schema2([
-  ...FAILSAFE_SCHEMA2.tags,
+const JSON_SCHEMA = new Schema([
+  ...FAILSAFE_SCHEMA.tags,
   nullTag,
   boolTag,
   intTag,
   floatTag
 ])
 
-const CORE_SCHEMA2 = new Schema2([
-  ...FAILSAFE_SCHEMA2.tags,
+const CORE_SCHEMA = new Schema([
+  ...FAILSAFE_SCHEMA.tags,
   nullTag,
   // TODO: change late to core tag definitions
   boolTag,
@@ -136,8 +136,8 @@ const CORE_SCHEMA2 = new Schema2([
   floatTag
 ])
 
-const YAML11_SCHEMA = new Schema2([
-  ...CORE_SCHEMA2.tags,
+const YAML11_SCHEMA = new Schema([
+  ...CORE_SCHEMA.tags,
   timestampTag,
   mergeTag,
   binaryTag,
@@ -147,10 +147,10 @@ const YAML11_SCHEMA = new Schema2([
 ])
 
 export {
-  Schema2,
-  FAILSAFE_SCHEMA2,
-  JSON_SCHEMA2,
-  CORE_SCHEMA2,
+  Schema,
+  FAILSAFE_SCHEMA,
+  JSON_SCHEMA,
+  CORE_SCHEMA,
   YAML11_SCHEMA,
 
   type TagDefinitionMap,

@@ -1,6 +1,6 @@
 import YAMLException from './exception.ts'
-import { YAML11_SCHEMA, type Schema2 } from './schema2.ts'
-import { NOT_RESOLVED, type ScalarTagDefinition, type TagDefinition } from './tag2.ts'
+import { YAML11_SCHEMA, type Schema } from './schema.ts'
+import { NOT_RESOLVED, type ScalarTagDefinition, type TagDefinition } from './tag.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -56,7 +56,7 @@ const DEPRECATED_BOOLEANS_SYNTAX = [
 
 const DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/
 
-function compileStyleMap (schema: Schema2, map: { [tag: string]: string } | null): Record<string, string> {
+function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null): Record<string, string> {
   if (map === null) return {}
 
   const result: Record<string, string> = {}
@@ -109,7 +109,7 @@ const NO_TAG = ''
 const IMPLICIT_TAG = '?'
 
 interface DumpOptions {
-  schema?: Schema2
+  schema?: Schema
   indent?: number
   noArrayIndent?: boolean
   skipInvalid?: boolean

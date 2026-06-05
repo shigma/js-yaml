@@ -1,4 +1,4 @@
-import { defineSequenceTag } from '../../tag2.ts'
+import { defineSequenceTag } from '../../tag.ts'
 
 const seqTag = defineSequenceTag('tag:yaml.org,2002:seq', {
   create: () => [] as unknown[],

@@ -1,4 +1,4 @@
-import { defineScalarTag, NOT_RESOLVED } from '../../tag2.ts'
+import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const YAML_DATE_REGEXP = new RegExp(
   '^([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])$')

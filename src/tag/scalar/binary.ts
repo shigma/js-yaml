@@ -1,4 +1,4 @@
-import { defineScalarTag, NOT_RESOLVED } from '../../tag2.ts'
+import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const BASE64_MAP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r'
 

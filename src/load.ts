@@ -7,11 +7,11 @@ import {
   createParserState,
   parseEvents
 } from './parser.ts'
-import { CORE_SCHEMA2, type Schema2 } from './schema2.ts'
+import { CORE_SCHEMA, type Schema } from './schema.ts'
 
-interface LoadOptions2 {
+interface LoadOptions {
   filename?: string
-  schema?: Schema2
+  schema?: Schema
   json?: boolean
   maxDepth?: number
   maxMergeSeqLength?: number
@@ -19,16 +19,16 @@ interface LoadOptions2 {
 
 type LoadAllIterator = (document: unknown) => void
 
-const DEFAULT_LOAD_OPTIONS2: Required<LoadOptions2> = {
+const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
   filename: '',
-  schema: CORE_SCHEMA2,
+  schema: CORE_SCHEMA,
   json: false,
   maxDepth: 100,
   maxMergeSeqLength: 20
 }
 
-function loadDocuments (input: string, options: LoadOptions2 = {}) {
-  const opts = { ...DEFAULT_LOAD_OPTIONS2, ...options }
+function loadDocuments (input: string, options: LoadOptions = {}) {
+  const opts = { ...DEFAULT_LOAD_OPTIONS, ...options }
   const parserState = createParserState(String(input), opts)
 
   parseEvents(parserState)
@@ -39,13 +39,13 @@ function loadDocuments (input: string, options: LoadOptions2 = {}) {
   return constructorState.documents
 }
 
-function loadAll2 (input: string, options?: LoadOptions2): unknown[]
-function loadAll2 (input: string, iterator: null, options?: LoadOptions2): unknown[]
-function loadAll2 (input: string, iterator: LoadAllIterator, options?: LoadOptions2): void
-function loadAll2 (
+function loadAll (input: string, options?: LoadOptions): unknown[]
+function loadAll (input: string, iterator: null, options?: LoadOptions): unknown[]
+function loadAll (input: string, iterator: LoadAllIterator, options?: LoadOptions): void
+function loadAll (
   input: string,
-  iteratorOrOptions?: LoadAllIterator | LoadOptions2 | null,
-  options?: LoadOptions2
+  iteratorOrOptions?: LoadAllIterator | LoadOptions | null,
+  options?: LoadOptions
 ) {
   let iterator: LoadAllIterator | null = null
 
@@ -61,7 +61,7 @@ function loadAll2 (
   for (const document of documents) iterator(document)
 }
 
-function load2 (input: string, options?: LoadOptions2) {
+function load (input: string, options?: LoadOptions) {
   const documents = loadDocuments(input, options)
 
   if (documents.length === 0) return undefined
@@ -71,7 +71,7 @@ function load2 (input: string, options?: LoadOptions2) {
 }
 
 export {
-  load2,
-  loadAll2,
-  type LoadOptions2
+  load,
+  loadAll,
+  type LoadOptions
 }

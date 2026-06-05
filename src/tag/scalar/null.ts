@@ -1,4 +1,4 @@
-import { defineScalarTag, NOT_RESOLVED } from '../../tag2.ts'
+import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const nullTag = defineScalarTag('tag:yaml.org,2002:null', {
   implicit: true,

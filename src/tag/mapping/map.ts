@@ -1,4 +1,4 @@
-import { defineMappingTag } from '../../tag2.ts'
+import { defineMappingTag } from '../../tag.ts'
 
 type StringMapping = Record<string, unknown>
 

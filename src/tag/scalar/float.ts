@@ -1,4 +1,4 @@
-import { defineScalarTag, NOT_RESOLVED } from '../../tag2.ts'
+import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
   '^(?:[-+]?(?:[0-9]+)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?' +

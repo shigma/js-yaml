@@ -1,4 +1,4 @@
-import { defineSequenceTag } from '../../tag2.ts'
+import { defineSequenceTag } from '../../tag.ts'
 
 type Pair = [string, unknown]
 

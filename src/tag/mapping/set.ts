@@ -1,4 +1,4 @@
-import { defineMappingTag } from '../../tag2.ts'
+import { defineMappingTag } from '../../tag.ts'
 import { addPair, type StringMapping } from './map.ts'
 
 const setTag = defineMappingTag('tag:yaml.org,2002:set', {

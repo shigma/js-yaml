@@ -1,4 +1,4 @@
-import { defineScalarTag, NOT_RESOLVED } from '../../tag2.ts'
+import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 function isHexCode (code: number) {
   return (code >= 0x30 && code <= 0x39) ||
