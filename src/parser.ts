@@ -1099,7 +1099,7 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
             }
 
             if (ch !== 0x3A/* : */) {
-              throwError(state, 'can not read an implicit mapping pair; a colon is missed')
+              throwError(state, "expected ':' after a mapping key")
             }
 
             ch = state.input.charCodeAt(++state.position)
@@ -1112,7 +1112,7 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
           atExplicitKey = false
           pendingExplicitKey = false
         } else if (detected) {
-          throwError(state, 'can not read an implicit mapping pair; a colon is missed')
+          throwError(state, "expected ':' after a mapping key")
         } else {
           // Not a mapping. If outer properties are pending, roll back so the
           // caller re-reads this node with them attached (events are append-only).

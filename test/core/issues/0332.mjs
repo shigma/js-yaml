@@ -7,11 +7,11 @@ it('Should format errors', () => {
   try {
     load('"foo\u0001bar"')
   } catch (err) {
-    assert.strictEqual(err.toString(true), 'YAMLException: expected valid JSON character (1:9)')
-    assert.strictEqual(err.toString(false), `YAMLException: expected valid JSON character (1:9)
+    assert.strictEqual(err.toString(true), 'YAMLException: expected valid JSON character (1:5)')
+    assert.strictEqual(err.toString(false), `YAMLException: expected valid JSON character (1:5)
 
  1 | "foo\u0001bar"
--------------^`)
+---------^`)
   }
 
   try {
@@ -26,12 +26,11 @@ it('Should format errors', () => {
   try {
     load('foo:\n  bar: 1\na')
   } catch (err) {
-    assert.strictEqual(err.toString(), `YAMLException: can not read a block mapping entry; a multiline key may not be an implicit key (4:1)
+    assert.strictEqual(err.toString(), `YAMLException: expected ':' after a mapping key (3:2)
 
  1 | foo:
  2 |   bar: 1
  3 | a
- 4 | 
------^`)
+------^`)
   }
 })

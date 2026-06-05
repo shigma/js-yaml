@@ -118,7 +118,13 @@ function callTag<T> (state: ConstructorState, callback: () => T): T {
 }
 
 function resolveTagName (state: ConstructorState, rawTag: string) {
-  if (rawTag.startsWith('!<') && rawTag.endsWith('>')) return rawTag.slice(2, -1)
+  if (rawTag.startsWith('!<') && rawTag.endsWith('>')) {
+    try {
+      return decodeURIComponent(rawTag.slice(2, -1))
+    } catch {
+      throwError(state, `tag name is malformed: ${rawTag}`)
+    }
+  }
 
   const match = /^(![\w-]*!|!)/.exec(rawTag)
   if (!match) throwError(state, `cannot resolve tag "${rawTag}"`)
@@ -127,7 +133,7 @@ function resolveTagName (state: ConstructorState, rawTag: string) {
   const prefix = state.tagDirectives[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
 
   try {
-    return prefix + decodeURIComponent(rawTag.slice(handle.length))
+    return decodeURIComponent(prefix) + decodeURIComponent(rawTag.slice(handle.length))
   } catch {
     throwError(state, `tag name is malformed: ${rawTag}`)
   }

@@ -49,7 +49,7 @@ describe('Duplicated mapping key errors throw at beginning of key', () => {
       load('   ? foo\n   ? foo\n   ? bar')
     } catch (e) {
       assert.strictEqual(e.mark.line, 1)
-      assert.strictEqual(e.mark.column, 4)
+      assert.strictEqual(e.mark.column, 5)
     }
   })
 })
