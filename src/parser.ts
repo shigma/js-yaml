@@ -697,8 +697,11 @@ function readBlockScalar (state: ParserState, parentIndent: number, props: NodeP
     }
 
     if (!detectedIndent && contentIndent === -1 && !isEol(first)) {
-      if (column < maxLeadingIndent ||
-          (first === 0x09/* Tab */ && column < parentIndent)) {
+      if (first === 0x09/* Tab */ && column < parentIndent) {
+        state.position = linePosition + column
+        throwError(state, 'tab characters must not be used in indentation')
+      }
+      if (column < maxLeadingIndent) {
         state.position = linePosition + column
         throwError(state, 'bad indentation of a mapping entry')
       }
@@ -986,6 +989,11 @@ function readBlockSequence (state: ParserState, nodeIndent: number, props: NodeP
   addSequenceEvent(state, state.position, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
 
   while (state.input.charCodeAt(state.position) === 0x2D/* - */ && isWsOrEolOrEnd(state.input.charCodeAt(state.position + 1))) {
+    if (state.firstTabInLine !== -1) {
+      state.position = state.firstTabInLine
+      throwError(state, 'tab characters must not be used in indentation')
+    }
+
     const entryLine = state.line
     state.position++
 

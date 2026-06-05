@@ -26,4 +26,32 @@ Numbers: !!omap [ one: 1, two: 2, three : 3 ]
 
     assert.deepStrictEqual(load(src, { schema: YAML11_SCHEMA }), expected)
   })
+
+  it('omap throws when not a sequence', () => {
+    const src = `
+--- !!omap
+foo: bar
+baz: bat
+`
+    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /unknown mapping tag/)
+  })
+
+  it('omap throws on a non-mapping item', () => {
+    const src = `
+--- !!omap
+- foo: bar
+- baz
+`
+    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve an ordered map item/)
+  })
+
+  it('omap throws on an item with multiple keys', () => {
+    const src = `
+--- !!omap
+- foo: bar
+- baz: bar
+  bar: bar
+`
+    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve an ordered map item/)
+  })
 })
