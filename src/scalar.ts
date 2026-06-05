@@ -31,8 +31,8 @@ function simpleEscapeSequence (c: number) {
     case 0x5C/* \ */: return '\x5C'
     case 0x4E/* N */: return '\x85'
     case 0x5F/* _ */: return '\xA0'
-    case 0x4C/* L */: return ' '
-    case 0x50/* P */: return ' '
+    case 0x4C/* L */: return '\u2028'
+    case 0x50/* P */: return '\u2029'
     default: return ''
   }
 }
