@@ -44,6 +44,53 @@ import { load, loadAll, type LoadOptions } from './load.ts'
 import { dump, type DumpOptions } from './dumper.ts'
 import YAMLException from './exception.ts'
 
+import {
+  EVENT_DOCUMENT,
+  EVENT_SEQUENCE,
+  EVENT_MAPPING,
+  EVENT_SCALAR,
+  EVENT_ALIAS,
+  EVENT_POP,
+  SCALAR_STYLE_PLAIN,
+  SCALAR_STYLE_SINGLE_QUOTED,
+  SCALAR_STYLE_DOUBLE_QUOTED,
+  SCALAR_STYLE_LITERAL_BLOCK,
+  SCALAR_STYLE_FOLDED_BLOCK,
+  COLLECTION_STYLE_BLOCK,
+  COLLECTION_STYLE_FLOW,
+  CHOMPING_CLIP,
+  CHOMPING_STRIP,
+  CHOMPING_KEEP,
+  type EventType,
+  type ScalarStyle,
+  type CollectionStyle,
+  type Chomping,
+  type DocumentEvent,
+  type SequenceEvent,
+  type MappingEvent,
+  type ScalarEvent,
+  type AliasEvent,
+  type PopEvent,
+  type Event
+} from './events.ts'
+
+import {
+  createParserState,
+  parseEvents,
+  type ParserState,
+  type ParserOptions
+} from './parser.ts'
+
+import { getScalarValue } from './scalar.ts'
+
+import {
+  createConstructorState,
+  constructEvents,
+  constructDocuments,
+  type ConstructOptions,
+  type ConstructorState
+} from './construct.ts'
+
 export {
   Schema,
   FAILSAFE_SCHEMA,
@@ -77,6 +124,31 @@ export {
   dump,
   YAMLException,
 
+  EVENT_DOCUMENT,
+  EVENT_SEQUENCE,
+  EVENT_MAPPING,
+  EVENT_SCALAR,
+  EVENT_ALIAS,
+  EVENT_POP,
+  SCALAR_STYLE_PLAIN,
+  SCALAR_STYLE_SINGLE_QUOTED,
+  SCALAR_STYLE_DOUBLE_QUOTED,
+  SCALAR_STYLE_LITERAL_BLOCK,
+  SCALAR_STYLE_FOLDED_BLOCK,
+  COLLECTION_STYLE_BLOCK,
+  COLLECTION_STYLE_FLOW,
+  CHOMPING_CLIP,
+  CHOMPING_STRIP,
+  CHOMPING_KEEP,
+
+  createParserState,
+  parseEvents,
+  getScalarValue,
+
+  createConstructorState,
+  constructEvents,
+  constructDocuments,
+
   type LoadOptions,
   type DumpOptions,
   type TagDefinitionMap,
@@ -89,5 +161,23 @@ export {
   type SequenceTagOptions,
   type MappingTagOptions,
   type RepresentFn,
-  type Represent
+  type Represent,
+
+  type EventType,
+  type ScalarStyle,
+  type CollectionStyle,
+  type Chomping,
+  type DocumentEvent,
+  type SequenceEvent,
+  type MappingEvent,
+  type ScalarEvent,
+  type AliasEvent,
+  type PopEvent,
+  type Event,
+
+  type ParserState,
+  type ParserOptions,
+
+  type ConstructOptions,
+  type ConstructorState
 }

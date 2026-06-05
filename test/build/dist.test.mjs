@@ -42,7 +42,32 @@ const expectedKeys = [
   'YAMLException',
   'load',
   'loadAll',
-  'dump'
+  'dump',
+
+  'EVENT_DOCUMENT',
+  'EVENT_SEQUENCE',
+  'EVENT_MAPPING',
+  'EVENT_SCALAR',
+  'EVENT_ALIAS',
+  'EVENT_POP',
+  'SCALAR_STYLE_PLAIN',
+  'SCALAR_STYLE_SINGLE_QUOTED',
+  'SCALAR_STYLE_DOUBLE_QUOTED',
+  'SCALAR_STYLE_LITERAL_BLOCK',
+  'SCALAR_STYLE_FOLDED_BLOCK',
+  'COLLECTION_STYLE_BLOCK',
+  'COLLECTION_STYLE_FLOW',
+  'CHOMPING_CLIP',
+  'CHOMPING_STRIP',
+  'CHOMPING_KEEP',
+
+  'createParserState',
+  'parseEvents',
+  'getScalarValue',
+
+  'createConstructorState',
+  'constructEvents',
+  'constructDocuments'
 ]
 
 function checkExports (yaml, options) {

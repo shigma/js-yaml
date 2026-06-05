@@ -5,10 +5,8 @@ import { CORE_SCHEMA, dump, load, defineScalarTag } from 'js-yaml'
 
 it('should shorthand tags with !! whenever possible', () => {
   const regexp = defineScalarTag('tag:yaml.org,2002:js/regexp', {
-    nodeKind: 'scalar',
-    resolve: () => true,
-    construct: str => new RegExp(str),
-    predicate: object => object instanceof RegExp,
+    resolve: str => new RegExp(str),
+    identify: object => object instanceof RegExp,
     represent: object => object.source
   })
 

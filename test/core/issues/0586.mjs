@@ -1,7 +1,7 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { CORE_SCHEMA, dump, defineScalarTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, defineScalarTag, NOT_RESOLVED } from 'js-yaml'
 
 it('Should allow custom formatting through implicit custom tags', () => {
   function CustomDump (data, opts) {
@@ -18,9 +18,9 @@ it('Should allow custom formatting through implicit custom tags', () => {
   }
 
   const CustomDumpType = defineScalarTag('!format', {
-    nodeKind: 'scalar',
-    resolve: () => false,
-    predicate: d => d instanceof CustomDump,
+    implicit: true,
+    resolve: () => NOT_RESOLVED,
+    identify: d => d instanceof CustomDump,
     represent: d => d.represent()
   })
 

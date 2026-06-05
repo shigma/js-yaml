@@ -167,7 +167,7 @@ function constructScalar (
     const result = tag.resolve(source, tagName)
 
     if (result === NOT_RESOLVED) {
-      throwError(state, `cannot resolve scalar with tag !<${tagName}>`)
+      throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
     }
 
     return result

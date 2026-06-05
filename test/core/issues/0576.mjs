@@ -10,10 +10,8 @@ describe('Custom tags', () => {
 
   const tags = tagNames.map(tag =>
     defineScalarTag(tag, {
-      nodeKind: 'scalar',
-      resolve: () => true,
-      construct: object => [tag, object],
-      predicate: object => object.tag === tag,
+      resolve: object => [tag, object],
+      identify: object => object.tag === tag,
       represent: () => 'value'
     })
   )

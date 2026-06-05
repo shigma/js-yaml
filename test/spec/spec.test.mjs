@@ -4,10 +4,12 @@ import assert from 'node:assert'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { load } from 'js-yaml'
 import { JSONParser } from '@streamparser/json'
 
 import {
+  load,
+  loadAll,
+  YAMLException,
   EVENT_DOCUMENT,
   EVENT_SEQUENCE,
   EVENT_MAPPING,
@@ -18,12 +20,11 @@ import {
   SCALAR_STYLE_DOUBLE_QUOTED,
   SCALAR_STYLE_LITERAL_BLOCK,
   SCALAR_STYLE_FOLDED_BLOCK,
-  COLLECTION_STYLE_FLOW
-} from '../../src/events.ts'
-import { createParserState, parseEvents } from '../../src/parser.ts'
-import { getScalarValue } from '../../src/scalar.ts'
-import { loadAll2 } from '../../src/load2.ts'
-import YAMLException from '../../src/exception.ts'
+  COLLECTION_STYLE_FLOW,
+  createParserState,
+  parseEvents,
+  getScalarValue
+} from 'js-yaml'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteDir = path.join(__dirname, 'yaml-test-suite')
@@ -195,7 +196,7 @@ describe('yaml-test-suite parser tree', () => {
           it(`${id} json`, () => {
             const input = unescapeFixtureText(fixture.yaml)
 
-            assert.throws(() => loadAll2(input))
+            assert.throws(() => loadAll(input))
           })
           return
         }
@@ -218,7 +219,7 @@ describe('yaml-test-suite parser tree', () => {
 
             let result
             try {
-              result = loadAll2(input)
+              result = loadAll(input)
             } catch (error) {
               // A strict core-schema loader cannot construct a native value for
               // a tag outside the schema. The suite's json assumes the

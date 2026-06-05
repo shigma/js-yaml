@@ -5,24 +5,32 @@ import { CORE_SCHEMA, dump, load, defineMappingTag, defineScalarTag, defineSeque
 
 describe('Tag prefix matching', () => {
   it('should process tags matched by prefix', () => {
-    const defineTagByKind = {
-      scalar: defineScalarTag,
-      mapping: defineMappingTag,
-      sequence: defineSequenceTag
-    }
-
-    const tags = ['scalar', 'mapping', 'sequence'].map(nodeKind =>
-      defineTagByKind[nodeKind]('!', {
-        nodeKind,
+    const tags = [
+      defineScalarTag('!', {
         matchByTagPrefix: true,
-        resolve: () => {
-          return true
+        resolve: (value, tag) => {
+          return { nodeKind: 'scalar', tag, value }
+        }
+      }),
+      defineSequenceTag('!', {
+        matchByTagPrefix: true,
+        create: tag => {
+          return { nodeKind: 'sequence', tag, value: [] }
         },
-        construct: (value, tag) => {
-          return { nodeKind, tag, value }
+        addItem: (container, item) => {
+          container.value.push(item)
+        }
+      }),
+      defineMappingTag('!', {
+        matchByTagPrefix: true,
+        create: tag => {
+          return { nodeKind: 'mapping', tag, value: {} }
+        },
+        addPair: (container, key, value) => {
+          container.value[String(key)] = value
         }
       })
-    )
+    ]
 
     const schema = CORE_SCHEMA.withTags(tags)
 
@@ -56,12 +64,8 @@ describe('Tag prefix matching', () => {
   it('should process tags depending on prefix', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
       defineScalarTag(prefix, {
-        nodeKind: 'scalar',
         matchByTagPrefix: true,
-        resolve: () => {
-          return true
-        },
-        construct: (value, tag) => {
+        resolve: (value, tag) => {
           return { prefix, tag, value }
         }
       })
@@ -69,11 +73,7 @@ describe('Tag prefix matching', () => {
 
     tags.push(
       defineScalarTag('!bar', {
-        nodeKind: 'scalar',
-        resolve: () => {
-          return true
-        },
-        construct: (value) => {
+        resolve: (value) => {
           return { single: true, value }
         }
       })
@@ -103,9 +103,8 @@ describe('Tag prefix matching', () => {
   it('should dump prefix-matched tags with custom tag names', () => {
     const tags = [
       defineScalarTag('!', {
-        nodeKind: 'scalar',
         matchByTagPrefix: true,
-        predicate: (obj) => {
+        identify: (obj) => {
           return !!obj.tag
         },
         representTagName: (obj) => {
