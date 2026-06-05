@@ -1,7 +1,6 @@
 import YAMLException from './exception.ts'
-import DEFAULT_SCHEMA from './schema/default.ts'
-import { type TagDefinition, NODE_KIND_UNKNOWN } from './tag.ts'
-import type { Schema } from './schema.ts'
+import { YAML11_SCHEMA, type Schema2 } from './schema2.ts'
+import { NOT_RESOLVED, type ScalarTagDefinition, type TagDefinition } from './tag2.ts'
 
 const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -57,7 +56,7 @@ const DEPRECATED_BOOLEANS_SYNTAX = [
 
 const DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/
 
-function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null): Record<string, string> {
+function compileStyleMap (schema: Schema2, map: { [tag: string]: string } | null): Record<string, string> {
   if (map === null) return {}
 
   const result: Record<string, string> = {}
@@ -70,7 +69,7 @@ function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null)
     if (tag.slice(0, 2) === '!!') {
       tag = `tag:yaml.org,2002:${tag.slice(2)}`
     }
-    const tagDefinition = schema.compiledTagDefinitionMap[NODE_KIND_UNKNOWN][tag]
+    const tagDefinition = schema.exact.scalar[tag] ?? schema.exact.sequence[tag] ?? schema.exact.mapping[tag]
 
     if (tagDefinition && _hasOwnProperty.call(tagDefinition.styleAliases, style)) {
       style = tagDefinition.styleAliases[style]
@@ -110,7 +109,7 @@ const NO_TAG = ''
 const IMPLICIT_TAG = '?'
 
 interface DumpOptions {
-  schema?: Schema
+  schema?: Schema2
   indent?: number
   noArrayIndent?: boolean
   skipInvalid?: boolean
@@ -127,7 +126,7 @@ interface DumpOptions {
 }
 
 const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
-  schema: DEFAULT_SCHEMA,
+  schema: YAML11_SCHEMA,
   indent: 2,
   noArrayIndent: false,
   skipInvalid: false,
@@ -145,7 +144,7 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
 
 interface DumperState extends Required<DumpOptions> {
   styleMap: Record<string, string>
-  implicitTypes: TagDefinition[]
+  implicitTypes: readonly ScalarTagDefinition[]
   explicitTypes: TagDefinition[]
 
   duplicates: Map<any, number>
@@ -163,8 +162,8 @@ function createDumperState (options: DumpOptions = {}): DumperState {
     ...opts,
 
     styleMap: compileStyleMap(schema, opts.styles),
-    implicitTypes: schema.compiledImplicit,
-    explicitTypes: schema.compiledExplicit,
+    implicitTypes: schema.implicitScalarTags,
+    explicitTypes: schema.tags.filter(t => !(t.nodeKind === 'scalar' && t.implicit)),
 
     duplicates: new Map(),
     usedDuplicates: new Set(),
@@ -208,7 +207,7 @@ function testImplicitResolving (state: DumperState, str: string) {
   for (let index = 0, length = state.implicitTypes.length; index < length; index += 1) {
     const tagDefinition = state.implicitTypes[index]
 
-    if (tagDefinition.resolve(str)) {
+    if (tagDefinition.resolve(str, tagDefinition.tagName) !== NOT_RESOLVED) {
       return true
     }
   }
@@ -777,7 +776,7 @@ function representType (state: DumperState, object: any, explicit: boolean) {
   for (let index = 0, length = tagDefinitionList.length; index < length; index += 1) {
     const tagDefinition = tagDefinitionList[index]
 
-    if (tagDefinition.predicate && tagDefinition.predicate(object)) {
+    if (tagDefinition.identify && tagDefinition.identify(object)) {
       if (explicit) {
         if (tagDefinition.matchByTagPrefix && tagDefinition.representTagName) {
           state.tag = tagDefinition.representTagName(object)

@@ -136,7 +136,7 @@ const CORE_SCHEMA2 = new Schema2([
   floatTag
 ])
 
-const YAML11_LEGACY_SCHEMA2 = new Schema2([
+const YAML11_SCHEMA = new Schema2([
   ...CORE_SCHEMA2.tags,
   timestampTag,
   mergeTag,
@@ -151,7 +151,7 @@ export {
   FAILSAFE_SCHEMA2,
   JSON_SCHEMA2,
   CORE_SCHEMA2,
-  YAML11_LEGACY_SCHEMA2,
+  YAML11_SCHEMA,
 
   type TagDefinitionMap,
   type TagDefinitionListMap
