@@ -23,14 +23,12 @@ function decodeBase64 (str) {
   }))
 }
 
-const SexyYamlTag = jsyaml.defineTag('!sexy', {
-  nodeKind: jsyaml.NODE_KIND_SEQUENCE, // See node kinds in YAML spec: http://www.yaml.org/spec/1.2/spec.html#kind//
-  construct: (data) => {
-    return data.map((string) => { return `sexy ${string}` })
-  }
+const SexyYamlTag = jsyaml.defineSequenceTag('!sexy', {
+  create: () => [],
+  addItem: (container, item) => { container.push(`sexy ${item}`) }
 })
 
-const SEXY_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([SexyYamlTag])
+const SEXY_SCHEMA = jsyaml.YAML11_SCHEMA.withTags(SexyYamlTag)
 
 function parse () {
   let obj

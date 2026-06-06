@@ -166,14 +166,12 @@ timestamp:
 # This is a simple example of custom constructor defined in \`index.mjs\` for
 # custom \`!sexy\` tag:
 #
-# var SexyYamlTag = jsyaml.defineTag('!sexy', {
-#   nodeKind: jsyaml.NODE_KIND_SEQUENCE,
-#   construct: function (data) {
-#     return data.map(function (string) { return 'sexy ' + string; });
-#   }
+# var SexyYamlTag = jsyaml.defineSequenceTag('!sexy', {
+#   create: function () { return []; },
+#   addItem: function (container, item) { container.push('sexy ' + item); }
 # });
 #
-# var SEXY_SCHEMA = jsyaml.DEFAULT_SCHEMA.extend([ SexyYamlTag ]);
+# var SEXY_SCHEMA = jsyaml.YAML11_SCHEMA.withTags(SexyYamlTag);
 #
 # result = jsyaml.load(yourData, { schema: SEXY_SCHEMA });
 
