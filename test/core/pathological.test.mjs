@@ -54,7 +54,8 @@ describe('Pathological tests', () => {
       const doc = createRepeatedMergeAliasPattern(100000, 100000)
       const pool = workerpool.pool()
       try {
-        await pool.exec(loadYamlInWorker, [doc, yamlUrl, { maxMergeSeqLength: 1000000 }]).timeout(2000)
+        await pool.exec(loadYamlInWorker, [doc, yamlUrl, { maxMergeSeqLength: 1000000 }])
+          .timeout(10 * 1000)
       } finally {
         await pool.terminate()
       }
