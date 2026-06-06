@@ -59,6 +59,7 @@
     "build": "node support/build-dist.mjs",
     "build:demo": "npm run lint && node support/build_demo.mjs",
     "gh-demo": "npm run build:demo && gh-pages -d demo -f",
+    "benchmark:deps": "npm install --prefix benchmark/extra/",
     "prepack": "npm test && npm run build && npm run build:demo",
     "postpublish": "npm run gh-demo"
   },
