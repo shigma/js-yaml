@@ -175,7 +175,8 @@ function addScalarEvent (
   tagEnd: number,
   style: ScalarStyle,
   chomping: Chomping = CHOMPING_CLIP,
-  indent = -1
+  indent = -1,
+  fast = false
 ) {
   state.events.push({
     type: EVENT_SCALAR,
@@ -187,7 +188,8 @@ function addScalarEvent (
     tagEnd,
     style,
     chomping,
-    indent
+    indent,
+    fast
   })
 }
 
@@ -545,23 +547,28 @@ function readSingleQuotedScalar (state: ParserState, nodeIndent: number, props: 
 
   state.position++
   const start = state.position
+  // A single-quoted scalar is sliceable verbatim when it has no '' escape pairs
+  // and no folded line breaks (see getScalarValue fast path).
+  let simple = true
 
   while (state.input.charCodeAt(state.position) !== 0) {
     const ch = state.input.charCodeAt(state.position)
 
     if (ch === 0x27/* ' */) {
       if (state.input.charCodeAt(state.position + 1) === 0x27/* ' */) {
+        simple = false
         state.position += 2
         continue
       }
 
       const end = state.position
       state.position++
-      addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_SINGLE_QUOTED)
+      addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_SINGLE_QUOTED, CHOMPING_CLIP, -1, simple)
       return true
     }
 
     if (isEol(ch)) {
+      simple = false
       readFlowScalarBreak(state, nodeIndent)
     } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
       throwError(state, 'unexpected end of the document within a single quoted scalar')
@@ -580,6 +587,9 @@ function readDoubleQuotedScalar (state: ParserState, nodeIndent: number, props: 
 
   state.position++
   const start = state.position
+  // A double-quoted scalar is sliceable verbatim when it has no \ escapes and
+  // no folded line breaks (see getScalarValue fast path).
+  let simple = true
 
   while (state.input.charCodeAt(state.position) !== 0) {
     const ch = state.input.charCodeAt(state.position)
@@ -587,11 +597,12 @@ function readDoubleQuotedScalar (state: ParserState, nodeIndent: number, props: 
     if (ch === 0x22/* " */) {
       const end = state.position
       state.position++
-      addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_DOUBLE_QUOTED)
+      addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_DOUBLE_QUOTED, CHOMPING_CLIP, -1, simple)
       return true
     }
 
     if (ch === 0x5C/* \ */) {
+      simple = false
       const escaped = state.input.charCodeAt(++state.position)
 
       if (isEol(escaped)) {
@@ -612,6 +623,7 @@ function readDoubleQuotedScalar (state: ParserState, nodeIndent: number, props: 
         state.position++
       }
     } else if (isEol(ch)) {
+      simple = false
       readFlowScalarBreak(state, nodeIndent)
     } else if (state.position === state.lineStart && testDocumentSeparator(state)) {
       throwError(state, 'unexpected end of the document within a double quoted scalar')
@@ -788,6 +800,10 @@ function readPlainScalar (state: ParserState, nodeIndent: number, nodeContext: N
   let end = state.position
   let ch = state.input.charCodeAt(state.position)
   const inFlow = nodeContext === CONTEXT_FLOW_IN
+  // A single-line plain scalar is sliceable verbatim: the parser already trims
+  // trailing whitespace from the range, so no folding is needed (see
+  // getScalarValue fast path). Folded line breaks make it non-simple.
+  let multiline = false
 
   while (ch !== 0) {
     if (state.position === state.lineStart && testDocumentSeparator(state)) break
@@ -809,6 +825,7 @@ function readPlainScalar (state: ParserState, nodeIndent: number, nodeContext: N
       skipSeparationSpace(state, false)
 
       if (state.lineIndent >= nodeIndent) {
+        multiline = true
         ch = state.input.charCodeAt(state.position)
         continue
       }
@@ -827,7 +844,7 @@ function readPlainScalar (state: ParserState, nodeIndent: number, nodeContext: N
   if (end === start) return false
 
   checkPrintable(state, start, end)
-  addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_PLAIN)
+  addScalarEvent(state, start, end, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, SCALAR_STYLE_PLAIN, CHOMPING_CLIP, -1, !multiline)
   return true
 }
 

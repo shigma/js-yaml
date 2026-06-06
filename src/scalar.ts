@@ -290,6 +290,11 @@ function getScalarValue (state: ParserState, scalar: ScalarEvent): string {
   const { input } = state
   const { valueStart, valueEnd } = scalar
 
+  // Fast path: the parser marked this scalar as a verbatim slice of the input
+  // (single-line plain / quoted with no escapes or folded breaks), so the
+  // per-style char loop below would just reproduce the slice.
+  if (scalar.fast) return input.slice(valueStart, valueEnd)
+
   switch (scalar.style) {
     case SCALAR_STYLE_SINGLE_QUOTED:
       return getSingleQuotedValue(input, valueStart, valueEnd)

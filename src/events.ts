@@ -72,6 +72,7 @@ interface ScalarEvent {
   style: ScalarStyle
   chomping: Chomping
   indent: number
+  fast: boolean
 }
 
 interface AliasEvent {
