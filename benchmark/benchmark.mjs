@@ -3,7 +3,13 @@
 
 import fs from 'node:fs'
 import util from 'node:util'
-import { Bench } from 'tinybench'
+import { do_not_optimize as doNotOptimize, measure } from 'mitata'
+
+const WARMUP_MSEC = 250
+const BENCHMARK_OPTIONS = {
+  /* min_cpu_time: 1000 * 1e6,
+  min_samples: 24 */
+}
 
 const IMPLS = []
 
@@ -25,32 +31,43 @@ fs.readdirSync(new URL('./samples', import.meta.url)).sort().forEach((sample) =>
 
   const title = `(${content.string.length} bytes)`
 
-  const bench = new Bench({ name: title })
-
-  IMPLS.forEach((impl) => {
-    bench.add(impl.name, () => { impl.code.run(content.string) })
-  })
-
-  SAMPLES.push({ name: sample.split('.')[0], filename: sample, title, content, bench })
+  SAMPLES.push({ name: sample.split('.')[0], filename: sample, title, content })
 })
 
 function formatNumber (num) {
   return num.toLocaleString('en-US', { maximumFractionDigits: 0 })
 }
 
-function formatTask (task) {
-  const result = task.result
+function relativeStandardError (samples, mean) {
+  if (samples.length < 2 || mean === 0) return 0
 
-  if (result.state !== 'completed') {
-    return `${task.name}: ${result.state}`
-  }
+  const variance = samples.reduce((acc, sample) => {
+    return acc + (sample - mean) ** 2
+  }, 0) / (samples.length - 1)
+
+  return (Math.sqrt(variance) / Math.sqrt(samples.length) / mean) * 100
+}
+
+function formatRun (run) {
+  if (run.error) return `${run.name}: error`
+
+  const stats = run.stats
+  const throughput = 1e9 / stats.avg
 
   return [
-    task.name,
-    `${formatNumber(result.throughput.mean)} ops/sec`,
-    `+/-${result.throughput.rme.toFixed(2)}%`,
-    `${result.throughput.samplesCount} samples`
+    run.name,
+    `${formatNumber(throughput)} ops/sec`,
+    `+/-${relativeStandardError(stats.samples, stats.avg).toFixed(2)}%`,
+    `${formatNumber(stats.ticks)} samples`
   ].join(' ')
+}
+
+function warmup (impl, data) {
+  const started = performance.now()
+
+  do {
+    doNotOptimize(impl.code.run(data))
+  } while (performance.now() - started < WARMUP_MSEC)
 }
 
 function select (patterns) {
@@ -90,11 +107,23 @@ async function run (files) {
   for (const sample of selected) {
     console.log('\n\nSample: %s %s', sample.filename, sample.title)
 
-    sample.bench.addEventListener('cycle', (event) => {
-      console.log(' > %s', formatTask(event.task))
+    IMPLS.forEach((impl) => {
+      warmup(impl, sample.content.string)
     })
 
-    await sample.bench.run()
+    for (const impl of IMPLS) {
+      let stats, error
+
+      try {
+        stats = await measure(() => {
+          doNotOptimize(impl.code.run(sample.content.string))
+        }, BENCHMARK_OPTIONS)
+      } catch (err) {
+        error = err
+      }
+
+      console.log(' > %s', formatRun({ name: impl.name, stats, error }))
+    }
   }
 }
 
