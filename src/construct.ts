@@ -211,15 +211,17 @@ function constructScalar (
   }
 
   if (event.style === SCALAR_STYLE_PLAIN) {
-    for (const tag of state.schema.implicitScalarTags) {
+    // charAt(0) (not source[0]) yields '' for an empty source, which is the key
+    // the null tag declares; source[0] would be undefined and miss that bucket.
+    const candidates = state.schema.implicitScalarByFirstChar.get(source.charAt(0)) ??
+      state.schema.implicitScalarAnyFirstChar
+    for (const tag of candidates) {
       const result = tag.resolve(source, tag.tagName)
       if (result !== NOT_RESOLVED) return result
     }
   }
 
-  const strTag = state.schema.exact.scalar['tag:yaml.org,2002:str']
-  if (!strTag) throwError(state, 'schema does not define the default scalar tag')
-
+  const strTag = state.schema.defaultScalarTag
   return strTag.resolve(source, strTag.tagName)
 }
 

@@ -49,6 +49,8 @@ function resolveYamlTimestamp (source: string) {
 
 const timestampTag = defineScalarTag('tag:yaml.org,2002:timestamp', {
   implicit: true,
+  // Both patterns start with a 4-digit year, so source.charAt(0) is always a digit.
+  implicitFirstChars: [...'0123456789'],
   resolve: resolveYamlTimestamp,
   identify: (object) => object instanceof Date,
   represent: (object: Date) => object.toISOString()

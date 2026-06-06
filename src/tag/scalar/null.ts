@@ -2,6 +2,8 @@ import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const nullTag = defineScalarTag('tag:yaml.org,2002:null', {
   implicit: true,
+  // Superset of source.charAt(0) over all matched inputs: '' (empty), '~', 'null'/'Null'/'NULL'.
+  implicitFirstChars: ['', '~', 'n', 'N'],
   resolve: (source) => {
     const length = source.length
 

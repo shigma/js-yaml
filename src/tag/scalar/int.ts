@@ -96,6 +96,8 @@ function resolveYamlInteger (source: string) {
 
 const intTag = defineScalarTag('tag:yaml.org,2002:int', {
   implicit: true,
+  // Superset of source.charAt(0) over all matched inputs: optional sign + decimal digit.
+  implicitFirstChars: ['-', '+', ...'0123456789'],
   resolve: resolveYamlInteger,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
     (object % 1 === 0 && !Object.is(object, -0)),

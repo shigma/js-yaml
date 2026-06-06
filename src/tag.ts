@@ -9,6 +9,11 @@ interface ScalarTagDefinition<Result = unknown> {
   nodeKind: 'scalar'
   implicit: boolean
   matchByTagPrefix: boolean
+  // Set of `source.charAt(0)` keys for which `resolve` may succeed (a superset of
+  // what it really matches). A key is either a single character or '' (empty
+  // source). `null` means "no constraint, always try". Used by the composer to
+  // dispatch implicit scalars by first character without running every resolver.
+  implicitFirstChars: readonly string[] | null
   resolve: (source: string, tagName: string) => Result | typeof NOT_RESOLVED
   identify: ((data: any) => boolean) | null
   represent: Represent | null
@@ -55,6 +60,7 @@ type TagDefinition =
 interface ScalarTagOptions<Result> {
   implicit?: boolean
   matchByTagPrefix?: boolean
+  implicitFirstChars?: readonly string[] | null
   resolve: ScalarTagDefinition<Result>['resolve']
   identify?: ScalarTagDefinition<Result>['identify']
   represent?: ScalarTagDefinition<Result>['represent']
@@ -105,6 +111,7 @@ function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Res
     nodeKind: 'scalar',
     implicit: options.implicit ?? false,
     matchByTagPrefix: options.matchByTagPrefix ?? false,
+    implicitFirstChars: options.implicitFirstChars ?? null,
     resolve: options.resolve,
     identify: options.identify ?? null,
     represent: options.represent ?? null,

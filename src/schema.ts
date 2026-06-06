@@ -72,6 +72,15 @@ function compileTags (tags: readonly TagDefinition[]) {
 class Schema {
   readonly tags: readonly TagDefinition[]
   readonly implicitScalarTags: readonly ScalarTagDefinition[]
+  // Dispatch implicit scalar resolvers by `source.charAt(0)`. Each bucket holds the
+  // resolvers that may match that key, in schema order; a key absent from the map
+  // uses `implicitScalarAnyFirstChar` (resolvers that declared no first-char
+  // constraint, so they apply to any first character).
+  readonly implicitScalarByFirstChar: ReadonlyMap<string, readonly ScalarTagDefinition[]>
+  readonly implicitScalarAnyFirstChar: readonly ScalarTagDefinition[]
+  // The default scalar tag (`!!str`), resolved once so the composer's fallback for
+  // unresolved plain scalars avoids a keyed lookup per scalar.
+  readonly defaultScalarTag: ScalarTagDefinition
   readonly exact: TagDefinitionMap
   readonly prefix: TagDefinitionListMap
 
@@ -106,8 +115,29 @@ class Schema {
       }
     }
 
+    const implicitScalarAnyFirstChar = implicitScalarTags.filter(tag => tag.implicitFirstChars === null)
+
+    const keys = new Set<string>()
+    for (const tag of implicitScalarTags) {
+      if (tag.implicitFirstChars !== null) {
+        for (const key of tag.implicitFirstChars) keys.add(key)
+      }
+    }
+
+    const implicitScalarByFirstChar = new Map<string, ScalarTagDefinition[]>()
+    for (const key of keys) {
+      implicitScalarByFirstChar.set(key, implicitScalarTags.filter(tag =>
+        tag.implicitFirstChars === null || tag.implicitFirstChars.includes(key)))
+    }
+
+    const defaultScalarTag = exact.scalar['tag:yaml.org,2002:str']
+    if (!defaultScalarTag) throw new Error('schema does not define the default scalar tag (tag:yaml.org,2002:str)')
+
     this.tags = compiledTags
     this.implicitScalarTags = implicitScalarTags
+    this.implicitScalarByFirstChar = implicitScalarByFirstChar
+    this.implicitScalarAnyFirstChar = implicitScalarAnyFirstChar
+    this.defaultScalarTag = defaultScalarTag
     this.exact = exact
     this.prefix = prefix
   }

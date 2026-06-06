@@ -57,6 +57,9 @@ function representYamlFloat (object: number, style?: string) {
 
 const floatTag = defineScalarTag('tag:yaml.org,2002:float', {
   implicit: true,
+  // Superset of source.charAt(0) over all matched inputs: optional sign, '.', or digit
+  // ('.inf'/'.nan' start with '.').
+  implicitFirstChars: ['-', '+', '.', ...'0123456789'],
   resolve: resolveYamlFloat,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
     (object % 1 !== 0 || Object.is(object, -0)),
