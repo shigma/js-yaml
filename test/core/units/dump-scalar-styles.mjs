@@ -90,7 +90,7 @@ describe('Scalar style dump:', () => {
     })
 
     it('accepts leading whitespace', () => {
-      assert.strictEqual(dump(`   ${content}`), `|2-\n   ${indented}\n`)
+      assert.strictEqual(dump(`   ${content}`), `|3-\n   ${indented}\n`)
     })
 
     it('falls back to quoting when required indent indicator is too large', () => {

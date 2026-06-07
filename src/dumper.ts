@@ -443,6 +443,11 @@ function writeScalar (state: DumperState, string: string, level: number, iskey: 
     }
 
     const indent = state.indent * Math.max(1, level) // no 0-indent scalars
+    // Block indentation indicator the reader applies relative to the parent
+    // node's indentation n (content indent = n + indicator). At the document
+    // root n is -1, so the indicator must be one greater than the spaces we
+    // actually prepend; nested nodes have n >= 0 where state.indent matches.
+    const blockIndent = level === 0 ? state.indent + 1 : state.indent
     // As indentation gets deeper, let the width decrease monotonically
     // to the lower bound min(state.lineWidth, 40).
     // Note that this implies
@@ -462,17 +467,17 @@ function writeScalar (state: DumperState, string: string, level: number, iskey: 
       return testImplicitResolving(state, string)
     }
 
-    switch (chooseScalarStyle(string, singleLineOnly, state.indent, lineWidth,
+    switch (chooseScalarStyle(string, singleLineOnly, blockIndent, lineWidth,
       testAmbiguity, state.quotingType, state.forceQuotes && !iskey, inblock)) {
       case STYLE_PLAIN:
         return string
       case STYLE_SINGLE:
         return `'${string.replace(/'/g, "''")}'`
       case STYLE_LITERAL:
-        return '|' + blockHeader(string, state.indent) +
+        return '|' + blockHeader(string, blockIndent) +
           dropEndingNewline(indentString(string, indent))
       case STYLE_FOLDED:
-        return '>' + blockHeader(string, state.indent) +
+        return '>' + blockHeader(string, blockIndent) +
           dropEndingNewline(indentString(foldString(string, lineWidth), indent))
       case STYLE_DOUBLE:
         return `"${escapeString(string)}"`
