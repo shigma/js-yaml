@@ -1,12 +1,7 @@
 import { defineMappingTag } from '../../tag.ts'
+import { isPlainObject } from './map.ts'
 
 type RealMapping = Map<unknown, unknown>
-
-function isPlainObject (data: unknown): boolean {
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) return false
-  const prototype = Object.getPrototypeOf(data)
-  return prototype === null || prototype === Object.prototype
-}
 
 // A mapping represented as a real `Map`: keys keep their constructed type,
 // nothing is stringified. Drop-in replacement for the default `!!map` tag

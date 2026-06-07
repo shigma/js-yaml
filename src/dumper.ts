@@ -2,7 +2,6 @@ import YAMLException from './exception.ts'
 import { YAML11_SCHEMA, type Schema } from './schema.ts'
 import { NOT_RESOLVED, type ScalarTagDefinition, type TagDefinition } from './tag.ts'
 
-const _toString = Object.prototype.toString
 const _hasOwnProperty = Object.prototype.hasOwnProperty
 
 const CHAR_BOM = 0xFEFF
@@ -142,10 +141,25 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   replacer: null
 }
 
+// A dump-time match candidate: the tag plus whether its tag marker is implicit
+// (not printed). Implicit scalars (null/bool/int/...) and the default container
+// tags (str/seq/map) are implicit; everything else prints its tag name. Decided
+// once at build time so the match loop just reads the flag.
+interface RepresentType {
+  tag: TagDefinition
+  implicitTag: boolean
+}
+
 interface DumperState extends Required<DumpOptions> {
   styleMap: Record<string, string>
-  implicitTypes: readonly ScalarTagDefinition[]
-  explicitTypes: TagDefinition[]
+  // Ordered match candidates for the dumper: specific tags first, default
+  // container/str tags last (so a more specific tag identifying the same JS
+  // value wins).
+  representTypes: RepresentType[]
+  // Implicit scalar resolvers, used only to test whether a plain scalar string
+  // would be re-parsed as another type (e.g. `true`, `123`) — via `.resolve`,
+  // not `.identify`.
+  implicitResolvers: readonly ScalarTagDefinition[]
 
   duplicates: Map<any, number>
   usedDuplicates: Set<any>
@@ -158,12 +172,35 @@ function createDumperState (options: DumpOptions = {}): DumperState {
   const opts = { ...DEFAULT_DUMP_OPTIONS, ...options }
   const schema = opts.schema
 
+  const defaultTags = new Set<TagDefinition>([
+    schema.defaultScalarTag,
+    schema.defaultSequenceTag,
+    schema.defaultMappingTag
+  ].filter((t): t is TagDefinition => t !== undefined))
+
+  // Build the ordered match list, baking the implicit-tag decision into each
+  // entry. Implicit scalars (null/bool/int/...) carry an implicit tag. The
+  // default container/str tags only normalize a JS string/array/plain-object
+  // into canonical form, also carry an implicit tag, and must come last so a
+  // more specific tag identifying the same JS value (e.g. a custom tag on a
+  // plain object) wins.
+  const implicitScalars = schema.implicitScalarTags
+  const explicitTags = schema.tags.filter(t =>
+    !(t.nodeKind === 'scalar' && t.implicit) && !defaultTags.has(t))
+  const defaultTagsLast = schema.tags.filter(t => defaultTags.has(t))
+
+  const representTypes: RepresentType[] = [
+    ...implicitScalars.map(tag => ({ tag, implicitTag: true })),
+    ...explicitTags.map(tag => ({ tag, implicitTag: false })),
+    ...defaultTagsLast.map(tag => ({ tag, implicitTag: true }))
+  ]
+
   return {
     ...opts,
 
     styleMap: compileStyleMap(schema, opts.styles),
-    implicitTypes: schema.implicitScalarTags,
-    explicitTypes: schema.tags.filter(t => !(t.nodeKind === 'scalar' && t.implicit)),
+    representTypes,
+    implicitResolvers: implicitScalars,
 
     duplicates: new Map(),
     usedDuplicates: new Set(),
@@ -204,8 +241,8 @@ function generateNextLine (state: DumperState, level: number) {
 }
 
 function testImplicitResolving (state: DumperState, str: string) {
-  for (let index = 0, length = state.implicitTypes.length; index < length; index += 1) {
-    const tagDefinition = state.implicitTypes[index]
+  for (let index = 0, length = state.implicitResolvers.length; index < length; index += 1) {
+    const tagDefinition = state.implicitResolvers[index]
 
     if (tagDefinition.resolve(str, tagDefinition.tagName) !== NOT_RESOLVED) {
       return true
@@ -775,21 +812,21 @@ function writeBlockMapping (state: DumperState, level: number, object: any, comp
   state.dump = _result || '{}' // Empty mapping if no valid pairs.
 }
 
-function representType (state: DumperState, object: any, explicit: boolean) {
-  const tagDefinitionList = explicit ? state.explicitTypes : state.implicitTypes
-
-  for (let index = 0, length = tagDefinitionList.length; index < length; index += 1) {
-    const tagDefinition = tagDefinitionList[index]
+// Finds the tag that represents `object`, sets `state.tag` (implicit when the
+// matched candidate is implicit-tagged, explicit otherwise) and `state.dump`
+// (when the tag has a `represent`), and returns the matched tag — or null if
+// none matched.
+function representType (state: DumperState, object: any): TagDefinition | null {
+  for (let index = 0, length = state.representTypes.length; index < length; index += 1) {
+    const { tag: tagDefinition, implicitTag } = state.representTypes[index]
 
     if (tagDefinition.identify && tagDefinition.identify(object)) {
-      if (explicit) {
-        if (tagDefinition.matchByTagPrefix && tagDefinition.representTagName) {
-          state.tag = tagDefinition.representTagName(object)
-        } else {
-          state.tag = tagDefinition.tagName
-        }
-      } else {
+      if (implicitTag) {
         state.tag = IMPLICIT_TAG
+      } else if (tagDefinition.matchByTagPrefix && tagDefinition.representTagName) {
+        state.tag = tagDefinition.representTagName(object)
+      } else {
+        state.tag = tagDefinition.tagName
       }
 
       if (tagDefinition.represent) {
@@ -807,11 +844,11 @@ function representType (state: DumperState, object: any, explicit: boolean) {
         state.dump = _result
       }
 
-      return true
+      return tagDefinition
     }
   }
 
-  return false
+  return null
 }
 
 // Serializes `object` and writes the serialized fragment to `state.dump`.
@@ -821,18 +858,16 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
   state.tag = NO_TAG
   state.dump = object
 
-  if (!representType(state, object, false)) {
-    representType(state, object, true)
-  }
+  const tagDefinition = representType(state, object)
 
-  const type = _toString.call(state.dump)
+  const nodeKind = tagDefinition ? tagDefinition.nodeKind : null
   const inblock = block
 
   if (block) {
     block = (state.flowLevel < 0 || state.flowLevel > level)
   }
 
-  const objectOrArray = type === '[object Object]' || type === '[object Array]'
+  const objectOrArray = nodeKind === 'mapping' || nodeKind === 'sequence'
   let duplicateIndex
   let duplicate
 
@@ -851,7 +886,7 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
     if (objectOrArray && duplicate && !state.usedDuplicates.has(object)) {
       state.usedDuplicates.add(object)
     }
-    if (type === '[object Object]') {
+    if (nodeKind === 'mapping') {
       if (block && (Object.keys(state.dump).length !== 0)) {
         writeBlockMapping(state, level, state.dump, compact)
         if (duplicate) {
@@ -863,7 +898,7 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
           state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }
       }
-    } else if (type === '[object Array]') {
+    } else if (nodeKind === 'sequence') {
       if (block && (state.dump.length !== 0)) {
         if (state.noArrayIndent && !isblockseq && level > 0) {
           writeBlockSequence(state, level - 1, state.dump, compact)
@@ -879,15 +914,18 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
           state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }
       }
-    } else if (type === '[object String]') {
-      if (state.tag !== IMPLICIT_TAG) {
+    } else if (nodeKind === 'scalar') {
+      // Implicit scalar tags (null/bool/int/...) supply the final text via
+      // `represent`; the default `!!str` and explicit-tagged scalars still need
+      // style selection and quoting through writeScalar.
+      if (state.tag !== IMPLICIT_TAG || !tagDefinition?.represent) {
         writeScalar(state, state.dump, level, iskey, inblock)
       }
-    } else if (type === '[object Undefined]') {
+    } else if (object === undefined) {
       return false
     } else {
       if (state.skipInvalid) return false
-      throw new YAMLException(`unacceptable kind of an object to dump ${type}`)
+      throw new YAMLException(`unacceptable kind of an object to dump ${Object.prototype.toString.call(object)}`)
     }
 
     if (state.tag && state.tag !== IMPLICIT_TAG) {

@@ -81,6 +81,11 @@ class Schema {
   // The default scalar tag (`!!str`), resolved once so the composer's fallback for
   // unresolved plain scalars avoids a keyed lookup per scalar.
   readonly defaultScalarTag: ScalarTagDefinition
+  // The default container tags (`!!seq` / `!!map`), used by the dumper: when a
+  // value is identified by its default tag, the tag is implicit and not printed.
+  // Undefined if the schema does not define them (then such values can't be dumped).
+  readonly defaultSequenceTag: SequenceTagDefinition | undefined
+  readonly defaultMappingTag: MappingTagDefinition | undefined
   readonly exact: TagDefinitionMap
   readonly prefix: TagDefinitionListMap
 
@@ -138,6 +143,8 @@ class Schema {
     this.implicitScalarByFirstChar = implicitScalarByFirstChar
     this.implicitScalarAnyFirstChar = implicitScalarAnyFirstChar
     this.defaultScalarTag = defaultScalarTag
+    this.defaultSequenceTag = exact.sequence['tag:yaml.org,2002:seq']
+    this.defaultMappingTag = exact.mapping['tag:yaml.org,2002:map']
     this.exact = exact
     this.prefix = prefix
   }
