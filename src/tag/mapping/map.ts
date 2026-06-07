@@ -42,6 +42,9 @@ function normalizeKey (key: unknown): string | null {
 const mapTag = defineMappingTag('tag:yaml.org,2002:map', {
   create: (): StringMapping => ({}),
   identify: isPlainObject,
+  // Dump side: wrap the plain object into the canonical `Map` form the writer
+  // walks. Shallow — keys/values stay references to the originals.
+  represent: (o: StringMapping) => new Map(Object.entries(o)),
   addPair: (container, key, value) => {
     const normalizedKey = normalizeKey(key)
     if (normalizedKey === null) return 'nested arrays are not supported inside keys'

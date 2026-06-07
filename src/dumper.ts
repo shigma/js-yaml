@@ -700,22 +700,22 @@ function writeBlockSequence (state: DumperState, level: number, object: any[], c
   state.dump = _result || '[]' // Empty sequence if no valid values.
 }
 
-function writeFlowMapping (state: DumperState, level: number, object: any) {
+// `object` is the original container (the `this` the replacer is bound to);
+// `map` is its canonical `Map` form, which the writer walks.
+function writeFlowMapping (state: DumperState, level: number, object: any, map: Map<unknown, unknown>) {
   let _result = ''
   const _tag = state.tag
-  const objectKeyList = Object.keys(object)
 
-  for (let index = 0, length = objectKeyList.length; index < length; index += 1) {
+  for (const [objectKey, mapValue] of map) {
     let pairBuffer = ''
     if (_result !== '') pairBuffer += ', '
 
     if (state.condenseFlow) pairBuffer += '"'
 
-    const objectKey = objectKeyList[index]
-    let objectValue = object[objectKey]
+    let objectValue = mapValue
 
     if (state.replacer) {
-      objectValue = state.replacer.call(object, objectKey, objectValue)
+      objectValue = state.replacer.call(object, String(objectKey), objectValue)
     }
 
     if (!writeNode(state, level, objectKey, false, false)) {
@@ -740,38 +740,51 @@ function writeFlowMapping (state: DumperState, level: number, object: any) {
   state.dump = `{${_result}}`
 }
 
-function writeBlockMapping (state: DumperState, level: number, object: any, compact: boolean) {
-  let _result = ''
-  const _tag = state.tag
-  const objectKeyList = Object.keys(object)
-
-  // Allow sorting keys so that the output file is deterministic
+// Presentation-only reordering of the mapping keys, decoupled from the walk.
+// A point of extension for a future formatting layer. The default lexical sort
+// is string-oriented (best-effort/no-op for non-string keys); a custom function
+// receives the keys as they are.
+function orderKeys (state: DumperState, keys: any[]) {
   if (state.sortKeys === true) {
     // Default sorting
-    objectKeyList.sort()
+    keys.sort()
   } else if (typeof state.sortKeys === 'function') {
     // Custom sort function
-    objectKeyList.sort(state.sortKeys)
+    keys.sort(state.sortKeys)
   } else if (state.sortKeys) {
     // Something is wrong
     throw new YAMLException('sortKeys must be a boolean or a function')
   }
+}
 
-  for (let index = 0, length = objectKeyList.length; index < length; index += 1) {
+// `object` is the original container (the `this` the replacer is bound to);
+// `map` is its canonical `Map` form, which the writer walks.
+function writeBlockMapping (state: DumperState, level: number, object: any, map: Map<unknown, unknown>, compact: boolean) {
+  let _result = ''
+  const _tag = state.tag
+  const keys = [...map.keys()]
+
+  orderKeys(state, keys)
+
+  for (let index = 0, length = keys.length; index < length; index += 1) {
     let pairBuffer = ''
 
     if (!compact || _result !== '') {
       pairBuffer += generateNextLine(state, level)
     }
 
-    const objectKey = objectKeyList[index]
-    let objectValue = object[objectKey]
+    const objectKey = keys[index]
+    let objectValue = map.get(objectKey)
 
     if (state.replacer) {
-      objectValue = state.replacer.call(object, objectKey, objectValue)
+      objectValue = state.replacer.call(object, String(objectKey), objectValue)
     }
 
-    if (!writeNode(state, level + 1, objectKey, true, true, true)) {
+    // Keys are written in flow context: a collection key (only reachable via a
+    // real `Map`) then renders inline (`{x: 1}` / `[1, 2]`) instead of as a
+    // multi-line block that can't sit on a `key:` line. Scalar keys are
+    // unaffected by flow-vs-block.
+    if (!writeNode(state, level + 1, objectKey, false, true, true)) {
       continue // Skip this pair because of invalid key.
     }
 
@@ -887,13 +900,15 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
       state.usedDuplicates.add(object)
     }
     if (nodeKind === 'mapping') {
-      if (block && (Object.keys(state.dump).length !== 0)) {
-        writeBlockMapping(state, level, state.dump, compact)
+      // `object` is the original container (replacer `this`); `state.dump` is
+      // its canonical `Map` form produced by `represent`.
+      if (block && state.dump.size !== 0) {
+        writeBlockMapping(state, level, object, state.dump, compact)
         if (duplicate) {
           state.dump = `&ref_${duplicateIndex}${state.dump}`
         }
       } else {
-        writeFlowMapping(state, level, state.dump)
+        writeFlowMapping(state, level, object, state.dump)
         if (duplicate) {
           state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }

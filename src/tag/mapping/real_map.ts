@@ -18,7 +18,10 @@ const realMapTag = defineMappingTag('tag:yaml.org,2002:map', {
   // Dump side: handle both a real `Map` and a plain object, so this tag fully
   // replaces the default map representation when dumping too.
   identify: (data) => data instanceof Map || isPlainObject(data),
-  represent: (data) => data instanceof Map ? Object.fromEntries(data) : data
+  // Dump side: the canonical mapping form is a `Map`. A real `Map` passes
+  // through untouched (keys keep their type); a plain object is wrapped
+  // shallowly. Lossless — nothing is stringified.
+  represent: (data) => data instanceof Map ? data : new Map(Object.entries(data))
 })
 
 export { realMapTag }
