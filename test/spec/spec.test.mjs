@@ -10,7 +10,6 @@ import {
   load,
   loadAll,
   dump,
-  YAMLException,
   EVENT_DOCUMENT,
   EVENT_SEQUENCE,
   EVENT_MAPPING,
@@ -22,10 +21,27 @@ import {
   SCALAR_STYLE_LITERAL_BLOCK,
   SCALAR_STYLE_FOLDED_BLOCK,
   COLLECTION_STYLE_FLOW,
+  CORE_SCHEMA,
+  strTag,
+  seqTag,
+  mapTag,
   createParserState,
   parseEvents,
   getScalarValue
 } from 'js-yaml'
+
+// The yaml-test-suite follows the libyaml convention: a tag outside the core
+// schema is constructed by node kind (scalar→str, seq→seq, map→map), and its
+// `json` field encodes that fallback value. The core loader instead rejects
+// unknown tags, so to validate the suite's `json`/round-trip expectations we
+// load with a schema that adds catch-all tags. These match by empty tag prefix,
+// so they only fire for tags not already covered by the core schema. This is a
+// test-only schema; it does not change how js-yaml loads by default.
+const SPEC_SCHEMA = CORE_SCHEMA.withTags(
+  { ...strTag, tagName: '', matchByTagPrefix: true },
+  { ...seqTag, tagName: '', matchByTagPrefix: true },
+  { ...mapTag, tagName: '', matchByTagPrefix: true }
+)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const suiteDir = path.join(__dirname, 'yaml-test-suite')
@@ -220,22 +236,7 @@ describe('yaml-test-suite parser tree', () => {
         } else {
           it(`${id} json`, () => {
             const input = unescapeFixtureText(fixture.yaml)
-
-            let result
-            try {
-              result = loadAll(input)
-            } catch (error) {
-              // A strict core-schema loader cannot construct a native value for
-              // a tag outside the schema. The suite's json assumes the
-              // unknown->str/seq/map fallback, which is a test-data convention,
-              // not a spec requirement (the spec only defines fallback for the
-              // non-specific `!` tag). Rejecting the unresolved tag is the
-              // correct outcome here; parsing itself is already covered by the
-              // `tree` assertion above.
-              if (error instanceof YAMLException && /unknown \w+ tag/.test(error.message)) return
-              throw error
-            }
-
+            const result = loadAll(input, { schema: SPEC_SCHEMA })
             const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
 
             assert.deepStrictEqual(result, expected)
@@ -250,23 +251,13 @@ describe('yaml-test-suite parser tree', () => {
         } else {
           it(`${id} round-trip`, () => {
             const input = unescapeFixtureText(fixture.yaml)
-
-            let docs
-            try {
-              docs = loadAll(input)
-            } catch (error) {
-              // Same core-schema limitation as the json test above: a tag
-              // outside the schema cannot be constructed, so there is no
-              // native value to dump. Parsing is covered by the tree test.
-              if (error instanceof YAMLException && /unknown \w+ tag/.test(error.message)) return
-              throw error
-            }
+            const docs = loadAll(input, { schema: SPEC_SCHEMA })
 
             // dump() emits a single document without a `---` marker, so join
             // multi-document fixtures with explicit markers before reloading.
             const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
 
-            assert.deepStrictEqual(loadAll(dumped), docs)
+            assert.deepStrictEqual(loadAll(dumped, { schema: SPEC_SCHEMA }), docs)
           })
         }
       })
