@@ -6,8 +6,6 @@ import fs from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dump, load } from 'js-yaml'
 
-import { TEST_SCHEMA } from './support/schema.mjs'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('Dumper', () => {
@@ -21,8 +19,8 @@ describe('Dumper', () => {
     it(sampleName, async function () {
       const sample = (await import(pathToFileURL(path.resolve(samplesDir, sampleFile)).href)).default
       const data = typeof sample === 'function' ? sample.expected : sample
-      const serialized = dump(data, { schema: TEST_SCHEMA })
-      const deserialized = load(serialized, { schema: TEST_SCHEMA })
+      const serialized = dump(data)
+      const deserialized = load(serialized)
 
       if (typeof sample === 'function') {
         sample.call(this, deserialized)

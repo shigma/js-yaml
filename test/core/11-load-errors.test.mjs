@@ -6,8 +6,6 @@ import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { loadAll, YAMLException } from 'js-yaml'
 
-import { TEST_SCHEMA } from './support/schema.mjs'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('Load errors', () => {
@@ -24,9 +22,7 @@ describe('Load errors', () => {
           yamlSource,
           () => {},
           {
-            filename: yamlFile,
-            schema: TEST_SCHEMA,
-            onWarning: (e) => { throw e }
+            filename: yamlFile
           }
         )
       }, YAMLException, yamlFile)

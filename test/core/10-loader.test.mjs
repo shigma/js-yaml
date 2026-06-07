@@ -6,8 +6,6 @@ import fs from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { loadAll } from 'js-yaml'
 
-import { TEST_SCHEMA } from './support/schema.mjs'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('Loader', () => {
@@ -24,8 +22,7 @@ describe('Loader', () => {
       let actual = []
 
       loadAll(fs.readFileSync(yamlFile, { encoding: 'utf8' }), (doc) => { actual.push(doc) }, {
-        filename: yamlFile,
-        schema: TEST_SCHEMA
+        filename: yamlFile
       })
 
       if (actual.length === 1) actual = actual[0]
