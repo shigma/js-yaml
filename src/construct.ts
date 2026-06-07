@@ -42,6 +42,10 @@ interface SequenceFrame {
   value: any
   tag: SequenceTagDefinition<any>
   index: number
+  // True when this sequence is the source list of a `<<` merge (`<<: [...]`).
+  // Each element is validated as a mapping on arrival; the materialized list is
+  // then delivered to the target mapping, which folds the elements in.
+  merge: boolean
 }
 
 interface MappingFrame {
@@ -52,11 +56,19 @@ interface MappingFrame {
   key: unknown
   keyPosition: number
   hasKey: boolean
-  keys: Set<string>
-  overridableKeys: Set<string>
+  // Keys brought in by a merge that an explicit pair is still allowed to
+  // override. Lazily allocated: stays null for mappings without `<<`.
+  overridable: Set<unknown> | null
 }
 
 type Frame = DocumentFrame | SequenceFrame | MappingFrame
+
+type AnyTag = ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition
+
+interface Anchor {
+  value: unknown
+  tag: AnyTag
+}
 
 interface ConstructOptions {
   filename?: string
@@ -78,7 +90,7 @@ interface ConstructorState extends Required<ConstructOptions> {
   eventIndex: number
   position: number
   frames: Frame[]
-  anchors: Map<string, unknown>
+  anchors: Map<string, Anchor>
   tagDirectives: Record<string, string>
 }
 
@@ -170,14 +182,15 @@ function findExplicitTag<T extends ScalarTagDefinition | SequenceTagDefinition |
 function constructScalar (
   state: ConstructorState,
   event: ScalarEvent
-) {
+): Anchor {
   const source = getScalarValue(state.parserState, event)
   const rawTag = event.tagStart === NO_RANGE
     ? ''
     : state.parserState.input.slice(event.tagStart, event.tagEnd)
+  const strTag = state.schema.defaultScalarTag
 
   if (rawTag !== '') {
-    if (rawTag === '!') return source
+    if (rawTag === '!') return { value: source, tag: strTag }
 
     const tagName = resolveTagName(state, rawTag)
     const scalarTag = lookupTag(state.schema.exact.scalar, state.schema.prefix.scalar, tagName)
@@ -189,7 +202,7 @@ function constructScalar (
         throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
       }
 
-      return result
+      return { value: result, tag: scalarTag }
     }
 
     // An empty node carrying a collection tag (e.g. `!!map`, `!!seq`) is emitted
@@ -204,7 +217,7 @@ function constructScalar (
         throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
       }
 
-      return collectionTagDef.create(tagName)
+      return { value: collectionTagDef.create(tagName), tag: collectionTagDef }
     }
 
     throwError(state, `unknown scalar tag !<${tagName}>`)
@@ -217,12 +230,11 @@ function constructScalar (
       state.schema.implicitScalarAnyFirstChar
     for (const tag of candidates) {
       const result = tag.resolve(source, tag.tagName)
-      if (result !== NOT_RESOLVED) return result
+      if (result !== NOT_RESOLVED) return { value: result, tag }
     }
   }
 
-  const strTag = state.schema.defaultScalarTag
-  return strTag.resolve(source, strTag.tagName)
+  return { value: strTag.resolve(source, strTag.tagName), tag: strTag }
 }
 
 function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition> (
@@ -246,87 +258,64 @@ function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition>
   }
 }
 
-function mappingKey (state: ConstructorState, key: unknown) {
-  let result = key
-
-  if (Array.isArray(result)) {
-    const array = Array.prototype.slice.call(result) as unknown[]
-
-    for (let index = 0; index < array.length; index++) {
-      if (Array.isArray(array[index])) {
-        throwError(state, 'nested arrays are not supported inside keys')
-      }
-
-      if (typeof array[index] === 'object' &&
-          Object.prototype.toString.call(array[index]) === '[object Object]') {
-        array[index] = '[object Object]'
-      }
-    }
-
-    result = array
-  }
-
-  if (typeof result === 'object' &&
-      Object.prototype.toString.call(result) === '[object Object]') {
-    result = '[object Object]'
-  }
-
-  return String(result)
+// A merge source must be a mapping; every mapping tag exposes the read side.
+function isMappingTag (tag: AnyTag): tag is MappingTagDefinition<any> {
+  return tag.nodeKind === 'mapping'
 }
 
-function isPlainObject (value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false
+// Fold the keys of one mapping source into the target frame, honoring merge
+// precedence: an already-present key (explicit or from an earlier source) wins.
+function mergeKeys (state: ConstructorState, frame: MappingFrame, source: unknown, sourceTag: MappingTagDefinition<any>) {
+  for (const sourceKey of sourceTag.keys(source)) {
+    if (frame.tag.has(frame.value, sourceKey)) continue
 
-  const prototype = Object.getPrototypeOf(value)
-  return prototype === null || prototype === Object.prototype
+    const err = frame.tag.addPair(frame.value, sourceKey, sourceTag.get(source, sourceKey))
+    if (err) throwError(state, err)
+    ;(frame.overridable ??= new Set()).add(sourceKey)
+  }
 }
 
-function addMappingPair (state: ConstructorState, frame: MappingFrame, key: unknown, value: unknown) {
+// The value of a `<<` key: either a mapping (fold its keys) or a sequence of
+// mappings (fold each). A merge sequence has already had every element validated
+// as a mapping on arrival (see addValue), and its elements were built by the
+// target's own mapping tag, so they are read back with it.
+function mergeSource (state: ConstructorState, frame: MappingFrame, source: unknown, sourceTag: AnyTag) {
   state.position = frame.keyPosition
 
-  if (key === MERGE_KEY) {
-    const sources = Array.isArray(value) ? value : [value]
-
-    if (sources.length > state.maxMergeSeqLength) {
-      throwError(state, `merge sequence length exceeded maxMergeSeqLength (${state.maxMergeSeqLength})`)
-    }
-
+  if (isMappingTag(sourceTag)) {
+    mergeKeys(state, frame, source, sourceTag)
+  } else if (sourceTag.nodeKind === 'sequence' && Array.isArray(source)) {
     const seen = new Set<unknown>()
-
-    for (const source of sources) {
-      if (seen.has(source)) continue
-      seen.add(source)
-
-      if (!isPlainObject(source)) {
-        throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
-      }
-
-      for (const sourceKey of Object.keys(source)) {
-        if (frame.keys.has(sourceKey)) continue
-
-        callTag(state, () => frame.tag.addPair(frame.value, sourceKey, source[sourceKey]))
-        frame.keys.add(sourceKey)
-        frame.overridableKeys.add(sourceKey)
-      }
+    for (const element of source) {
+      // Dedup identical sources (`<<: [*a, *a]`); the first one wins anyway.
+      if (seen.has(element)) continue
+      seen.add(element)
+      mergeKeys(state, frame, element, frame.tag)
     }
+  } else {
+    throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
+  }
+}
 
+function addMappingValue (state: ConstructorState, frame: MappingFrame, key: unknown, value: unknown, tag: AnyTag) {
+  state.position = frame.keyPosition
+
+  // `<<` is intercepted before dedup, so a repeated merge key is allowed.
+  if (key === MERGE_KEY) {
+    mergeSource(state, frame, value, tag)
     return
   }
 
-  const normalizedKey = mappingKey(state, key)
-
-  if (!state.json &&
-      frame.keys.has(normalizedKey) &&
-      !frame.overridableKeys.has(normalizedKey)) {
+  if (!state.json && frame.tag.has(frame.value, key) && !frame.overridable?.has(key)) {
     throwError(state, 'duplicated mapping key')
   }
 
-  callTag(state, () => frame.tag.addPair(frame.value, normalizedKey, value))
-  frame.keys.add(normalizedKey)
-  frame.overridableKeys.delete(normalizedKey)
+  const err = frame.tag.addPair(frame.value, key, value)
+  if (err) throwError(state, err)
+  frame.overridable?.delete(key)
 }
 
-function addValue (state: ConstructorState, value: unknown) {
+function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
   const frame = state.frames[state.frames.length - 1]
 
   if (!frame) throwError(state, 'node appears outside a document')
@@ -336,11 +325,22 @@ function addValue (state: ConstructorState, value: unknown) {
     frame.value = value
     frame.hasValue = true
   } else if (frame.kind === 'sequence') {
+    if (frame.merge) {
+      // Element of a `<<: [...]` list: validate it is a mapping and cap the
+      // length, then collect it like any other item for the target to fold in.
+      if (!isMappingTag(tag)) {
+        throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
+      }
+      if (frame.index >= state.maxMergeSeqLength) {
+        throwError(state, `merge sequence length exceeded maxMergeSeqLength (${state.maxMergeSeqLength})`)
+      }
+    }
     frame.tag.addItem(frame.value, value, frame.index++)
   } else if (frame.hasKey) {
-    addMappingPair(state, frame, frame.key, value)
+    const key = frame.key
     frame.key = undefined
     frame.hasKey = false
+    addMappingValue(state, frame, key, value, tag)
   } else {
     frame.key = value
     frame.keyPosition = state.position
@@ -348,9 +348,9 @@ function addValue (state: ConstructorState, value: unknown) {
   }
 }
 
-function storeAnchor (state: ConstructorState, event: ScalarEvent | SequenceEvent | MappingEvent, value: unknown) {
+function storeAnchor (state: ConstructorState, event: ScalarEvent | SequenceEvent | MappingEvent, value: unknown, tag: AnyTag) {
   if (event.anchorStart !== NO_RANGE) {
-    state.anchors.set(state.parserState.input.slice(event.anchorStart, event.anchorEnd), value)
+    state.anchors.set(state.parserState.input.slice(event.anchorStart, event.anchorEnd), { value, tag })
   }
 }
 
@@ -367,9 +367,9 @@ function constructEvents (state: ConstructorState) {
         break
 
       case EVENT_SCALAR: {
-        const value = constructScalar(state, event)
-        storeAnchor(state, event, value)
-        addValue(state, value)
+        const { value, tag } = constructScalar(state, event)
+        storeAnchor(state, event, value, tag)
+        addValue(state, value, tag)
         break
       }
 
@@ -383,8 +383,18 @@ function constructEvents (state: ConstructorState) {
           'sequence'
         )
         const value = definition.tag.create(definition.tagName)
-        storeAnchor(state, event, value)
-        state.frames.push({ kind: 'sequence', position: state.position, value, tag: definition.tag, index: 0 })
+        storeAnchor(state, event, value, definition.tag)
+
+        // `<<: [...]` — the parent mapping is waiting on a merge key, so this
+        // sequence is a list of merge sources: its elements must be mappings.
+        // It is still built and delivered as a normal value; the target folds it.
+        const parent = state.frames[state.frames.length - 1]
+        const merge = parent !== undefined && parent.kind === 'mapping' &&
+          parent.hasKey && parent.key === MERGE_KEY
+
+        state.frames.push({
+          kind: 'sequence', position: state.position, value, tag: definition.tag, index: 0, merge
+        })
         break
       }
 
@@ -398,7 +408,7 @@ function constructEvents (state: ConstructorState) {
           'mapping'
         )
         const value = definition.tag.create(definition.tagName)
-        storeAnchor(state, event, value)
+        storeAnchor(state, event, value, definition.tag)
         state.frames.push({
           kind: 'mapping',
           position: state.position,
@@ -407,8 +417,7 @@ function constructEvents (state: ConstructorState) {
           key: undefined,
           keyPosition: state.position,
           hasKey: false,
-          keys: new Set(),
-          overridableKeys: new Set()
+          overridable: null
         })
         break
       }
@@ -417,10 +426,11 @@ function constructEvents (state: ConstructorState) {
         const name = event.anchorStart === NO_RANGE
           ? ''
           : state.parserState.input.slice(event.anchorStart, event.anchorEnd)
-        if (!state.anchors.has(name)) {
+        const anchor = state.anchors.get(name)
+        if (!anchor) {
           throwError(state, `unidentified alias "${name}"`)
         }
-        addValue(state, state.anchors.get(name))
+        addValue(state, anchor.value, anchor.tag)
         break
       }
 
@@ -436,7 +446,7 @@ function constructEvents (state: ConstructorState) {
             throwError(state, 'mapping contains a key without a value')
           }
           if (frame.tag.finish) callTag(state, () => frame.tag.finish!(frame.value))
-          addValue(state, frame.value)
+          addValue(state, frame.value, frame.tag)
         }
         break
       }

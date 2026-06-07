@@ -28,7 +28,10 @@ describe('Tag prefix matching', () => {
         },
         addPair: (container, key, value) => {
           container.value[String(key)] = value
-        }
+        },
+        has: (container, key) => Object.hasOwn(container.value, String(key)),
+        keys: (container) => Object.keys(container.value),
+        get: (container, key) => container.value[String(key)]
       })
     ]
 

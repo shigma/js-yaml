@@ -31,6 +31,7 @@ import { boolTag } from './tag/scalar/bool.ts'
 import { intTag } from './tag/scalar/int.ts'
 import { floatTag } from './tag/scalar/float.ts'
 import { mapTag } from './tag/mapping/map.ts'
+import { realMapTag } from './tag/mapping/real_map.ts'
 import { seqTag } from './tag/sequence/seq.ts'
 import { mergeTag } from './tag/scalar/merge.ts'
 
@@ -111,6 +112,7 @@ export {
   floatTag,
   seqTag,
   mapTag,
+  realMapTag,
 
   mergeTag,
   binaryTag,

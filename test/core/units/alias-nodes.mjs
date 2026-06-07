@@ -12,7 +12,10 @@ const TestClassYaml = defineMappingTag('!test', {
   create: () => new TestClass({}),
   addPair: (container, key, value) => {
     container[key] = value
-  }
+  },
+  has: (container, key) => Object.hasOwn(container, key),
+  keys: (container) => Object.keys(container),
+  get: (container, key) => container[key]
 })
 
 const TEST_SCHEMA = CORE_SCHEMA.withTags(TestClassYaml)

@@ -1,12 +1,15 @@
 import { defineMappingTag } from '../../tag.ts'
-import { addPair, type StringMapping } from './map.ts'
+import { mapTag, type StringMapping } from './map.ts'
 
 const setTag = defineMappingTag('tag:yaml.org,2002:set', {
-  create: () => Object.create(null) as StringMapping,
-  addPair: (container: StringMapping, key, value) => {
-    if (value !== null) throw new Error('cannot resolve a set item')
-    addPair(container, key, value)
-  }
+  create: (): StringMapping => ({}),
+  addPair: (container, key, value) => {
+    if (value !== null) return 'cannot resolve a set item'
+    return mapTag.addPair(container, key, value)
+  },
+  has: mapTag.has,
+  keys: mapTag.keys,
+  get: mapTag.get
 })
 
 export { setTag }

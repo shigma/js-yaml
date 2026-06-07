@@ -34,6 +34,9 @@ const TEST_SCHEMA = CORE_SCHEMA.withTags([
       else if (key === 'y') container.y = value
       else if (key === 'z') container.z = value
     },
+    has: () => false,
+    keys: (container) => Object.keys(container),
+    get: (container, key) => container[key],
     identify: (object) => object instanceof Tag3,
     represent: (object) => {
       return { '=': object.x, y: object.y, z: object.z }
@@ -53,6 +56,9 @@ const TEST_SCHEMA = CORE_SCHEMA.withTags([
       else if (key === 'y') container.y = value
       else if (key === 'z') container.z = value
     },
+    has: () => false,
+    keys: (container) => Object.keys(container),
+    get: (container, key) => container[key],
     identify: (object) => object instanceof Tag1
   }),
   defineMappingTag('!foo', {
@@ -61,6 +67,9 @@ const TEST_SCHEMA = CORE_SCHEMA.withTags([
       if (key === 'my-parameter') container.myParameter = value
       else if (key === 'my-another-parameter') container.myAnotherParameter = value
     },
+    has: () => false,
+    keys: (container) => Object.keys(container),
+    get: (container, key) => container[key],
     identify: (object) => object instanceof Foo,
     represent: (object) => {
       return {

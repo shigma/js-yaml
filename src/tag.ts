@@ -43,7 +43,16 @@ interface MappingTagDefinition<Container = unknown> {
   implicit: false
   matchByTagPrefix: boolean
   create: (tagName: string) => Container
-  addPair: (container: Container, key: unknown, value: unknown) => void
+  // Writes a pair. Returns '' on success, a non-empty error message otherwise
+  // (key does not fit the representation, value rejected, ...). Always a string
+  // so the hot path never allocates an exception wrapper.
+  addPair: (container: Container, key: unknown, value: unknown) => string
+  // Read side, mirrors `Map` — defining a representation means defining how to
+  // read it back. `has` is the hot dedup probe (membership without fetching the
+  // value); `keys`/`get` are used only on the cold merge path (`<<`).
+  has: (container: Container, key: unknown) => boolean
+  keys: (container: Container) => Iterable<unknown>
+  get: (container: Container, key: unknown) => unknown
   finish: ((container: Container) => void) | null
   identify: ((data: any) => boolean) | null
   represent: Represent | null
@@ -85,6 +94,9 @@ interface MappingTagOptions<Container> {
   matchByTagPrefix?: boolean
   create: MappingTagDefinition<Container>['create']
   addPair: MappingTagDefinition<Container>['addPair']
+  has: MappingTagDefinition<Container>['has']
+  keys: MappingTagDefinition<Container>['keys']
+  get: MappingTagDefinition<Container>['get']
   finish?: MappingTagDefinition<Container>['finish']
   identify?: MappingTagDefinition<Container>['identify']
   represent?: MappingTagDefinition<Container>['represent']
@@ -146,6 +158,9 @@ function defineMappingTag<Container> (tagName: string, options: MappingTagOption
     matchByTagPrefix: options.matchByTagPrefix ?? false,
     create: options.create,
     addPair: options.addPair,
+    has: options.has,
+    keys: options.keys,
+    get: options.get,
     finish: options.finish ?? null,
     identify: options.identify ?? null,
     represent: options.represent ?? null,

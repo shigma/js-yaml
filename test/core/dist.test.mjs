@@ -31,6 +31,7 @@ const expectedKeys = [
   'floatTag',
   'seqTag',
   'mapTag',
+  'realMapTag',
 
   'mergeTag',
   'binaryTag',

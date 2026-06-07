@@ -13,7 +13,10 @@ const tags = [
     create: () => ({}),
     addPair: (container, key, value) => {
       container[String(key)] = value
-    }
+    },
+    has: (container, key) => Object.hasOwn(container, String(key)),
+    keys: (container) => Object.keys(container),
+    get: (container, key) => container[String(key)]
   })
 ]
 
