@@ -9,6 +9,7 @@ import { JSONParser } from '@streamparser/json'
 import {
   load,
   loadAll,
+  dump,
   YAMLException,
   EVENT_DOCUMENT,
   EVENT_SEQUENCE,
@@ -183,6 +184,7 @@ describe('yaml-test-suite parser tree', () => {
         if (fixture.yaml == null) {
           it(`${id} tree`, { skip: 'no yaml/tree success expectation' }, () => {})
           it(`${id} json`, { skip: 'no yaml/json success expectation' }, () => {})
+          it(`${id} round-trip`, { skip: 'no yaml to dump' }, () => {})
           return
         }
 
@@ -198,6 +200,8 @@ describe('yaml-test-suite parser tree', () => {
 
             assert.throws(() => loadAll(input))
           })
+
+          it(`${id} round-trip`, { skip: 'invalid yaml, nothing to dump' }, () => {})
           return
         }
 
@@ -235,6 +239,34 @@ describe('yaml-test-suite parser tree', () => {
             const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
 
             assert.deepStrictEqual(result, expected)
+          })
+        }
+
+        // Round-trip is only meaningful when the suite asserts a native value
+        // exists (the `json` field); fixtures with only a `tree` may parse but
+        // have no constructible value to dump (duplicate keys, complex keys…).
+        if (fixture.json == null) {
+          it(`${id} round-trip`, { skip: 'no native value to dump' }, () => {})
+        } else {
+          it(`${id} round-trip`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+
+            let docs
+            try {
+              docs = loadAll(input)
+            } catch (error) {
+              // Same core-schema limitation as the json test above: a tag
+              // outside the schema cannot be constructed, so there is no
+              // native value to dump. Parsing is covered by the tree test.
+              if (error instanceof YAMLException && /unknown \w+ tag/.test(error.message)) return
+              throw error
+            }
+
+            // dump() emits a single document without a `---` marker, so join
+            // multi-document fixtures with explicit markers before reloading.
+            const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
+
+            assert.deepStrictEqual(loadAll(dumped), docs)
           })
         }
       })
