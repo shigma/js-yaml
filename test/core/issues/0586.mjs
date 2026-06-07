@@ -11,7 +11,7 @@ it('Should allow custom formatting through implicit custom tags', () => {
   }
 
   CustomDump.prototype.represent = function () {
-    let result = dump(this.data, Object.assign({ replacer, schema }, this.opts))
+    let result = dump(this.data, Object.assign({ schema }, this.opts))
     result = result.trim()
     if (result.includes('\n')) result = `\n${result}`
     return result
@@ -26,14 +26,10 @@ it('Should allow custom formatting through implicit custom tags', () => {
 
   const schema = CORE_SCHEMA.withTags(CustomDumpType)
 
-  function replacer (key, value) {
-    if (key === '') return value // top-level, don't change this
-    if (key === 'flow_choices') return CustomDump(value, { flowLevel: 0 })
-    if (key === 'block_choices') return CustomDump(value, { flowLevel: Infinity })
-    return value // default
-  }
-
-  const result = CustomDump({ flow_choices: [1, 2], block_choices: [4, 5] }).represent().trim()
+  const result = dump({
+    flow_choices: CustomDump([1, 2], { flowLevel: 0 }),
+    block_choices: CustomDump([4, 5], { flowLevel: Infinity })
+  }, { schema }).trim()
 
   assert.strictEqual(result, `
 flow_choices: [1, 2]

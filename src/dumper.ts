@@ -121,7 +121,6 @@ interface DumpOptions {
   condenseFlow?: boolean
   quotingType?: "'" | '"'
   forceQuotes?: boolean
-  replacer?: ((key: string, value: any) => any) | null
 }
 
 const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
@@ -137,8 +136,7 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   noCompatMode: false,
   condenseFlow: false,
   quotingType: "'",
-  forceQuotes: false,
-  replacer: null
+  forceQuotes: false
 }
 
 // A dump-time match candidate: the tag plus whether its tag marker is implicit
@@ -648,11 +646,7 @@ function writeFlowSequence (state: DumperState, level: number, object: any[]) {
   const _tag = state.tag
 
   for (let index = 0, length = object.length; index < length; index += 1) {
-    let value = object[index]
-
-    if (state.replacer) {
-      value = state.replacer.call(object, String(index), value)
-    }
+    const value = object[index]
 
     // Write only valid elements, put null instead of invalid elements.
     if (writeNode(state, level, value, false, false) ||
@@ -672,11 +666,7 @@ function writeBlockSequence (state: DumperState, level: number, object: any[], c
   const _tag = state.tag
 
   for (let index = 0, length = object.length; index < length; index += 1) {
-    let value = object[index]
-
-    if (state.replacer) {
-      value = state.replacer.call(object, String(index), value)
-    }
+    const value = object[index]
 
     // Write only valid elements, put null instead of invalid elements.
     if (writeNode(state, level + 1, value, true, true, false, true) ||
@@ -700,23 +690,15 @@ function writeBlockSequence (state: DumperState, level: number, object: any[], c
   state.dump = _result || '[]' // Empty sequence if no valid values.
 }
 
-// `object` is the original container (the `this` the replacer is bound to);
-// `map` is its canonical `Map` form, which the writer walks.
-function writeFlowMapping (state: DumperState, level: number, object: any, map: Map<unknown, unknown>) {
+function writeFlowMapping (state: DumperState, level: number, map: Map<unknown, unknown>) {
   let _result = ''
   const _tag = state.tag
 
-  for (const [objectKey, mapValue] of map) {
+  for (const [objectKey, objectValue] of map) {
     let pairBuffer = ''
     if (_result !== '') pairBuffer += ', '
 
     if (state.condenseFlow) pairBuffer += '"'
-
-    let objectValue = mapValue
-
-    if (state.replacer) {
-      objectValue = state.replacer.call(object, String(objectKey), objectValue)
-    }
 
     if (!writeNode(state, level, objectKey, false, false)) {
       continue // Skip this pair because of invalid key;
@@ -757,9 +739,7 @@ function orderKeys (state: DumperState, keys: any[]) {
   }
 }
 
-// `object` is the original container (the `this` the replacer is bound to);
-// `map` is its canonical `Map` form, which the writer walks.
-function writeBlockMapping (state: DumperState, level: number, object: any, map: Map<unknown, unknown>, compact: boolean) {
+function writeBlockMapping (state: DumperState, level: number, map: Map<unknown, unknown>, compact: boolean) {
   let _result = ''
   const _tag = state.tag
   const keys = [...map.keys()]
@@ -774,11 +754,7 @@ function writeBlockMapping (state: DumperState, level: number, object: any, map:
     }
 
     const objectKey = keys[index]
-    let objectValue = map.get(objectKey)
-
-    if (state.replacer) {
-      objectValue = state.replacer.call(object, String(objectKey), objectValue)
-    }
+    const objectValue = map.get(objectKey)
 
     // Keys are written in flow context: a collection key (only reachable via a
     // real `Map`) then renders inline (`{x: 1}` / `[1, 2]`) instead of as a
@@ -900,15 +876,14 @@ function writeNode (state: DumperState, level: number, object: any, block: boole
       state.usedDuplicates.add(object)
     }
     if (nodeKind === 'mapping') {
-      // `object` is the original container (replacer `this`); `state.dump` is
-      // its canonical `Map` form produced by `represent`.
+      // `state.dump` is the node's canonical `Map` form produced by `represent`.
       if (block && state.dump.size !== 0) {
-        writeBlockMapping(state, level, object, state.dump, compact)
+        writeBlockMapping(state, level, state.dump, compact)
         if (duplicate) {
           state.dump = `&ref_${duplicateIndex}${state.dump}`
         }
       } else {
-        writeFlowMapping(state, level, object, state.dump)
+        writeFlowMapping(state, level, state.dump)
         if (duplicate) {
           state.dump = `&ref_${duplicateIndex} ${state.dump}`
         }
@@ -1009,13 +984,7 @@ function dump (input: any, options: DumpOptions = {}) {
 
   if (!state.noRefs) getDuplicateReferences(input, state)
 
-  let value = input
-
-  if (state.replacer) {
-    value = state.replacer.call({ '': value }, '', value)
-  }
-
-  if (writeNode(state, 0, value, true, true)) return `${state.dump}\n`
+  if (writeNode(state, 0, input, true, true)) return `${state.dump}\n`
 
   return ''
 }
