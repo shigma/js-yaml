@@ -21,7 +21,13 @@ const realMapTag = defineMappingTag('tag:yaml.org,2002:map', {
   // Dump side: the canonical mapping form is a `Map`. A real `Map` passes
   // through untouched (keys keep their type); a plain object is wrapped
   // shallowly. Lossless — nothing is stringified.
-  represent: (data) => data instanceof Map ? data : new Map(Object.entries(data))
+  represent: (data) => {
+    if (data instanceof Map) return data
+    const map = new Map<unknown, unknown>()
+    const obj = data as Record<string, unknown>
+    for (const key of Object.keys(obj)) map.set(key, obj[key])
+    return map
+  }
 })
 
 export { realMapTag }

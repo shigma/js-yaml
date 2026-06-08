@@ -44,7 +44,11 @@ const mapTag = defineMappingTag('tag:yaml.org,2002:map', {
   identify: isPlainObject,
   // Dump side: wrap the plain object into the canonical `Map` form the writer
   // walks. Shallow — keys/values stay references to the originals.
-  represent: (o: StringMapping) => new Map(Object.entries(o)),
+  represent: (o: StringMapping) => {
+    const map = new Map<string, unknown>()
+    for (const key of Object.keys(o)) map.set(key, o[key])
+    return map
+  },
   addPair: (container, key, value) => {
     const normalizedKey = normalizeKey(key)
     if (normalizedKey === null) return 'nested arrays are not supported inside keys'
