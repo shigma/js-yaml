@@ -140,7 +140,7 @@ class Schema {
     const implicitScalarByFirstChar = new Map<string, ScalarTagDefinition[]>()
     for (const key of keys) {
       implicitScalarByFirstChar.set(key, implicitScalarTags.filter(tag =>
-        tag.implicitFirstChars === null || tag.implicitFirstChars.includes(key)))
+        tag.implicitFirstChars === null || tag.implicitFirstChars.indexOf(key) !== -1))
     }
 
     const defaultScalarTag = exact.scalar['tag:yaml.org,2002:str']
@@ -158,10 +158,10 @@ class Schema {
   }
 
   withTags (...tags: Array<TagDefinition | readonly TagDefinition[]>): Schema {
-    return new Schema([
-      ...this.tags,
-      ...tags.flat()
-    ])
+    let flatTags: TagDefinition[] = []
+    for (const tag of tags) flatTags = flatTags.concat(tag)
+
+    return new Schema([...this.tags, ...flatTags])
   }
 }
 
