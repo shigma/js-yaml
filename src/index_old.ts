@@ -17,7 +17,7 @@ import JSON_SCHEMA from './schema_old/json.ts'
 import CORE_SCHEMA from './schema_old/core.ts'
 import DEFAULT_SCHEMA from './schema_old/default.ts'
 import { load, loadAll, type LoadOptions } from './loader_old.ts'
-import { dump, type DumpOptions } from './dumper.ts'
+import { dump, type DumpOptions } from './dump.ts'
 import YAMLException from './exception.ts'
 
 import { binaryTag } from './tag_old/binary.ts'

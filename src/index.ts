@@ -42,7 +42,7 @@ import { pairsTag } from './tag/sequence/pairs.ts'
 import { setTag } from './tag/mapping/set.ts'
 
 import { load, loadAll, type LoadOptions } from './load.ts'
-import { dump, type DumpOptions } from './dumper.ts'
+import { dump, type DumpOptions } from './dump.ts'
 import YAMLException from './exception.ts'
 
 import {
