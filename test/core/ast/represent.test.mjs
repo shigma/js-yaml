@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, dump, nullTag } from 'js-yaml'
+import { CORE_SCHEMA, dump, nullCoreTag } from 'js-yaml'
 
 // null tag whose represent renders nothing — `key:` / `- ` with no value.
-const schema = CORE_SCHEMA.withTags({ ...nullTag, represent: () => '' })
+const schema = CORE_SCHEMA.withTags({ ...nullCoreTag, represent: () => '' })
 
 describe('ast represent', () => {
   it('an empty scalar leaves no trailing space', () => {

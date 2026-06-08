@@ -94,7 +94,7 @@ function resolveYamlInteger (source: string) {
   return Number.isFinite(result) ? result : NOT_RESOLVED
 }
 
-const intTag = defineScalarTag('tag:yaml.org,2002:int', {
+const intCoreTag = defineScalarTag('tag:yaml.org,2002:int', {
   implicit: true,
   // Superset of source.charAt(0) over all matched inputs: optional sign + decimal digit.
   implicitFirstChars: ['-', '+', ...'0123456789'],
@@ -104,4 +104,4 @@ const intTag = defineScalarTag('tag:yaml.org,2002:int', {
   represent: (object: number) => object.toString(10)
 })
 
-export { intTag }
+export { intCoreTag }

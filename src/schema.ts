@@ -5,10 +5,18 @@ import {
   type TagDefinition
 } from './tag.ts'
 import { strTag } from './tag/scalar/str.ts'
-import { nullTag } from './tag/scalar/null.ts'
-import { boolTag } from './tag/scalar/bool.ts'
-import { intTag } from './tag/scalar/int.ts'
-import { floatTag } from './tag/scalar/float.ts'
+import { nullCoreTag } from './tag/scalar/null_core.ts'
+import { nullJsonTag } from './tag/scalar/null_json.ts'
+import { nullYaml11Tag } from './tag/scalar/null_yaml11.ts'
+import { boolCoreTag } from './tag/scalar/bool_core.ts'
+import { boolJsonTag } from './tag/scalar/bool_json.ts'
+import { boolYaml11Tag } from './tag/scalar/bool_yaml11.ts'
+import { intCoreTag } from './tag/scalar/int_core.ts'
+import { intJsonTag } from './tag/scalar/int_json.ts'
+import { intYaml11Tag } from './tag/scalar/int_yaml11.ts'
+import { floatCoreTag } from './tag/scalar/float_core.ts'
+import { floatJsonTag } from './tag/scalar/float_json.ts'
+import { floatYaml11Tag } from './tag/scalar/float_yaml11.ts'
 import { mergeTag } from './tag/scalar/merge.ts'
 import { binaryTag } from './tag/scalar/binary.ts'
 import { timestampTag } from './tag/scalar/timestamp.ts'
@@ -165,23 +173,26 @@ const FAILSAFE_SCHEMA = new Schema([
 
 const JSON_SCHEMA = new Schema([
   ...FAILSAFE_SCHEMA.tags,
-  nullTag,
-  boolTag,
-  intTag,
-  floatTag
+  nullJsonTag,
+  boolJsonTag,
+  intJsonTag,
+  floatJsonTag
 ])
 
 const CORE_SCHEMA = new Schema([
   ...FAILSAFE_SCHEMA.tags,
-  nullTag,
-  // TODO: change late to core tag definitions
-  boolTag,
-  intTag,
-  floatTag
+  nullCoreTag,
+  boolCoreTag,
+  intCoreTag,
+  floatCoreTag
 ])
 
 const YAML11_SCHEMA = new Schema([
-  ...CORE_SCHEMA.tags,
+  ...FAILSAFE_SCHEMA.tags,
+  nullYaml11Tag,
+  boolYaml11Tag,
+  intYaml11Tag,
+  floatYaml11Tag,
   timestampTag,
   mergeTag,
   binaryTag,

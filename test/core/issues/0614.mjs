@@ -3,13 +3,13 @@ import { it } from 'node:test'
 /* global BigInt */
 
 import assert from 'node:assert'
-import { CORE_SCHEMA, load, defineScalarTag, intTag, NOT_RESOLVED } from 'js-yaml'
+import { CORE_SCHEMA, load, defineScalarTag, intCoreTag, NOT_RESOLVED } from 'js-yaml'
 
 it('Should allow int override', () => {
   const BigIntType = defineScalarTag('tag:yaml.org,2002:int', {
     implicit: true,
     resolve: source => {
-      if (intTag.resolve(source) === NOT_RESOLVED) return NOT_RESOLVED
+      if (intCoreTag.resolve(source) === NOT_RESOLVED) return NOT_RESOLVED
 
       let value = source
       let sign = 1n

@@ -1,6 +1,6 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
-const boolTag = defineScalarTag('tag:yaml.org,2002:bool', {
+const boolCoreTag = defineScalarTag('tag:yaml.org,2002:bool', {
   implicit: true,
   // Superset of source.charAt(0) over all matched inputs: true/True/TRUE, false/False/FALSE.
   implicitFirstChars: ['t', 'T', 'f', 'F'],
@@ -16,4 +16,4 @@ const boolTag = defineScalarTag('tag:yaml.org,2002:bool', {
   represent: (object) => object ? 'true' : 'false'
 })
 
-export { boolTag }
+export { boolCoreTag }

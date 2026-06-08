@@ -1,6 +1,6 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
-const nullTag = defineScalarTag('tag:yaml.org,2002:null', {
+const nullCoreTag = defineScalarTag('tag:yaml.org,2002:null', {
   implicit: true,
   // Superset of source.charAt(0) over all matched inputs: '' (empty), '~', 'null'/'Null'/'NULL'.
   implicitFirstChars: ['', '~', 'n', 'N'],
@@ -19,4 +19,4 @@ const nullTag = defineScalarTag('tag:yaml.org,2002:null', {
   represent: () => 'null'
 })
 
-export { nullTag }
+export { nullCoreTag }

@@ -26,10 +26,18 @@ import {
 } from './tag.ts'
 
 import { strTag } from './tag/scalar/str.ts'
-import { nullTag } from './tag/scalar/null.ts'
-import { boolTag } from './tag/scalar/bool.ts'
-import { intTag } from './tag/scalar/int.ts'
-import { floatTag } from './tag/scalar/float.ts'
+import { nullCoreTag } from './tag/scalar/null_core.ts'
+import { nullJsonTag } from './tag/scalar/null_json.ts'
+import { nullYaml11Tag } from './tag/scalar/null_yaml11.ts'
+import { boolCoreTag } from './tag/scalar/bool_core.ts'
+import { boolJsonTag } from './tag/scalar/bool_json.ts'
+import { boolYaml11Tag } from './tag/scalar/bool_yaml11.ts'
+import { intCoreTag } from './tag/scalar/int_core.ts'
+import { intJsonTag } from './tag/scalar/int_json.ts'
+import { intYaml11Tag } from './tag/scalar/int_yaml11.ts'
+import { floatCoreTag } from './tag/scalar/float_core.ts'
+import { floatJsonTag } from './tag/scalar/float_json.ts'
+import { floatYaml11Tag } from './tag/scalar/float_yaml11.ts'
 import { mapTag } from './tag/mapping/map.ts'
 import { realMapTag } from './tag/mapping/real_map.ts'
 import { seqTag } from './tag/sequence/seq.ts'
@@ -106,10 +114,18 @@ export {
   defineMappingTag,
 
   strTag,
-  nullTag,
-  boolTag,
-  intTag,
-  floatTag,
+  nullCoreTag,
+  nullJsonTag,
+  nullYaml11Tag,
+  boolCoreTag,
+  boolJsonTag,
+  boolYaml11Tag,
+  intCoreTag,
+  intJsonTag,
+  intYaml11Tag,
+  floatCoreTag,
+  floatJsonTag,
+  floatYaml11Tag,
   seqTag,
   mapTag,
   realMapTag,

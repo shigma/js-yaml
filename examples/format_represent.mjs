@@ -1,15 +1,15 @@
 // Override how a type is dumped: clone the built-in tag, swap `represent`.
 
-import { YAML11_SCHEMA, boolTag, intTag, nullTag, dump } from 'js-yaml'
+import { CORE_SCHEMA, boolCoreTag, intCoreTag, nullCoreTag, dump } from 'js-yaml'
 
-const schema = YAML11_SCHEMA.withTags(
-  { ...boolTag, represent: o => o ? 'yes' : 'no' },
-  { ...intTag, represent: o => o >= 0 ? `0x${o.toString(16)}` : `-0x${(-o).toString(16)}` },
-  { ...nullTag, represent: () => '' }
+const schema = CORE_SCHEMA.withTags(
+  { ...boolCoreTag, represent: o => o ? 'TRUE' : 'FALSE' },
+  { ...intCoreTag, represent: o => o >= 0 ? `0x${o.toString(16)}` : `-0x${(-o).toString(16)}` },
+  { ...nullCoreTag, represent: () => '' }
 )
 
 console.log(dump({ enabled: true, archived: false, mask: 255, parent: null }, { schema }))
-// enabled: yes
-// archived: no
+// enabled: TRUE
+// archived: FALSE
 // mask: 0xff
 // parent:
