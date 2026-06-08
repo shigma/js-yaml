@@ -1,15 +1,25 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
 const YAML_FLOAT_PATTERN = new RegExp(
-  '^(?:[-+]?(?:[0-9]+)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?' +
-  '|\\.[0-9]+(?:[eE][-+]?[0-9]+)?' +
+  // 2.5e4, 2.5 and integers
+  '^(?:[-+]?[0-9]+(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?' +
+  // .2e4, .2
+  '|[-+]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?' +
+  // .inf
   '|[-+]?\\.(?:inf|Inf|INF)' +
+  // .nan
   '|\\.(?:nan|NaN|NAN))$')
 
 const YAML_FLOAT_SPECIAL_PATTERN = new RegExp(
-  '^(?:[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$')
+  '^(?:' +
+  // .inf
+  '[-+]?\\.(?:inf|Inf|INF)' +
+  // .nan
+  '|\\.(?:nan|NaN|NAN))$')
 
-function parseYamlFloat (source: string) {
+function resolveYamlFloat (source: string) {
+  if (!YAML_FLOAT_PATTERN.test(source)) return NOT_RESOLVED
+
   let value = source.toLowerCase()
   const sign = value[0] === '-' ? -1 : 1
 
@@ -18,13 +28,7 @@ function parseYamlFloat (source: string) {
   if (value === '.inf') return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
   if (value === '.nan') return NaN
 
-  return sign * parseFloat(value)
-}
-
-function resolveYamlFloat (source: string) {
-  if (!YAML_FLOAT_PATTERN.test(source)) return NOT_RESOLVED
-
-  const result = parseYamlFloat(source)
+  const result = sign * parseFloat(value)
 
   if (Number.isFinite(result) || YAML_FLOAT_SPECIAL_PATTERN.test(source)) return result
   return NOT_RESOLVED

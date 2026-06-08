@@ -168,7 +168,7 @@ function testImplicitResolving (state: PresentState, str: string) {
   for (let index = 0, length = state.implicitResolvers.length; index < length; index += 1) {
     const tagDefinition = state.implicitResolvers[index]
 
-    if (tagDefinition.resolve(str, tagDefinition.tagName) !== NOT_RESOLVED) {
+    if (tagDefinition.resolve(str, tagDefinition.tagName, false) !== NOT_RESOLVED) {
       return true
     }
   }

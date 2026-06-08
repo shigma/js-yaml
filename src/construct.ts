@@ -196,7 +196,7 @@ function constructScalar (
     const scalarTag = lookupTag(state.schema.exact.scalar, state.schema.prefix.scalar, tagName)
 
     if (scalarTag) {
-      const result = scalarTag.resolve(source, tagName)
+      const result = scalarTag.resolve(source, tagName, true)
 
       if (result === NOT_RESOLVED) {
         throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
@@ -229,12 +229,12 @@ function constructScalar (
     const candidates = state.schema.implicitScalarByFirstChar.get(source.charAt(0)) ??
       state.schema.implicitScalarAnyFirstChar
     for (const tag of candidates) {
-      const result = tag.resolve(source, tag.tagName)
+      const result = tag.resolve(source, tag.tagName, false)
       if (result !== NOT_RESOLVED) return { value: result, tag }
     }
   }
 
-  return { value: strTag.resolve(source, strTag.tagName), tag: strTag }
+  return { value: strTag.resolve(source, strTag.tagName, false), tag: strTag }
 }
 
 function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition> (

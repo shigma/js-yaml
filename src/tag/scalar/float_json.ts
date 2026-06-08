@@ -1,32 +1,40 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
-const YAML_FLOAT_PATTERN = new RegExp(
-  '^(?:[-+]?(?:[0-9]+)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?' +
-  '|\\.[0-9]+(?:[eE][-+]?[0-9]+)?' +
+const YAML_FLOAT_IMPLICIT_PATTERN = new RegExp(
+  // 2.5e4, 2.5 and integers
+  '^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?$')
+
+const YAML_FLOAT_EXPLICIT_PATTERN = new RegExp(
+  // 2.5e4, 2.5 and integers
+  '^(?:[-+]?[0-9]+(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?' +
+  // .2e4, .2
+  '|[-+]?\\.[0-9]+(?:[eE][-+]?[0-9]+)?' +
+  // .inf
   '|[-+]?\\.(?:inf|Inf|INF)' +
+  // .nan
   '|\\.(?:nan|NaN|NAN))$')
 
-const YAML_FLOAT_SPECIAL_PATTERN = new RegExp(
-  '^(?:[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$')
+function resolveYamlFloat (source: string, _tagName: string, isExplicit: boolean) {
+  if (isExplicit) {
+    if (!YAML_FLOAT_EXPLICIT_PATTERN.test(source)) return NOT_RESOLVED
 
-function parseYamlFloat (source: string) {
-  let value = source.toLowerCase()
-  const sign = value[0] === '-' ? -1 : 1
+    let value = source.toLowerCase()
+    const sign = value[0] === '-' ? -1 : 1
 
-  if ('+-'.includes(value[0])) value = value.slice(1)
+    if ('+-'.includes(value[0])) value = value.slice(1)
 
-  if (value === '.inf') return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
-  if (value === '.nan') return NaN
+    if (value === '.inf') return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY
+    if (value === '.nan') return NaN
 
-  return sign * parseFloat(value)
-}
+    const result = sign * parseFloat(value)
+    return Number.isFinite(result) ? result : NOT_RESOLVED
+  }
 
-function resolveYamlFloat (source: string) {
-  if (!YAML_FLOAT_PATTERN.test(source)) return NOT_RESOLVED
+  if (!YAML_FLOAT_IMPLICIT_PATTERN.test(source)) return NOT_RESOLVED
 
-  const result = parseYamlFloat(source)
+  const result = Number(source)
 
-  if (Number.isFinite(result) || YAML_FLOAT_SPECIAL_PATTERN.test(source)) return result
+  if (Number.isFinite(result)) return result
   return NOT_RESOLVED
 }
 
@@ -42,9 +50,8 @@ function representYamlFloat (object: number) {
 
 const floatJsonTag = defineScalarTag('tag:yaml.org,2002:float', {
   implicit: true,
-  // Superset of source.charAt(0) over all matched inputs: optional sign, '.', or digit
-  // ('.inf'/'.nan' start with '.').
-  implicitFirstChars: ['-', '+', '.', ...'0123456789'],
+  // Superset of source.charAt(0) over all matched inputs: optional '-' or digit.
+  implicitFirstChars: ['-', ...'0123456789'],
   resolve: resolveYamlFloat,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
     (object % 1 !== 0 || Object.is(object, -0)),

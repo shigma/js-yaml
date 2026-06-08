@@ -30,18 +30,22 @@ describe('Should load numbers in YAML 1.2 format', () => {
 
 describe('Should dump numbers in YAML 1.2 format', () => {
   it('should quote all potential numbers', () => {
-    const tests = '1:23 1:23.45 01234 0999 -01234 01234e4 01234.56 -01234.56 0x123 0o123'
+    const tests = '1:23 1:23.45 01234 0999 -01234 01234.56 -01234.56 0x123 0o123'
 
     tests.split(' ').forEach((sample) => {
       assert.strictEqual(dump(sample, { noCompatMode: false }), `'${sample}'\n`)
     })
+
+    assert.strictEqual(dump('01234e4', { noCompatMode: false }), '01234e4\n')
   })
 
-  it('should not quote base60 in noCompatMode', () => {
-    const tests = '1:23 1:23.45'
+  it('should only quote base60 floats in noCompatMode when the schema resolves them', () => {
+    const tests = '1:23'
 
     tests.split(' ').forEach((sample) => {
       assert.strictEqual(dump(sample, { noCompatMode: true }), `${sample}\n`)
     })
+
+    assert.strictEqual(dump('1:23.45', { noCompatMode: true }), "'1:23.45'\n")
   })
 })

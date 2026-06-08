@@ -14,7 +14,9 @@ interface ScalarTagDefinition<Result = unknown> {
   // source). `null` means "no constraint, always try". Used by the composer to
   // dispatch implicit scalars by first character without running every resolver.
   implicitFirstChars: readonly string[] | null
-  resolve: (source: string, tagName: string) => Result | typeof NOT_RESOLVED
+  // `isExplicit` is true for an explicit tag (`!!tag`), false for implicit plain
+  // scalar resolution.
+  resolve: (source: string, tagName: string, isExplicit: boolean) => Result | typeof NOT_RESOLVED
   identify: ((data: any) => boolean) | null
   represent: Represent | null
   representTagName: ((data: any) => string) | null
