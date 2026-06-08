@@ -30,25 +30,10 @@ function resolveYamlFloat (source: string) {
   return NOT_RESOLVED
 }
 
-function representYamlFloat (object: number, style?: string) {
-  if (isNaN(object)) {
-    if (style === 'uppercase') return '.NAN'
-    if (style === 'camelcase') return '.NaN'
-    return '.nan'
-  }
-
-  if (object === Number.POSITIVE_INFINITY) {
-    if (style === 'uppercase') return '.INF'
-    if (style === 'camelcase') return '.Inf'
-    return '.inf'
-  }
-
-  if (object === Number.NEGATIVE_INFINITY) {
-    if (style === 'uppercase') return '-.INF'
-    if (style === 'camelcase') return '-.Inf'
-    return '-.inf'
-  }
-
+function representYamlFloat (object: number) {
+  if (isNaN(object)) return '.nan'
+  if (object === Number.POSITIVE_INFINITY) return '.inf'
+  if (object === Number.NEGATIVE_INFINITY) return '-.inf'
   if (Object.is(object, -0)) return '-0.0'
 
   const result = object.toString(10)
@@ -63,8 +48,7 @@ const floatTag = defineScalarTag('tag:yaml.org,2002:float', {
   resolve: resolveYamlFloat,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
     (object % 1 !== 0 || Object.is(object, -0)),
-  represent: representYamlFloat,
-  defaultStyle: 'lowercase'
+  represent: representYamlFloat
 })
 
 export { floatTag }

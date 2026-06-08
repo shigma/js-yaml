@@ -13,12 +13,7 @@ const boolTag = defineScalarTag('tag:yaml.org,2002:bool', {
     return NOT_RESOLVED
   },
   identify: (object) => Object.prototype.toString.call(object) === '[object Boolean]',
-  represent: {
-    lowercase: (object) => object ? 'true' : 'false',
-    uppercase: (object) => object ? 'TRUE' : 'FALSE',
-    camelcase: (object) => object ? 'True' : 'False'
-  },
-  defaultStyle: 'lowercase'
+  represent: (object) => object ? 'true' : 'false'
 })
 
 export { boolTag }

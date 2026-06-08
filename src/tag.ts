@@ -1,8 +1,8 @@
 const NOT_RESOLVED: unique symbol = Symbol('NOT_RESOLVED')
 const MERGE_KEY: unique symbol = Symbol('MERGE_KEY')
 
-type RepresentFn = (data: any, style?: string) => any
-type Represent = RepresentFn | Record<string, RepresentFn>
+type RepresentFn = (data: any) => any
+type Represent = RepresentFn
 
 interface ScalarTagDefinition<Result = unknown> {
   tagName: string
@@ -18,8 +18,6 @@ interface ScalarTagDefinition<Result = unknown> {
   identify: ((data: any) => boolean) | null
   represent: Represent | null
   representTagName: ((data: any) => string) | null
-  defaultStyle: string | null
-  styleAliases: Record<string, string>
 }
 
 interface SequenceTagDefinition<Container = unknown> {
@@ -33,8 +31,6 @@ interface SequenceTagDefinition<Container = unknown> {
   identify: ((data: any) => boolean) | null
   represent: Represent | null
   representTagName: ((data: any) => string) | null
-  defaultStyle: string | null
-  styleAliases: Record<string, string>
 }
 
 interface MappingTagDefinition<Container = unknown> {
@@ -57,8 +53,6 @@ interface MappingTagDefinition<Container = unknown> {
   identify: ((data: any) => boolean) | null
   represent: Represent | null
   representTagName: ((data: any) => string) | null
-  defaultStyle: string | null
-  styleAliases: Record<string, string>
 }
 
 type TagDefinition =
@@ -74,8 +68,6 @@ interface ScalarTagOptions<Result> {
   identify?: ScalarTagDefinition<Result>['identify']
   represent?: ScalarTagDefinition<Result>['represent']
   representTagName?: ScalarTagDefinition<Result>['representTagName']
-  defaultStyle?: ScalarTagDefinition<Result>['defaultStyle']
-  styleAliases?: Record<string, string[]>
 }
 
 interface SequenceTagOptions<Container> {
@@ -86,8 +78,6 @@ interface SequenceTagOptions<Container> {
   identify?: SequenceTagDefinition<Container>['identify']
   represent?: SequenceTagDefinition<Container>['represent']
   representTagName?: SequenceTagDefinition<Container>['representTagName']
-  defaultStyle?: SequenceTagDefinition<Container>['defaultStyle']
-  styleAliases?: Record<string, string[]>
 }
 
 interface MappingTagOptions<Container> {
@@ -101,20 +91,6 @@ interface MappingTagOptions<Container> {
   identify?: MappingTagDefinition<Container>['identify']
   represent?: MappingTagDefinition<Container>['represent']
   representTagName?: MappingTagDefinition<Container>['representTagName']
-  defaultStyle?: MappingTagDefinition<Container>['defaultStyle']
-  styleAliases?: Record<string, string[]>
-}
-
-function compileStyleAliases (styleAliases: Record<string, string[]> | undefined) {
-  const result: Record<string, string> = {}
-
-  if (styleAliases) {
-    for (const style of Object.keys(styleAliases)) {
-      for (const alias of styleAliases[style]) result[alias] = style
-    }
-  }
-
-  return result
 }
 
 function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Result>): ScalarTagDefinition<Result> {
@@ -127,9 +103,7 @@ function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Res
     resolve: options.resolve,
     identify: options.identify ?? null,
     represent: options.represent ?? null,
-    representTagName: options.representTagName ?? null,
-    defaultStyle: options.defaultStyle ?? null,
-    styleAliases: compileStyleAliases(options.styleAliases)
+    representTagName: options.representTagName ?? null
   }
 }
 
@@ -144,9 +118,7 @@ function defineSequenceTag<Container> (tagName: string, options: SequenceTagOpti
     finish: options.finish ?? null,
     identify: options.identify ?? null,
     represent: options.represent ?? null,
-    representTagName: options.representTagName ?? null,
-    defaultStyle: options.defaultStyle ?? null,
-    styleAliases: compileStyleAliases(options.styleAliases)
+    representTagName: options.representTagName ?? null
   }
 }
 
@@ -164,9 +136,7 @@ function defineMappingTag<Container> (tagName: string, options: MappingTagOption
     finish: options.finish ?? null,
     identify: options.identify ?? null,
     represent: options.represent ?? null,
-    representTagName: options.representTagName ?? null,
-    defaultStyle: options.defaultStyle ?? null,
-    styleAliases: compileStyleAliases(options.styleAliases)
+    representTagName: options.representTagName ?? null
   }
 }
 

@@ -101,19 +101,7 @@ const intTag = defineScalarTag('tag:yaml.org,2002:int', {
   resolve: resolveYamlInteger,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
     (object % 1 === 0 && !Object.is(object, -0)),
-  represent: {
-    binary: (object: number) => object >= 0 ? `0b${object.toString(2)}` : `-0b${object.toString(2).slice(1)}`,
-    octal: (object: number) => object >= 0 ? `0o${object.toString(8)}` : `-0o${object.toString(8).slice(1)}`,
-    decimal: (object: number) => object.toString(10),
-    hexadecimal: (object: number) => object >= 0 ? `0x${object.toString(16).toUpperCase()}` : `-0x${object.toString(16).toUpperCase().slice(1)}`
-  },
-  defaultStyle: 'decimal',
-  styleAliases: {
-    binary: ['bin'],
-    octal: ['oct'],
-    decimal: ['dec'],
-    hexadecimal: ['hex']
-  }
+  represent: (object: number) => object.toString(10)
 })
 
 export { intTag }

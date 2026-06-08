@@ -29,12 +29,6 @@ describe('Should load numbers in YAML 1.2 format', () => {
 })
 
 describe('Should dump numbers in YAML 1.2 format', () => {
-  it('should dump in different styles', () => {
-    assert.strictEqual(dump(123, { styles: { '!!int': 'binary' } }), '0b1111011\n')
-    assert.strictEqual(dump(123, { styles: { '!!int': 'octal' } }), '0o173\n')
-    assert.strictEqual(dump(123, { styles: { '!!int': 'hex' } }), '0x7B\n')
-  })
-
   it('should quote all potential numbers', () => {
     const tests = '1:23 1:23.45 01234 0999 -01234 01234e4 01234.56 -01234.56 0x123 0o123'
 

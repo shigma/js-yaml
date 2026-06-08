@@ -70,13 +70,6 @@ describe('Undefined', () => {
     )
   })
 
-  it('Should respect null formatting', () => {
-    assert.strictEqual(
-      dump([undefined], { styles: { '!!null': 'uppercase' } }),
-      '- NULL\n'
-    )
-  })
-
   it('Should return an error if neither null nor undefined schemas are available', () => {
     assert.throws(() => {
       dump(['foo', undefined, 'bar'], { schema: FAILSAFE_SCHEMA })

@@ -8,7 +8,6 @@ interface DumpOptions {
   noArrayIndent?: boolean
   skipInvalid?: boolean
   flowLevel?: number
-  styles?: { [tag: string]: string } | null
   sortKeys?: boolean | ((a: any, b: any) => number)
   lineWidth?: number
   noRefs?: boolean
@@ -24,7 +23,6 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   noArrayIndent: false,
   skipInvalid: false,
   flowLevel: -1,
-  styles: null,
   sortKeys: false,
   lineWidth: 80,
   noRefs: false,
@@ -40,7 +38,6 @@ function dump (input: any, options: DumpOptions = {}) {
   const opts = { ...DEFAULT_DUMP_OPTIONS, ...options }
 
   const ast = jsToAst(input, opts.schema, {
-    styles: opts.styles,
     noRefs: opts.noRefs,
     skipInvalid: opts.skipInvalid
   })

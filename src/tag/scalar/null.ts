@@ -16,14 +16,7 @@ const nullTag = defineScalarTag('tag:yaml.org,2002:null', {
     return NOT_RESOLVED
   },
   identify: (object) => object === null,
-  represent: {
-    canonical: () => '~',
-    lowercase: () => 'null',
-    uppercase: () => 'NULL',
-    camelcase: () => 'Null',
-    empty: () => ''
-  },
-  defaultStyle: 'lowercase'
+  represent: () => 'null'
 })
 
 export { nullTag }

@@ -24,8 +24,6 @@ interface ScalarNode extends NodeBase {
   value: string
   // When unset, `present` picks the style from content/width.
   style?: ScalarStyle
-  // Tag-specific variant (int radix, bool casing) — already baked into `value`.
-  format?: string
 }
 
 interface SequenceNode extends NodeBase {

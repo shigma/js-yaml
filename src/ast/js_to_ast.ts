@@ -13,10 +13,7 @@ import {
   type MappingNode
 } from './nodes.ts'
 
-const _hasOwnProperty = Object.prototype.hasOwnProperty
-
 interface JsToAstOptions {
-  styles?: { [tag: string]: string } | null
   noRefs?: boolean
   skipInvalid?: boolean
 }
@@ -33,38 +30,12 @@ const INVALID = Symbol('INVALID')
 
 interface BuildState {
   representTypes: RepresentType[]
-  styleMap: Record<string, string>
   noRefs: boolean
   skipInvalid: boolean
 
   // Already-built collection values → their node, for anchor/alias dedup.
   refs: Map<unknown, Node>
   refCounter: number
-}
-
-function compileStyleMap (schema: Schema, map: { [tag: string]: string } | null | undefined): Record<string, string> {
-  if (!map) return {}
-
-  const result: Record<string, string> = {}
-  const keys = Object.keys(map)
-
-  for (let index = 0, length = keys.length; index < length; index += 1) {
-    let tag = keys[index]
-    let style = map[tag]
-
-    if (tag.slice(0, 2) === '!!') {
-      tag = `tag:yaml.org,2002:${tag.slice(2)}`
-    }
-    const tagDefinition = schema.exact.scalar[tag] ?? schema.exact.sequence[tag] ?? schema.exact.mapping[tag]
-
-    if (tagDefinition && _hasOwnProperty.call(tagDefinition.styleAliases, style)) {
-      style = tagDefinition.styleAliases[style]
-    }
-
-    result[tag] = style
-  }
-
-  return result
 }
 
 function buildRepresentTypes (schema: Schema): RepresentType[] {
@@ -109,25 +80,11 @@ function matchTag (state: BuildState, object: unknown): { tag: TagDefinition, ta
   return null
 }
 
-// Run a tag's `represent` under the per-tag style. Returns the output (scalar
-// text, or the array/`Map` container) and the style key used (`format`).
-function applyRepresent (state: BuildState, tag: TagDefinition, object: unknown) {
-  const represent = tag.represent
-  // No represent: the value is already its canonical form (default str/seq/map).
-  if (!represent) return { value: object, format: null }
-
-  const style = state.styleMap[tag.tagName] || tag.defaultStyle
-
-  let value
-  if (typeof represent === 'function') {
-    value = style ? represent(object, style) : represent(object)
-  } else if (style && _hasOwnProperty.call(represent, style)) {
-    value = represent[style](object, style)
-  } else {
-    throw new YAMLException(`!<${tag.tagName}> tag resolver does not accept "${style}" style`)
-  }
-
-  return { value, format: style }
+// Run a tag's `represent`. Returns the canonical output: scalar text, or the
+// array/`Map` container. No represent means the value is already canonical
+// (default str/seq/map).
+function applyRepresent (tag: TagDefinition, object: unknown) {
+  return tag.represent ? tag.represent(object) : object
 }
 
 // Build a node for `object`, or INVALID when no tag matches. `undefined` never
@@ -153,13 +110,12 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
   const { tag, tagName, implicitTag } = matched
 
   if (tag.nodeKind === 'scalar') {
-    const { value, format } = applyRepresent(state, tag, object)
+    const value = applyRepresent(tag, object)
     const node: ScalarNode = {
       kind: 'scalar',
       tag: tagName,
       value: typeof value === 'string' ? value : String(value)
     }
-    if (format !== null) node.format = format
     // Implicit scalars with a `represent` already hold their final text — force
     // plain so `present` prints it verbatim instead of restyling. str and
     // explicit-tagged scalars leave `style` unset for `present` to choose.
@@ -168,7 +124,7 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
   }
 
   if (tag.nodeKind === 'sequence') {
-    const container = applyRepresent(state, tag, object).value
+    const container = applyRepresent(tag, object)
     const node: SequenceNode = { kind: 'sequence', tag: tagName, items: [] }
     if (!state.noRefs) state.refs.set(object, node)
 
@@ -183,7 +139,7 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
   }
 
   // mapping — the canonical form is always a `Map`.
-  const map: Map<unknown, unknown> = applyRepresent(state, tag, object).value
+  const map: Map<unknown, unknown> = applyRepresent(tag, object)
   const node: MappingNode = { kind: 'mapping', tag: tagName, items: [] }
   if (!state.noRefs) state.refs.set(object, node)
 
@@ -201,7 +157,6 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
 function jsToAst (input: unknown, schema: Schema, options: JsToAstOptions = {}): Node | null {
   const state: BuildState = {
     representTypes: buildRepresentTypes(schema),
-    styleMap: compileStyleMap(schema, options.styles),
     noRefs: options.noRefs ?? false,
     skipInvalid: options.skipInvalid ?? false,
     refs: new Map(),

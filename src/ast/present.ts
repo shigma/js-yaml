@@ -613,7 +613,8 @@ function writeBlockSequence (state: PresentState, level: number, node: SequenceN
       _result += generateNextLine(state, level)
     }
 
-    if (item && CHAR_LINE_FEED === item.charCodeAt(0)) {
+    // No trailing space when the value renders empty (e.g. null → '').
+    if (item === '' || CHAR_LINE_FEED === item.charCodeAt(0)) {
       _result += '-'
     } else {
       _result += '- '
@@ -639,9 +640,11 @@ function writeFlowMapping (state: PresentState, level: number, node: MappingNode
 
     if (keyText.length > 1024) pairBuffer += '? '
 
-    pairBuffer += `${keyText}${state.condenseFlow ? '"' : ''}:${state.condenseFlow ? '' : ' '}`
+    const valueText = writeNode(state, level, value, false, false, false, false)
+    // No separating space when the value renders empty (e.g. null → '').
+    const sep = state.condenseFlow || valueText === '' ? '' : ' '
 
-    pairBuffer += writeNode(state, level, value, false, false, false, false)
+    pairBuffer += `${keyText}${state.condenseFlow ? '"' : ''}:${sep}${valueText}`
 
     _result += pairBuffer
   }
@@ -713,7 +716,8 @@ function writeBlockMapping (state: PresentState, level: number, node: MappingNod
 
     const valueText = writeNode(state, level + 1, value, true, explicitPair, false, false)
 
-    if (valueText && CHAR_LINE_FEED === valueText.charCodeAt(0)) {
+    // No trailing space when the value renders empty (e.g. null → '').
+    if (valueText === '' || CHAR_LINE_FEED === valueText.charCodeAt(0)) {
       pairBuffer += ':'
     } else {
       pairBuffer += ': '

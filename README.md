@@ -130,7 +130,6 @@ options:
   in the safe schema) and skip pairs and single values with such types.
 - `flowLevel` _(default: -1)_ - specifies level of nesting, when to switch from
   block to flow style for collections. -1 means block style everwhere
-- `styles` - "tag" => "style" map. Each tag may have own set of styles.
 - `schema` _(default: `DEFAULT_SCHEMA`)_ specifies a schema to use.
 - `sortKeys` _(default: `false`)_ - if `true`, sort keys when dumping YAML. If a
   function, use the function to sort the keys.
@@ -142,45 +141,9 @@ options:
 - `quotingType` _(`'` or `"`, default: `'`)_ - strings will be quoted using this quoting style. If you specify single quotes, double quotes will still be used for non-printable characters.
 - `forceQuotes` _(default: `false`)_ - if `true`, all non-key strings will be quoted even if they normally don't need to.
 
-The following table show availlable styles (e.g. "canonical",
-"binary"...) available for each tag (.e.g. !!null, !!int ...). Yaml
-output is shown on the right side after `=>` (default setting) or `->`:
-
-``` none
-!!null
-  "canonical"   -> "~"
-  "lowercase"   => "null"
-  "uppercase"   -> "NULL"
-  "camelcase"   -> "Null"
-  "empty"       -> ""
-
-!!int
-  "binary"      -> "0b1", "0b101010", "0b1110001111010"
-  "octal"       -> "0o1", "0o52", "0o16172"
-  "decimal"     => "1", "42", "7290"
-  "hexadecimal" -> "0x1", "0x2A", "0x1C7A"
-
-!!bool
-  "lowercase"   => "true", "false"
-  "uppercase"   -> "TRUE", "FALSE"
-  "camelcase"   -> "True", "False"
-
-!!float
-  "lowercase"   => ".nan", '.inf'
-  "uppercase"   -> ".NAN", '.INF'
-  "camelcase"   -> ".NaN", '.Inf'
-```
-
-Example:
-
-``` javascript
-dump(object, {
-  'styles': {
-    '!!null': 'canonical' // dump null as ~
-  },
-  'sortKeys': true        // sort object keys
-});
-```
+To customize how a type is rendered (e.g. dump null as `~`, or integers as
+hex), clone the built-in tag and override its `represent`, then plug it in via
+`schema.withTags(...)`. See [examples/format_represent.mjs](examples/format_represent.mjs).
 
 Supported YAML types
 --------------------
