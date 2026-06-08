@@ -7,6 +7,7 @@ import { NOT_RESOLVED, type ScalarTagDefinition } from '../tag.ts'
 import {
   IMPLICIT,
   type Node,
+  type Document,
   type ScalarNode,
   type SequenceNode,
   type MappingNode,
@@ -815,10 +816,34 @@ function writeNode (state: PresentState, level: number, node: Node, block: boole
   return body
 }
 
-// AST → text (no trailing newline).
-function present (node: Node, options: PresentOptions): string {
+// Stream (Document[]) → text, including the trailing newline.
+//
+// A `---` is printed when the document isn't the first, or it asks for one
+// explicitly, or it carries directives. Markers sit on their own lines.
+// A single document with empty fields (the only case the dumper builds today)
+// emits no markers — byte-for-byte the v4 output.
+function present (stream: Document[], options: PresentOptions): string {
   const state = createPresentState(options)
-  return writeNode(state, 0, node, true, true, false, false)
+  let result = ''
+
+  for (let index = 0; index < stream.length; index += 1) {
+    const doc = stream[index]
+    const hasDirectives = doc.directives !== undefined
+
+    if (index > 0 || doc.explicitStart || hasDirectives) {
+      result += '---\n'
+    }
+
+    if (doc.contents !== null) {
+      result += writeNode(state, 0, doc.contents, true, true, false, false) + '\n'
+    }
+
+    if (doc.explicitEnd) {
+      result += '...\n'
+    }
+  }
+
+  return result
 }
 
 export {

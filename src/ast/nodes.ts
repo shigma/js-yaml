@@ -46,6 +46,19 @@ interface AliasNode extends NodeBase {
 
 type Node = ScalarNode | SequenceNode | MappingNode | AliasNode
 
+// The layer above `Node`: a stream is a list of documents, each wrapping one
+// content node plus its own markers/directives. Not a member of `Node` — the
+// fields differ. `explicitStart`/`explicitEnd`/`directives` are data slots,
+// unset by the dumper today (a stub, not a feature); `directives` isn't emitted.
+interface Document {
+  contents: Node | null            // null = empty document
+  explicitStart?: boolean          // print '---'
+  explicitEnd?: boolean            // print '...'
+  directives?: { yaml?: string, tags?: Record<string, string> }
+}
+
+type Stream = Document[]
+
 function isScalar (node: Node): node is ScalarNode {
   return node.kind === 'scalar'
 }
@@ -70,6 +83,8 @@ export {
   isAlias,
 
   type Node,
+  type Document,
+  type Stream,
   type NodeBase,
   type ScalarNode,
   type SequenceNode,

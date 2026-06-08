@@ -37,14 +37,15 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
 function dump (input: any, options: DumpOptions = {}) {
   const opts = { ...DEFAULT_DUMP_OPTIONS, ...options }
 
-  const ast = jsToAst(input, opts.schema, {
+  const contents = jsToAst(input, opts.schema, {
     noRefs: opts.noRefs,
     skipInvalid: opts.skipInvalid
   })
 
-  if (ast === null) return ''
-
-  return present(ast, {
+  // Wrap the content node into a single-document stream. With empty document
+  // fields this prints no markers — byte-for-byte the v4 output (and '' when
+  // the root didn't resolve, since an empty document renders nothing).
+  return present([{ contents }], {
     schema: opts.schema,
     indent: opts.indent,
     noArrayIndent: opts.noArrayIndent,
@@ -55,7 +56,7 @@ function dump (input: any, options: DumpOptions = {}) {
     condenseFlow: opts.condenseFlow,
     quotingType: opts.quotingType,
     forceQuotes: opts.forceQuotes
-  }) + '\n'
+  })
 }
 
 export {
