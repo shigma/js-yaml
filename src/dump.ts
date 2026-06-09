@@ -11,7 +11,6 @@ interface DumpOptions {
   sortKeys?: boolean | ((a: any, b: any) => number)
   lineWidth?: number
   noRefs?: boolean
-  noCompatMode?: boolean
   condenseFlow?: boolean
   quotingType?: "'" | '"'
   forceQuotes?: boolean
@@ -26,7 +25,6 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   sortKeys: false,
   lineWidth: 80,
   noRefs: false,
-  noCompatMode: false,
   condenseFlow: false,
   quotingType: "'",
   forceQuotes: false
@@ -52,7 +50,6 @@ function dump (input: any, options: DumpOptions = {}) {
     flowLevel: opts.flowLevel,
     sortKeys: opts.sortKeys,
     lineWidth: opts.lineWidth,
-    noCompatMode: opts.noCompatMode,
     condenseFlow: opts.condenseFlow,
     quotingType: opts.quotingType,
     forceQuotes: opts.forceQuotes

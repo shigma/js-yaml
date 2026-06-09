@@ -17,7 +17,6 @@ const dumpOptionsArbitrary = fc.record({
   skipInvalid: fc.boolean(),
   sortKeys: fc.boolean(),
   noRefs: fc.boolean(),
-  noCompatMode: fc.boolean(),
   condenseFlow: fc.boolean(),
   indent: fc.integer({ min: 1, max: 80 }),
   flowLevel: fc.integer({ min: -1, max: 10 }),

@@ -60,13 +60,6 @@ ESCAPE_SEQUENCES[0xA0] = '\\_'
 ESCAPE_SEQUENCES[0x2028] = '\\L'
 ESCAPE_SEQUENCES[0x2029] = '\\P'
 
-const DEPRECATED_BOOLEANS_SYNTAX = [
-  'y', 'Y', 'yes', 'Yes', 'YES', 'on', 'On', 'ON',
-  'n', 'N', 'no', 'No', 'NO', 'off', 'Off', 'OFF'
-]
-
-const DEPRECATED_BASE60_SYNTAX = /^[-+]?[0-9_]+(?::[0-9_]+)+(?:\.[0-9_]*)?$/
-
 const QUOTING_TYPE_SINGLE = "'"
 const QUOTING_TYPE_DOUBLE = '"'
 
@@ -77,7 +70,6 @@ interface PresentOptions {
   flowLevel?: number
   sortKeys?: boolean | ((a: any, b: any) => number)
   lineWidth?: number
-  noCompatMode?: boolean
   condenseFlow?: boolean
   quotingType?: "'" | '"'
   forceQuotes?: boolean
@@ -89,7 +81,6 @@ interface PresentState {
   flowLevel: number
   sortKeys: boolean | ((a: any, b: any) => number)
   lineWidth: number
-  noCompatMode: boolean
   condenseFlow: boolean
   quotingType: "'" | '"'
   forceQuotes: boolean
@@ -104,7 +95,6 @@ function createPresentState (options: PresentOptions): PresentState {
     flowLevel: options.flowLevel ?? -1,
     sortKeys: options.sortKeys ?? false,
     lineWidth: options.lineWidth ?? 80,
-    noCompatMode: options.noCompatMode ?? false,
     condenseFlow: options.condenseFlow ?? false,
     quotingType: options.quotingType ?? "'",
     forceQuotes: options.forceQuotes ?? false,
@@ -435,11 +425,6 @@ const SCALAR_STYLE_TO_NUM: Record<ScalarStyle, number> = {
 function writeScalar (state: PresentState, string: string, level: number, iskey: boolean, inblock: boolean) {
   if (string.length === 0) {
     return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''"
-  }
-  if (!state.noCompatMode) {
-    if (DEPRECATED_BOOLEANS_SYNTAX.indexOf(string) !== -1 || DEPRECATED_BASE60_SYNTAX.test(string)) {
-      return state.quotingType === QUOTING_TYPE_DOUBLE ? `"${string}"` : `'${string}'`
-    }
   }
 
   const indent = state.indent * Math.max(1, level)

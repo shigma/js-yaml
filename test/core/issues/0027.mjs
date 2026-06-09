@@ -33,24 +33,25 @@ describe('Should load numbers in YAML 1.2 format', () => {
 })
 
 describe('Should dump numbers in YAML 1.2 format', () => {
-  it('should quote all potential numbers', () => {
-    const tests = '1:23 1:23.45 01234 0999 -01234 01234.56 -01234.56 0x123 0o123'
+  it('should quote strings resolved as numbers by the selected schema', () => {
+    const tests = '01234 0999 -01234 01234.56 -01234.56 0x123 0o123'
 
     tests.split(' ').forEach((sample) => {
-      assert.strictEqual(dump(sample, { noCompatMode: false, schema: CORE_SCHEMA }), `'${sample}'\n`)
+      assert.strictEqual(dump(sample, { schema: CORE_SCHEMA }), `'${sample}'\n`)
     })
 
-    assert.strictEqual(dump('01234e4', { noCompatMode: false, schema: CORE_SCHEMA }), "'01234e4'\n")
+    assert.strictEqual(dump('01234e4', { schema: CORE_SCHEMA }), "'01234e4'\n")
   })
 
-  it('should only quote base60 floats in noCompatMode when the schema resolves them', () => {
+  it('should only quote base60 values when the schema resolves them', () => {
     const tests = '1:23'
 
     tests.split(' ').forEach((sample) => {
-      assert.strictEqual(dump(sample, { noCompatMode: true, schema: CORE_SCHEMA }), `${sample}\n`)
+      assert.strictEqual(dump(sample, { schema: CORE_SCHEMA }), `${sample}\n`)
+      assert.strictEqual(dump(sample, { schema: YAML11_SCHEMA }), `'${sample}'\n`)
     })
 
-    assert.strictEqual(dump('1:23.45', { noCompatMode: true, schema: CORE_SCHEMA }), '1:23.45\n')
-    assert.strictEqual(dump('1:23.45', { noCompatMode: true, schema: YAML11_SCHEMA }), "'1:23.45'\n")
+    assert.strictEqual(dump('1:23.45', { schema: CORE_SCHEMA }), '1:23.45\n')
+    assert.strictEqual(dump('1:23.45', { schema: YAML11_SCHEMA }), "'1:23.45'\n")
   })
 })

@@ -135,8 +135,6 @@ options:
   function, use the function to sort the keys.
 - `lineWidth` _(default: `80`)_ - set max line width. Set `-1` for unlimited width.
 - `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into references
-- `noCompatMode` _(default: `false`)_ - if `true` don't try to be compatible with older
-  yaml versions. Currently: don't quote "yes", "no" and so on, as required for YAML 1.1
 - `condenseFlow` _(default: `false`)_ - if `true` flow sequences will be condensed, omitting the space between `a, b`. Eg. `'[a,b]'`, and omitting the space between `key: value` and quoting the key. Eg. `'{"a":b}'` Can be useful when using yaml for pretty URL query params as spaces are %-encoded.
 - `quotingType` _(`'` or `"`, default: `'`)_ - strings will be quoted using this quoting style. If you specify single quotes, double quotes will still be used for non-printable characters.
 - `forceQuotes` _(default: `false`)_ - if `true`, all non-key strings will be quoted even if they normally don't need to.
