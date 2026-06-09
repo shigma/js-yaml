@@ -141,7 +141,7 @@ options:
 
 To customize how a type is rendered (e.g. dump null as `~`, or integers as
 hex), clone the built-in tag and override its `represent`, then plug it in via
-`schema.withTags(...)`. See [examples/format_represent.mjs](examples/format_represent.mjs).
+`schema.withTags(...)`. See [examples/format_scalars.mjs](examples/format_scalars.mjs).
 
 Supported YAML types
 --------------------
