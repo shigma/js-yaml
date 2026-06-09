@@ -33,6 +33,14 @@ describe('Should load numbers in YAML 1.2 format', () => {
 })
 
 describe('Should dump numbers in YAML 1.2 format', () => {
+  it('should quote values resolved by YAML 1.1 or YAML 1.2 in the default schema', () => {
+    const tests = '1:23 1:23.45 01234 0x123 0o123 1e2 1e+2 1.0e2'
+
+    tests.split(' ').forEach((sample) => {
+      assert.strictEqual(dump(sample), `'${sample}'\n`)
+    })
+  })
+
   it('should quote strings resolved as numbers by the selected schema', () => {
     const tests = '01234 0999 -01234 01234.56 -01234.56 0x123 0o123'
 
@@ -53,5 +61,7 @@ describe('Should dump numbers in YAML 1.2 format', () => {
 
     assert.strictEqual(dump('1:23.45', { schema: CORE_SCHEMA }), '1:23.45\n')
     assert.strictEqual(dump('1:23.45', { schema: YAML11_SCHEMA }), "'1:23.45'\n")
+    assert.strictEqual(dump('0o123', { schema: YAML11_SCHEMA }), '0o123\n')
+    assert.strictEqual(dump('1e2', { schema: YAML11_SCHEMA }), '1e2\n')
   })
 })
