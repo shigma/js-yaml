@@ -1,14 +1,15 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
+const TRUE_VALUES = ['true']
+const FALSE_VALUES = ['false']
+
 const boolJsonTag = defineScalarTag('tag:yaml.org,2002:bool', {
   implicit: true,
-  // Superset of source.charAt(0) over all matched inputs: true/True/TRUE, false/False/FALSE.
-  implicitFirstChars: ['t', 'T', 'f', 'F'],
+  // Superset of source.charAt(0) over all matched inputs: true, false.
+  implicitFirstChars: ['t', 'f'],
   resolve: (source) => {
-    const length = source.length
-
-    if (length === 4 && (source === 'true' || source === 'True' || source === 'TRUE')) return true
-    if (length === 5 && (source === 'false' || source === 'False' || source === 'FALSE')) return false
+    if (TRUE_VALUES.indexOf(source) !== -1) return true
+    if (FALSE_VALUES.indexOf(source) !== -1) return false
 
     return NOT_RESOLVED
   },

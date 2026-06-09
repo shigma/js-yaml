@@ -1,7 +1,7 @@
 import { it } from 'node:test'
 
 import assert from 'node:assert'
-import { load } from 'js-yaml'
+import { CORE_SCHEMA, load } from 'js-yaml'
 
 it('Should not resolve out-of-range floats as Infinity implicitly', () => {
   assert.deepStrictEqual(load('gitsha: 61e9540'), { gitsha: '61e9540' })
@@ -29,19 +29,19 @@ it('Should reject out-of-range floats with explicit float tag', () => {
 })
 
 it('Should not resolve out-of-range integers as Infinity implicitly', () => {
-  assert.deepStrictEqual(load('too_big_decimal: 1' + '0'.repeat(400)), {
+  assert.deepStrictEqual(load('too_big_decimal: 1' + '0'.repeat(400), { schema: CORE_SCHEMA }), {
     too_big_decimal: '1' + '0'.repeat(400)
   })
 
-  assert.deepStrictEqual(load('too_big_binary: 0b' + '1'.repeat(2000)), {
+  assert.deepStrictEqual(load('too_big_binary: 0b' + '1'.repeat(2000), { schema: CORE_SCHEMA }), {
     too_big_binary: '0b' + '1'.repeat(2000)
   })
 
-  assert.deepStrictEqual(load('too_big_hex: 0x' + 'f'.repeat(400)), {
+  assert.deepStrictEqual(load('too_big_hex: 0x' + 'f'.repeat(400), { schema: CORE_SCHEMA }), {
     too_big_hex: '0x' + 'f'.repeat(400)
   })
 
-  assert.deepStrictEqual(load('finite: 0xFF'), { finite: 255 })
+  assert.deepStrictEqual(load('finite: 0xFF', { schema: CORE_SCHEMA }), { finite: 255 })
 })
 
 it('Should reject out-of-range integers with explicit int tag', () => {
