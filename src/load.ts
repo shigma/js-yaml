@@ -2,7 +2,7 @@ import YAMLException from './exception.ts'
 import {
   constructEvents,
   createConstructorState
-} from './construct.ts'
+} from './constructor.ts'
 import {
   createParserState,
   parseEvents

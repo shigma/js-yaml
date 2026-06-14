@@ -10,7 +10,6 @@ describe('ast represent', () => {
     // null → '' in a mapping / sequence: `a:` / `- a:`, never `a: ` / `- a: `.
     assert.equal(dump({ a: null }, { schema }), 'a:\n')
     assert.equal(dump([{ a: null }], { schema }), '- a:\n')
-    assert.equal(dump({ a: null }, { schema, flowLevel: 0 }), '{a:}\n')
 
     // A real empty string stays quoted, distinct from null/empty.
     assert.equal(dump({ a: '' }, { schema }), "a: ''\n")

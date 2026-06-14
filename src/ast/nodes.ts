@@ -1,15 +1,20 @@
 // Plain-object discriminated union shared by the dumper (built by `jsToAst`,
-// rendered by `present`) and, later, by load. Behaviour lives in the walkers,
+// rendered by the presenter) and, later, by load. Behaviour lives in the walkers,
 // not on the nodes.
 
-// Stored in `tag` when the tag is implicit (not printed).
-const IMPLICIT = '?'
-
-type ScalarStyle = 'plain' | 'single' | 'double' | 'literal' | 'folded'
-type CollectionStyle = 'block' | 'flow'
+class Style {
+  tagged = false
+  flow = false
+  singleQuoted = false
+  doubleQuoted = false
+  literal = false
+  folded = false
+}
 
 interface NodeBase {
+  // Semantic YAML tag. Whether to print it explicitly lives in `style.tagged`.
   tag: string
+  style: Style
   anchor?: string
 
   // Reserved for the formatting layer; not populated by the dumper yet.
@@ -22,20 +27,16 @@ interface NodeBase {
 interface ScalarNode extends NodeBase {
   kind: 'scalar'
   value: string
-  // When unset, `present` picks the style from content/width.
-  style?: ScalarStyle
 }
 
 interface SequenceNode extends NodeBase {
   kind: 'sequence'
   items: Node[]
-  style?: CollectionStyle
 }
 
 interface MappingNode extends NodeBase {
   kind: 'mapping'
   items: Array<{ key: Node, value: Node }>
-  style?: CollectionStyle
 }
 
 interface AliasNode extends NodeBase {
@@ -48,13 +49,14 @@ type Node = ScalarNode | SequenceNode | MappingNode | AliasNode
 
 // The layer above `Node`: a stream is a list of documents, each wrapping one
 // content node plus its own markers/directives. Not a member of `Node` — the
-// fields differ. `explicitStart`/`explicitEnd`/`directives` are data slots,
-// unset by the dumper today (a stub, not a feature); `directives` isn't emitted.
+// fields differ. Document directives are data slots; `%TAG` emission is not
+// implemented by the dumper yet.
 interface Document {
   contents: Node | null            // null = empty document
   explicitStart?: boolean          // print '---'
   explicitEnd?: boolean            // print '...'
-  directives?: { yaml?: string, tags?: Record<string, string> }
+  version?: string | null
+  tagHandles?: Array<{ handle: string, prefix: string }>
 }
 
 type Stream = Document[]
@@ -76,7 +78,7 @@ function isAlias (node: Node): node is AliasNode {
 }
 
 export {
-  IMPLICIT,
+  Style,
   isScalar,
   isSequence,
   isMapping,
@@ -89,7 +91,5 @@ export {
   type ScalarNode,
   type SequenceNode,
   type MappingNode,
-  type AliasNode,
-  type ScalarStyle,
-  type CollectionStyle
+  type AliasNode
 }

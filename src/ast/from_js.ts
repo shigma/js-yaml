@@ -6,14 +6,14 @@ import YAMLException from '../exception.ts'
 import { type Schema } from '../schema.ts'
 import { type TagDefinition } from '../tag.ts'
 import {
-  IMPLICIT,
+  Style,
   type Node,
   type ScalarNode,
   type SequenceNode,
   type MappingNode
 } from './nodes.ts'
 
-interface JsToAstOptions {
+interface FromJsOptions {
   noRefs?: boolean
   skipInvalid?: boolean
 }
@@ -28,7 +28,7 @@ interface RepresentType {
 // Returned by `build` when no tag matched.
 const INVALID = Symbol('INVALID')
 
-interface BuildState {
+interface FromJsState {
   representTypes: RepresentType[]
   noRefs: boolean
   skipInvalid: boolean
@@ -60,15 +60,13 @@ function buildRepresentTypes (schema: Schema): RepresentType[] {
 }
 
 // First tag whose `identify` accepts `object`.
-function matchTag (state: BuildState, object: unknown): { tag: TagDefinition, tagName: string, implicitTag: boolean } | null {
+function matchTag (state: FromJsState, object: unknown): { tag: TagDefinition, tagName: string, implicitTag: boolean } | null {
   for (let index = 0, length = state.representTypes.length; index < length; index += 1) {
     const { tag, implicitTag } = state.representTypes[index]
 
     if (tag.identify && tag.identify(object)) {
       let tagName: string
-      if (implicitTag) {
-        tagName = IMPLICIT
-      } else if (tag.matchByTagPrefix && tag.representTagName) {
+      if (tag.matchByTagPrefix && tag.representTagName) {
         tagName = tag.representTagName(object)
       } else {
         tagName = tag.tagName
@@ -90,12 +88,12 @@ function applyRepresent (tag: TagDefinition, object: unknown) {
 // Build a node for `object`, or INVALID when no tag matches. `undefined` never
 // throws (caller decides: null in a sequence, skip in a mapping, '' at root);
 // any other unrepresentable value throws unless `skipInvalid`.
-function build (state: BuildState, object: unknown): Node | typeof INVALID {
+function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   if (!state.noRefs && object !== null && typeof object === 'object') {
     const existing = state.refs.get(object)
     if (existing) {
       if (existing.anchor === undefined) existing.anchor = `ref_${state.refCounter++}`
-      return { kind: 'alias', tag: '', anchor: existing.anchor }
+      return { kind: 'alias', tag: '', style: new Style(), anchor: existing.anchor }
     }
   }
 
@@ -111,21 +109,22 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
 
   if (tag.nodeKind === 'scalar') {
     const value = applyRepresent(tag, object)
+    const style = new Style()
+    style.tagged = !implicitTag
     const node: ScalarNode = {
       kind: 'scalar',
       tag: tagName,
+      style,
       value: typeof value === 'string' ? value : String(value)
     }
-    // Implicit scalars with a `represent` already hold their final text — force
-    // plain so `present` prints it verbatim instead of restyling. str and
-    // explicit-tagged scalars leave `style` unset for `present` to choose.
-    if (implicitTag && tag.represent) node.style = 'plain'
     return node
   }
 
   if (tag.nodeKind === 'sequence') {
     const container = applyRepresent(tag, object)
-    const node: SequenceNode = { kind: 'sequence', tag: tagName, items: [] }
+    const style = new Style()
+    style.tagged = !implicitTag
+    const node: SequenceNode = { kind: 'sequence', tag: tagName, style, items: [] }
     if (!state.noRefs) state.refs.set(object, node)
 
     for (let index = 0, length = container.length; index < length; index += 1) {
@@ -140,7 +139,9 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
 
   // mapping — the canonical form is always a `Map`.
   const map: Map<unknown, unknown> = applyRepresent(tag, object)
-  const node: MappingNode = { kind: 'mapping', tag: tagName, items: [] }
+  const style = new Style()
+  style.tagged = !implicitTag
+  const node: MappingNode = { kind: 'mapping', tag: tagName, style, items: [] }
   if (!state.noRefs) state.refs.set(object, node)
 
   for (const [objectKey, objectValue] of map) {
@@ -154,8 +155,8 @@ function build (state: BuildState, object: unknown): Node | typeof INVALID {
 }
 
 // Returns null when the input itself can't be represented (caller emits '').
-function jsToAst (input: unknown, schema: Schema, options: JsToAstOptions = {}): Node | null {
-  const state: BuildState = {
+function jsToAst (input: unknown, schema: Schema, options: FromJsOptions = {}): Node | null {
+  const state: FromJsState = {
     representTypes: buildRepresentTypes(schema),
     noRefs: options.noRefs ?? false,
     skipInvalid: options.skipInvalid ?? false,
@@ -169,5 +170,5 @@ function jsToAst (input: unknown, schema: Schema, options: JsToAstOptions = {}):
 
 export {
   jsToAst,
-  type JsToAstOptions
+  type FromJsOptions
 }

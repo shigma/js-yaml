@@ -70,21 +70,21 @@ interface Anchor {
   tag: AnyTag
 }
 
-interface ConstructOptions {
+interface ConstructorOptions {
   filename?: string
   schema?: Schema
   json?: boolean
   maxMergeSeqLength?: number
 }
 
-const DEFAULT_CONSTRUCT_OPTIONS: Required<ConstructOptions> = {
+const DEFAULT_CONSTRUCTOR_OPTIONS: Required<ConstructorOptions> = {
   filename: '',
   schema: CORE_SCHEMA,
   json: false,
   maxMergeSeqLength: 20
 }
 
-interface ConstructorState extends Required<ConstructOptions> {
+interface ConstructorState extends Required<ConstructorOptions> {
   parserState: ParserState
   documents: unknown[]
   eventIndex: number
@@ -94,9 +94,9 @@ interface ConstructorState extends Required<ConstructOptions> {
   tagDirectives: Record<string, string>
 }
 
-function createConstructorState (parserState: ParserState, options: ConstructOptions = {}): ConstructorState {
+function createConstructorState (parserState: ParserState, options: ConstructorOptions = {}): ConstructorState {
   return {
-    ...DEFAULT_CONSTRUCT_OPTIONS,
+    ...DEFAULT_CONSTRUCTOR_OPTIONS,
     ...options,
     parserState,
     documents: [],
@@ -456,7 +456,7 @@ function constructEvents (state: ConstructorState) {
   if (state.frames.length !== 0) throwError(state, 'unexpected end of event stream')
 }
 
-function constructDocuments (parserState: ParserState, options: ConstructOptions = {}) {
+function constructDocuments (parserState: ParserState, options: ConstructorOptions = {}) {
   const state = createConstructorState(parserState, options)
   constructEvents(state)
   return state.documents
@@ -466,6 +466,6 @@ export {
   createConstructorState,
   constructEvents,
   constructDocuments,
-  type ConstructOptions,
+  type ConstructorOptions,
   type ConstructorState
 }

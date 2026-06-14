@@ -35,13 +35,6 @@ describe('Scalar style dump:', () => {
         assert.strictEqual(dump(string), `${string}\n`)
       })
     })
-
-    it('disallows flow indicators inside flow collections', () => {
-      assert.strictEqual(dump({ quote: 'mispell [sic]' }, { flowLevel: 0 }),
-        "{quote: 'mispell [sic]'}\n")
-      assert.strictEqual(dump({ key: 'no commas, either' }, { flowLevel: 0 }),
-        "{key: 'no commas, either'}\n")
-    })
   })
 
   describe('Single- and double-quoted styles', () => {

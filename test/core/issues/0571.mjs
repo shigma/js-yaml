@@ -13,16 +13,7 @@ describe('Undefined', () => {
   const undefSchema = CORE_SCHEMA.withTags(undef)
 
   it('Should replace undefined with null in collections', () => {
-    let str
-
-    str = dump([undefined, 1, undefined, null, 2], { flowLevel: 0 })
-    assert(str.match(/^\[/))
-    assert.deepStrictEqual(
-      load(str),
-      [null, 1, null, null, 2]
-    )
-
-    str = dump([undefined, 1, undefined, null, 2], { flowLevel: -1 })
+    const str = dump([undefined, 1, undefined, null, 2])
     assert(str.match(/^- /))
     assert.deepStrictEqual(
       load(str),
@@ -31,16 +22,7 @@ describe('Undefined', () => {
   })
 
   it('Should remove keys with undefined in mappings', () => {
-    let str
-
-    str = dump({ t: undefined, foo: 1, bar: undefined, baz: null }, { flowLevel: 0 })
-    assert(str.match(/^\{/))
-    assert.deepStrictEqual(
-      load(str),
-      { foo: 1, baz: null }
-    )
-
-    str = dump({ t: undefined, foo: 1, bar: undefined, baz: null }, { flowLevel: -1 })
+    const str = dump({ t: undefined, foo: 1, bar: undefined, baz: null })
     assert(str.match(/^foo:/))
     assert.deepStrictEqual(
       load(str),
@@ -78,19 +60,11 @@ describe('Undefined', () => {
 
   it('Should skip leading values correctly', () => {
     assert.strictEqual(
-      dump([() => {}, 'a'], { flowLevel: 0, skipInvalid: true }),
-      '[a]\n')
-
-    assert.strictEqual(
-      dump([() => {}, 'a'], { flowLevel: -1, skipInvalid: true }),
+      dump([() => {}, 'a'], { skipInvalid: true }),
       '- a\n')
 
     assert.strictEqual(
-      dump({ a: () => {}, b: 'a' }, { flowLevel: 0, skipInvalid: true }),
-      '{b: a}\n')
-
-    assert.strictEqual(
-      dump({ a: () => {}, b: 'a' }, { flowLevel: -1, skipInvalid: true }),
+      dump({ a: () => {}, b: 'a' }, { skipInvalid: true }),
       'b: a\n')
   })
 })

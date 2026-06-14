@@ -96,9 +96,9 @@ import {
   createConstructorState,
   constructEvents,
   constructDocuments,
-  type ConstructOptions,
+  type ConstructorOptions,
   type ConstructorState
-} from './construct.ts'
+} from './constructor.ts'
 
 export {
   Schema,
@@ -196,6 +196,6 @@ export {
   type ParserState,
   type ParserOptions,
 
-  type ConstructOptions,
+  type ConstructorOptions,
   type ConstructorState
 }

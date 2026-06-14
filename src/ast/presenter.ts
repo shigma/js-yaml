@@ -5,13 +5,11 @@ import YAMLException from '../exception.ts'
 import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED, type ScalarTagDefinition } from '../tag.ts'
 import {
-  IMPLICIT,
   type Node,
   type Document,
   type ScalarNode,
   type SequenceNode,
-  type MappingNode,
-  type ScalarStyle
+  type MappingNode
 } from './nodes.ts'
 
 const _hasOwnProperty = Object.prototype.hasOwnProperty
@@ -60,45 +58,52 @@ ESCAPE_SEQUENCES[0xA0] = '\\_'
 ESCAPE_SEQUENCES[0x2028] = '\\L'
 ESCAPE_SEQUENCES[0x2029] = '\\P'
 
-const QUOTING_TYPE_SINGLE = "'"
-const QUOTING_TYPE_DOUBLE = '"'
-
-interface PresentOptions {
+interface PresenterOptions {
   schema: Schema
   indent?: number
-  noArrayIndent?: boolean
-  flowLevel?: number
+  seqNoIndent?: boolean
+  seqInlineFirst?: boolean
   sortKeys?: boolean | ((a: any, b: any) => number)
   lineWidth?: number
-  condenseFlow?: boolean
-  quotingType?: "'" | '"'
-  forceQuotes?: boolean
+  flowBracketPadding?: boolean
+  flowSkipCommaSpace?: boolean
+  flowSkipColonSpace?: boolean
+  quoteFlowKeys?: boolean
+  quoteStyle?: 'auto' | 'single' | 'double'
+  escapeForm?: 'short' | 'hex'
+  tagBeforeAnchor?: boolean
 }
 
-interface PresentState {
-  indent: number
-  noArrayIndent: boolean
-  flowLevel: number
-  sortKeys: boolean | ((a: any, b: any) => number)
-  lineWidth: number
-  condenseFlow: boolean
-  quotingType: "'" | '"'
-  forceQuotes: boolean
-  // Used to test whether a plain scalar would re-parse as another type.
+const DEFAULT_PRESENTER_OPTIONS: Required<Omit<PresenterOptions, 'schema'>> = {
+  indent: 2,
+  seqNoIndent: false,
+  seqInlineFirst: true,
+  sortKeys: false,
+  lineWidth: 80,
+  flowBracketPadding: false,
+  flowSkipCommaSpace: false,
+  flowSkipColonSpace: false,
+  quoteFlowKeys: false,
+  quoteStyle: 'auto',
+  escapeForm: 'short',
+  tagBeforeAnchor: false
+}
+
+interface PresenterState extends Required<PresenterOptions> {
+  defaultScalarTagName: string
   implicitResolvers: readonly ScalarTagDefinition[]
 }
 
-function createPresentState (options: PresentOptions): PresentState {
+function createPresenterState (options: PresenterOptions): PresenterState {
+  const opts = {
+    ...DEFAULT_PRESENTER_OPTIONS,
+    ...options
+  }
+
   return {
-    indent: options.indent ?? 2,
-    noArrayIndent: options.noArrayIndent ?? false,
-    flowLevel: options.flowLevel ?? -1,
-    sortKeys: options.sortKeys ?? false,
-    lineWidth: options.lineWidth ?? 80,
-    condenseFlow: options.condenseFlow ?? false,
-    quotingType: options.quotingType ?? "'",
-    forceQuotes: options.forceQuotes ?? false,
-    implicitResolvers: options.schema.implicitScalarTags
+    ...opts,
+    defaultScalarTagName: opts.schema.defaultScalarTag.tagName,
+    implicitResolvers: opts.schema.implicitScalarTags
   }
 }
 
@@ -150,20 +155,20 @@ function indentString (string: string, spaces: number) {
   return result
 }
 
-function generateNextLine (state: PresentState, level: number) {
+function generateNextLine (state: PresenterState, level: number) {
   return `\n${' '.repeat(state.indent * level)}`
 }
 
-function testImplicitResolving (state: PresentState, str: string) {
+function resolveImplicitTag (state: PresenterState, str: string) {
   for (let index = 0, length = state.implicitResolvers.length; index < length; index += 1) {
     const tagDefinition = state.implicitResolvers[index]
 
     if (tagDefinition.resolve(str, tagDefinition.tagName, false) !== NOT_RESOLVED) {
-      return true
+      return tagDefinition.tagName
     }
   }
 
-  return false
+  return state.defaultScalarTagName
 }
 
 // [33] s-white ::= s-space | s-tab
@@ -265,6 +270,21 @@ function isPlainSafeFirst (c: number) {
     c !== CHAR_GRAVE_ACCENT
 }
 
+function isPlainSafeAtStart (string: string, inblock: boolean) {
+  const first = codePointAt(string, 0)
+
+  if (isPlainSafeFirst(first)) return true
+
+  if (
+    string.length > 1 &&
+    (first === CHAR_MINUS || first === CHAR_QUESTION || first === CHAR_COLON)
+  ) {
+    return isPlainSafe(codePointAt(string, first >= 0x10000 ? 2 : 1), first, inblock)
+  }
+
+  return false
+}
+
 // Simplified test for values allowed as the last character in plain style.
 function isPlainSafeLast (c: number) {
   // just not whitespace or colon, it will be checked to be plain character later
@@ -306,7 +326,7 @@ const STYLE_DOUBLE = 5
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
 function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLevel: number, lineWidth: number,
-  testAmbiguousType: (s: string) => boolean, quotingType: PresentState['quotingType'], forceQuotes: boolean, inblock: boolean) {
+  canUsePlain: (s: string) => boolean, quoteStyle: PresenterState['quoteStyle'], inblock: boolean) {
   let i
   let char = 0
   let prevChar = -1 // -1 = no previous character yet (see isPlainSafe)
@@ -314,10 +334,10 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   let hasFoldableLine = false // only checked if shouldTrackWidth
   const shouldTrackWidth = lineWidth !== -1
   let previousLineBreak = -1 // count the first line correctly
-  let plain = isPlainSafeFirst(codePointAt(string, 0)) &&
+  let plain = isPlainSafeAtStart(string, inblock) &&
     isPlainSafeLast(codePointAt(string, string.length - 1))
 
-  if (singleLineOnly || forceQuotes) {
+  if (singleLineOnly) {
     // Case: no block styles.
     // Check for disallowed characters to rule out plain and single.
     for (i = 0; i < string.length; char >= 0x10000 ? i += 2 : i++) {
@@ -359,10 +379,10 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   if (!hasLineBreak && !hasFoldableLine) {
     // Strings interpretable as another type have to be quoted;
     // e.g. the string 'true' vs. the boolean true.
-    if (plain && !forceQuotes && !testAmbiguousType(string)) {
+    if (plain && canUsePlain(string)) {
       return STYLE_PLAIN
     }
-    return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE
+    return quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
   // Edge case: block indentation indicator can only have one digit.
   if (indentPerLevel > 9 && needIndentIndicator(string)) {
@@ -370,10 +390,7 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   }
   // At this point we know block styles are valid.
   // Prefer literal style unless we want to fold.
-  if (!forceQuotes) {
-    return hasFoldableLine ? STYLE_FOLDED : STYLE_LITERAL
-  }
-  return quotingType === QUOTING_TYPE_DOUBLE ? STYLE_DOUBLE : STYLE_SINGLE
+  return hasFoldableLine ? STYLE_FOLDED : STYLE_LITERAL
 }
 
 // Renders `string` in the given numeric style at `level`.
@@ -382,7 +399,7 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
 //    • No ending newline => unaffected; already using strip "-" chomping.
 //    • Ending newline    => removed then restored.
 //  Importantly, this keeps the "+" chomp indicator from gaining an extra line.
-function renderScalarStyle (state: PresentState, string: string, style: number, level: number) {
+function renderScalarStyle (state: PresenterState, string: string, style: number, level: number) {
   const indent = state.indent * Math.max(1, level) // no 0-indent scalars
   // Block indentation indicator the reader applies relative to the parent
   // node's indentation n (content indent = n + indicator). At the document
@@ -413,18 +430,25 @@ function renderScalarStyle (state: PresentState, string: string, style: number, 
   }
 }
 
-const SCALAR_STYLE_TO_NUM: Record<ScalarStyle, number> = {
-  plain: STYLE_PLAIN,
-  single: STYLE_SINGLE,
-  double: STYLE_DOUBLE,
-  literal: STYLE_LITERAL,
-  folded: STYLE_FOLDED
+// Chooses a style for `string` and renders it (node left `style` unset).
+function chooseQuoteStyle (state: PresenterState) {
+  return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
 }
 
-// Chooses a style for `string` and renders it (node left `style` unset).
-function writeScalar (state: PresentState, string: string, level: number, iskey: boolean, inblock: boolean) {
+function chooseForcedScalarStyle (node: ScalarNode): number | null {
+  if (node.style.singleQuoted) return STYLE_SINGLE
+  if (node.style.doubleQuoted) return STYLE_DOUBLE
+  if (node.style.literal) return STYLE_LITERAL
+  if (node.style.folded) return STYLE_FOLDED
+  return null
+}
+
+function writeScalar (state: PresenterState, node: ScalarNode, level: number, iskey: boolean, inblock: boolean) {
+  const string = node.value
+
   if (string.length === 0) {
-    return state.quotingType === QUOTING_TYPE_DOUBLE ? '""' : "''"
+    const style = resolveImplicitTag(state, string) === node.tag ? STYLE_PLAIN : chooseQuoteStyle(state)
+    return { text: renderScalarStyle(state, string, style, level), style }
   }
 
   const indent = state.indent * Math.max(1, level)
@@ -434,24 +458,23 @@ function writeScalar (state: PresentState, string: string, level: number, iskey:
     : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent)
 
   // Without knowing if keys are implicit/explicit, assume implicit for safety.
-  const singleLineOnly = iskey ||
-    // No block styles in flow mode.
-    (state.flowLevel > -1 && level >= state.flowLevel)
-  function testAmbiguity (string: string) {
-    return testImplicitResolving(state, string)
+  const singleLineOnly = iskey || !inblock
+  function canUsePlain (string: string) {
+    return node.style.tagged || resolveImplicitTag(state, string) === node.tag
   }
 
   const style = chooseScalarStyle(string, singleLineOnly, blockIndent, lineWidth,
-    testAmbiguity, state.quotingType, state.forceQuotes && !iskey, inblock)
+    canUsePlain, state.quoteStyle, inblock)
 
-  return renderScalarStyle(state, string, style, level)
+  return { text: renderScalarStyle(state, string, style, level), style }
 }
 
-function writeScalarNode (state: PresentState, node: ScalarNode, level: number, iskey: boolean, inblock: boolean) {
-  if (node.style === undefined) {
-    return writeScalar(state, node.value, level, iskey, inblock)
+function writeScalarNode (state: PresenterState, node: ScalarNode, level: number, iskey: boolean, inblock: boolean) {
+  const forcedStyle = chooseForcedScalarStyle(node)
+  if (forcedStyle !== null) {
+    return { text: renderScalarStyle(state, node.value, forcedStyle, level), style: forcedStyle }
   }
-  return renderScalarStyle(state, node.value, SCALAR_STYLE_TO_NUM[node.style], level)
+  return writeScalar(state, node, level, iskey, inblock)
 }
 
 // Pre-conditions: string is valid for a block scalar, 1 <= indentPerLevel <= 9.
@@ -574,26 +597,31 @@ function escapeString (string: string) {
 }
 
 function hasExplicitTag (node: Node) {
-  return node.kind !== 'alias' && node.tag !== IMPLICIT && node.tag !== ''
+  return node.kind !== 'alias' && node.style.tagged
 }
 
-function writeFlowSequence (state: PresentState, level: number, node: SequenceNode) {
+function shouldPrintScalarTag (state: PresenterState, node: ScalarNode, style: number) {
+  return node.style.tagged || (style !== STYLE_PLAIN && node.tag !== state.defaultScalarTagName)
+}
+
+function writeFlowSequence (state: PresenterState, level: number, node: SequenceNode) {
   let _result = ''
 
   for (let index = 0, length = node.items.length; index < length; index += 1) {
     const item = writeNode(state, level, node.items[index], false, false, false, false)
-    if (_result !== '') _result += `,${!state.condenseFlow ? ' ' : ''}`
+    if (_result !== '') _result += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
     _result += item
   }
 
-  return `[${_result}]`
+  const pad = state.flowBracketPadding && _result !== '' ? ' ' : ''
+  return `[${pad}${_result}${pad}]`
 }
 
-function writeBlockSequence (state: PresentState, level: number, node: SequenceNode, compact: boolean) {
+function writeBlockSequence (state: PresenterState, level: number, node: SequenceNode, compact: boolean) {
   let _result = ''
 
   for (let index = 0, length = node.items.length; index < length; index += 1) {
-    const item = writeNode(state, level + 1, node.items[index], true, true, false, true)
+    const item = writeNode(state, level + 1, node.items[index], true, state.seqInlineFirst, false, true)
 
     if (!compact || _result !== '') {
       _result += generateNextLine(state, level)
@@ -612,15 +640,15 @@ function writeBlockSequence (state: PresentState, level: number, node: SequenceN
   return _result || '[]' // Empty sequence if no valid values.
 }
 
-function writeFlowMapping (state: PresentState, level: number, node: MappingNode) {
+function writeFlowMapping (state: PresenterState, level: number, node: MappingNode) {
   let _result = ''
   const items = sortMappingItems(state, node.items)
 
   for (const { key, value } of items) {
     let pairBuffer = ''
-    if (_result !== '') pairBuffer += ', '
+    if (_result !== '') pairBuffer += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
 
-    if (state.condenseFlow) pairBuffer += '"'
+    if (state.quoteFlowKeys) pairBuffer += '"'
 
     const keyText = writeNode(state, level, key, false, false, false, false)
 
@@ -628,14 +656,15 @@ function writeFlowMapping (state: PresentState, level: number, node: MappingNode
 
     const valueText = writeNode(state, level, value, false, false, false, false)
     // No separating space when the value renders empty (e.g. null → '').
-    const sep = state.condenseFlow || valueText === '' ? '' : ' '
+    const sep = state.flowSkipColonSpace || valueText === '' ? '' : ' '
 
-    pairBuffer += `${keyText}${state.condenseFlow ? '"' : ''}:${sep}${valueText}`
+    pairBuffer += `${keyText}${state.quoteFlowKeys ? '"' : ''}:${sep}${valueText}`
 
     _result += pairBuffer
   }
 
-  return `{${_result}}`
+  const pad = state.flowBracketPadding && _result !== '' ? ' ' : ''
+  return `{${pad}${_result}${pad}}`
 }
 
 // A scalar key sorts by its text; the default sort and a custom comparator both
@@ -644,7 +673,7 @@ function sortKeyValue (key: Node): any {
   return key.kind === 'scalar' ? key.value : key
 }
 
-function sortMappingItems (state: PresentState, items: MappingNode['items']) {
+function sortMappingItems (state: PresenterState, items: MappingNode['items']) {
   if (!state.sortKeys) return items
 
   const copy = items.slice()
@@ -665,7 +694,7 @@ function sortMappingItems (state: PresentState, items: MappingNode['items']) {
   return copy
 }
 
-function writeBlockMapping (state: PresentState, level: number, node: MappingNode, compact: boolean) {
+function writeBlockMapping (state: PresenterState, level: number, node: MappingNode, compact: boolean) {
   let _result = ''
   const items = sortMappingItems(state, node.items)
 
@@ -748,38 +777,31 @@ function encodeTag (tag: string) {
   return tagStr
 }
 
-function writeNode (state: PresentState, level: number, node: Node, block: boolean, compact: boolean, iskey: boolean, isblockseq: boolean): string {
+function writeNode (state: PresenterState, level: number, node: Node, block: boolean, compact: boolean, iskey: boolean, isblockseq: boolean): string {
   if (node.kind === 'alias') return `*${node.anchor}`
 
   const inblock = block
 
-  if (block) {
-    block = (state.flowLevel < 0 || state.flowLevel > level)
-  }
-
-  const explicitTag = hasExplicitTag(node)
   const hasAnchor = node.anchor !== undefined
 
-  if (explicitTag || hasAnchor || (state.indent !== 2 && level > 0)) {
+  if (hasExplicitTag(node) || hasAnchor || (state.indent !== 2 && level > 0)) {
     compact = false
   }
 
   let body: string
+  let explicitTag = hasExplicitTag(node)
 
   if (node.kind === 'mapping') {
-    const useBlock = block && node.items.length !== 0
+    const useBlock = block && !node.style.flow && node.items.length !== 0
     if (useBlock) {
       body = writeBlockMapping(state, level, node, compact)
     } else {
       body = writeFlowMapping(state, level, node)
     }
-    if (hasAnchor) {
-      body = useBlock ? `&${node.anchor}${body}` : `&${node.anchor} ${body}`
-    }
   } else if (node.kind === 'sequence') {
-    const useBlock = block && node.items.length !== 0
+    const useBlock = block && !node.style.flow && node.items.length !== 0
     if (useBlock) {
-      if (state.noArrayIndent && !isblockseq && level > 0) {
+      if (state.seqNoIndent && !isblockseq && level > 0) {
         body = writeBlockSequence(state, level - 1, node, compact)
       } else {
         body = writeBlockSequence(state, level, node, compact)
@@ -787,15 +809,26 @@ function writeNode (state: PresentState, level: number, node: Node, block: boole
     } else {
       body = writeFlowSequence(state, level, node)
     }
-    if (hasAnchor) {
-      body = useBlock ? `&${node.anchor}${body}` : `&${node.anchor} ${body}`
-    }
   } else {
-    body = writeScalarNode(state, node, level, iskey, inblock)
+    const scalar = writeScalarNode(state, node, level, iskey, inblock)
+    body = scalar.text
+    explicitTag = shouldPrintScalarTag(state, node, scalar.style)
   }
 
-  if (explicitTag) {
-    body = `${encodeTag(node.tag)} ${body}`
+  if (explicitTag || hasAnchor) {
+    const props: string[] = []
+    const tag = explicitTag ? encodeTag(node.tag) : null
+    const anchor = hasAnchor ? `&${node.anchor}` : null
+
+    if (state.tagBeforeAnchor) {
+      if (tag !== null) props.push(tag)
+      if (anchor !== null) props.push(anchor)
+    } else {
+      if (anchor !== null) props.push(anchor)
+      if (tag !== null) props.push(tag)
+    }
+
+    body = `${props.join(' ')}${body.charCodeAt(0) === CHAR_LINE_FEED ? '' : ' '}${body}`
   }
 
   return body
@@ -804,16 +837,16 @@ function writeNode (state: PresentState, level: number, node: Node, block: boole
 // Stream (Document[]) → text, including the trailing newline.
 //
 // A `---` is printed when the document isn't the first, or it asks for one
-// explicitly, or it carries directives. Markers sit on their own lines.
+// explicitly, or it carries document-level directive data. Markers sit on their own lines.
 // A single document with empty fields (the only case the dumper builds today)
 // emits no markers — byte-for-byte the v4 output.
-function present (stream: Document[], options: PresentOptions): string {
-  const state = createPresentState(options)
+function present (stream: Document[], options: PresenterOptions): string {
+  const state = createPresenterState(options)
   let result = ''
 
   for (let index = 0; index < stream.length; index += 1) {
     const doc = stream[index]
-    const hasDirectives = doc.directives !== undefined
+    const hasDirectives = doc.version !== undefined || doc.tagHandles !== undefined
 
     if (index > 0 || doc.explicitStart || hasDirectives) {
       result += '---\n'
@@ -832,6 +865,7 @@ function present (stream: Document[], options: PresentOptions): string {
 }
 
 export {
+  DEFAULT_PRESENTER_OPTIONS,
   present,
-  type PresentOptions
+  type PresenterOptions
 }

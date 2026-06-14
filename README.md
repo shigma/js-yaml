@@ -125,19 +125,22 @@ disable exceptions by setting the `skipInvalid` option to `true`.
 options:
 
 - `indent` _(default: 2)_ - indentation width to use (in spaces).
-- `noArrayIndent` _(default: false)_ - when true, will not add an indentation level to array elements
+- `seqNoIndent` _(default: false)_ - when true, will not add an indentation level to array elements.
+- `seqInlineFirst` _(default: true)_ - when true, allows a nested collection to start on the same line after `-`.
 - `skipInvalid` _(default: false)_ - do not throw on invalid types (like function
   in the safe schema) and skip pairs and single values with such types.
-- `flowLevel` _(default: -1)_ - specifies level of nesting, when to switch from
-  block to flow style for collections. -1 means block style everwhere
 - `schema` _(default: `DEFAULT_SCHEMA`)_ specifies a schema to use.
 - `sortKeys` _(default: `false`)_ - if `true`, sort keys when dumping YAML. If a
   function, use the function to sort the keys.
 - `lineWidth` _(default: `80`)_ - set max line width. Set `-1` for unlimited width.
 - `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into references
-- `condenseFlow` _(default: `false`)_ - if `true` flow sequences will be condensed, omitting the space between `a, b`. Eg. `'[a,b]'`, and omitting the space between `key: value` and quoting the key. Eg. `'{"a":b}'` Can be useful when using yaml for pretty URL query params as spaces are %-encoded.
-- `quotingType` _(`'` or `"`, default: `'`)_ - strings will be quoted using this quoting style. If you specify single quotes, double quotes will still be used for non-printable characters.
-- `forceQuotes` _(default: `false`)_ - if `true`, all non-key strings will be quoted even if they normally don't need to.
+- `quoteStyle` _(`auto`, `single`, or `double`, default: `auto`)_ - preferred quote style when a scalar needs quotes.
+- `escapeForm` _(`short` or `hex`, default: `short`)_ - preferred escape form for double-quoted scalars.
+- `flowBracketPadding` _(default: `false`)_ - add spaces inside flow collection brackets.
+- `flowSkipCommaSpace` _(default: `false`)_ - omit the space after commas in flow collections.
+- `flowSkipColonSpace` _(default: `false`)_ - omit the space after `:` in flow mappings.
+- `quoteFlowKeys` _(default: `false`)_ - quote flow mapping keys.
+- `tagBeforeAnchor` _(default: `false`)_ - print an explicit tag before an anchor.
 
 To customize how a type is rendered (e.g. dump null as `~`, or integers as
 hex), clone the built-in tag and override its `represent`, then plug it in via

@@ -1,24 +1,20 @@
 import { YAML11_SCHEMA, type Schema } from './schema.ts'
-import { jsToAst } from './ast/js_to_ast.ts'
-import { present } from './ast/present.ts'
+import { jsToAst } from './ast/from_js.ts'
+import {
+  DEFAULT_PRESENTER_OPTIONS,
+  present,
+  type PresenterOptions
+} from './ast/presenter.ts'
 import { NOT_RESOLVED } from './tag.ts'
 import { intCoreTag } from './tag/scalar/int_core.ts'
 import { intYaml11Tag } from './tag/scalar/int_yaml11.ts'
 import { floatCoreTag } from './tag/scalar/float_core.ts'
 import { floatYaml11Tag } from './tag/scalar/float_yaml11.ts'
 
-interface DumpOptions {
+interface DumpOptions extends Omit<PresenterOptions, 'schema'> {
   schema?: Schema
-  indent?: number
-  noArrayIndent?: boolean
   skipInvalid?: boolean
-  flowLevel?: number
-  sortKeys?: boolean | ((a: any, b: any) => number)
-  lineWidth?: number
   noRefs?: boolean
-  condenseFlow?: boolean
-  quotingType?: "'" | '"'
-  forceQuotes?: boolean
 }
 
 // YAML 1.1 misses YAML 1.2 `0o...` ints and exponent-only floats.
@@ -41,17 +37,10 @@ const DEFAULT_DUMP_SCHEMA = YAML11_SCHEMA.withTags(
 )
 
 const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
+  ...DEFAULT_PRESENTER_OPTIONS,
   schema: DEFAULT_DUMP_SCHEMA,
-  indent: 2,
-  noArrayIndent: false,
   skipInvalid: false,
-  flowLevel: -1,
-  sortKeys: false,
-  lineWidth: 80,
-  noRefs: false,
-  condenseFlow: false,
-  quotingType: "'",
-  forceQuotes: false
+  noRefs: false
 }
 
 // Options that need the JS value (tags, format, dedup) go to `jsToAst`; purely
@@ -67,17 +56,7 @@ function dump (input: any, options: DumpOptions = {}) {
   // Wrap the content node into a single-document stream. With empty document
   // fields this prints no markers — byte-for-byte the v4 output (and '' when
   // the root didn't resolve, since an empty document renders nothing).
-  return present([{ contents }], {
-    schema: opts.schema,
-    indent: opts.indent,
-    noArrayIndent: opts.noArrayIndent,
-    flowLevel: opts.flowLevel,
-    sortKeys: opts.sortKeys,
-    lineWidth: opts.lineWidth,
-    condenseFlow: opts.condenseFlow,
-    quotingType: opts.quotingType,
-    forceQuotes: opts.forceQuotes
-  })
+  return present([{ contents }], opts)
 }
 
 export {
