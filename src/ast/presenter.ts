@@ -12,8 +12,6 @@ import {
   type MappingNode
 } from './nodes.ts'
 
-const _hasOwnProperty = Object.prototype.hasOwnProperty
-
 const CHAR_BOM = 0xFEFF
 const CHAR_TAB = 0x09 /* Tab */
 const CHAR_LINE_FEED = 0x0A /* LF */
@@ -70,7 +68,6 @@ interface PresenterOptions {
   flowSkipColonSpace?: boolean
   quoteFlowKeys?: boolean
   quoteStyle?: 'auto' | 'single' | 'double'
-  escapeForm?: 'short' | 'hex'
   tagBeforeAnchor?: boolean
 }
 
@@ -85,7 +82,6 @@ const DEFAULT_PRESENTER_OPTIONS: Required<Omit<PresenterOptions, 'schema'>> = {
   flowSkipColonSpace: false,
   quoteFlowKeys: false,
   quoteStyle: 'auto',
-  escapeForm: 'short',
   tagBeforeAnchor: false
 }
 
@@ -157,6 +153,24 @@ function indentString (string: string, spaces: number) {
 
 function generateNextLine (state: PresenterState, level: number) {
   return `\n${' '.repeat(state.indent * level)}`
+}
+
+// Indentation/width numbers that govern how a scalar lays out at `level`.
+// Scalar-only: collections compute their own indent via `generateNextLine`.
+//   indent      - spaces prepended to the scalar's content (block styles)
+//   blockIndent - the block indentation indicator digit (`|2` / `>2`); at the
+//                 document root (level 0) it is one greater than the spaces we
+//                 actually prepend (reader applies it relative to parent n = -1)
+//   lineWidth   - fold width at this depth, shrinking monotonically toward
+//                 min(state.lineWidth, 40) as indentation deepens; -1 = no limit
+function scalarLayout (state: PresenterState, level: number) {
+  const indent = state.indent * Math.max(1, level) // no 0-indent scalars
+  const blockIndent = level === 0 ? state.indent + 1 : state.indent
+  const lineWidth = (state.lineWidth === -1)
+    ? -1
+    : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent)
+
+  return { indent, blockIndent, lineWidth }
 }
 
 function resolveImplicitTag (state: PresenterState, str: string) {
@@ -306,7 +320,6 @@ function codePointAt (string: string, pos: number) {
   return first
 }
 
-// Determines whether block indentation indicator is required.
 function needIndentIndicator (string: string) {
   const leadingSpaceRe = /^\n* /
   return leadingSpaceRe.test(string)
@@ -325,8 +338,11 @@ const STYLE_DOUBLE = 5
 //    STYLE_PLAIN or STYLE_SINGLE => no \n are in the string.
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
-function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLevel: number, lineWidth: number,
-  canUsePlain: (s: string) => boolean, quoteStyle: PresenterState['quoteStyle'], inblock: boolean) {
+function chooseScalarStyle (state: PresenterState, string: string, layout: ReturnType<typeof scalarLayout>,
+  singleLineOnly: boolean, inblock: boolean) {
+  const { blockIndent, lineWidth } = layout
+  // quoteStyle !== 'auto' forces quoting: suppress plain and block styles.
+  const forceQuote = state.quoteStyle !== 'auto'
   let i
   let char = 0
   let prevChar = -1 // -1 = no previous character yet (see isPlainSafe)
@@ -337,7 +353,7 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   let plain = isPlainSafeAtStart(string, inblock) &&
     isPlainSafeLast(codePointAt(string, string.length - 1))
 
-  if (singleLineOnly) {
+  if (singleLineOnly || forceQuote) {
     // Case: no block styles.
     // Check for disallowed characters to rule out plain and single.
     for (i = 0; i < string.length; char >= 0x10000 ? i += 2 : i++) {
@@ -377,15 +393,13 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   // for multiline, since they're more readable and they don't add empty lines.
   // Also prefer folding a super-long line.
   if (!hasLineBreak && !hasFoldableLine) {
-    // Strings interpretable as another type have to be quoted;
-    // e.g. the string 'true' vs. the boolean true.
-    if (plain && canUsePlain(string)) {
-      return STYLE_PLAIN
-    }
-    return quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
+    // Syntactic verdict only: whether the bare text round-trips to the node's
+    // tag is a semantic check the caller applies (see resolveScalarStyle).
+    if (plain && !forceQuote) return STYLE_PLAIN
+    return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
   // Edge case: block indentation indicator can only have one digit.
-  if (indentPerLevel > 9 && needIndentIndicator(string)) {
+  if (blockIndent > 9 && needIndentIndicator(string)) {
     return STYLE_DOUBLE
   }
   // At this point we know block styles are valid.
@@ -393,24 +407,14 @@ function chooseScalarStyle (string: string, singleLineOnly: boolean, indentPerLe
   return hasFoldableLine ? STYLE_FOLDED : STYLE_LITERAL
 }
 
-// Renders `string` in the given numeric style at `level`.
+// Renders `string` in the given numeric style with the given layout.
 // NB. We drop the last trailing newline (if any) of a returned block scalar
 //  since the dumper adds its own newline. This always works:
 //    • No ending newline => unaffected; already using strip "-" chomping.
 //    • Ending newline    => removed then restored.
 //  Importantly, this keeps the "+" chomp indicator from gaining an extra line.
-function renderScalarStyle (state: PresenterState, string: string, style: number, level: number) {
-  const indent = state.indent * Math.max(1, level) // no 0-indent scalars
-  // Block indentation indicator the reader applies relative to the parent
-  // node's indentation n (content indent = n + indicator). At the document
-  // root n is -1, so the indicator must be one greater than the spaces we
-  // actually prepend; nested nodes have n >= 0 where state.indent matches.
-  const blockIndent = level === 0 ? state.indent + 1 : state.indent
-  // As indentation gets deeper, let the width decrease monotonically
-  // to the lower bound min(state.lineWidth, 40).
-  const lineWidth = (state.lineWidth === -1)
-    ? -1
-    : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent)
+function renderScalarStyle (string: string, style: number, layout: ReturnType<typeof scalarLayout>) {
+  const { indent, blockIndent, lineWidth } = layout
 
   switch (style) {
     case STYLE_PLAIN:
@@ -430,51 +434,39 @@ function renderScalarStyle (state: PresenterState, string: string, style: number
   }
 }
 
-// Chooses a style for `string` and renders it (node left `style` unset).
-function chooseQuoteStyle (state: PresenterState) {
-  return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
-}
+// Picks the scalar style for `node`: a style hint carried on the node wins,
+// otherwise the style chosen by the machinery. Returns a numeric STYLE_*.
+function resolveScalarStyle (state: PresenterState, node: ScalarNode,
+  layout: ReturnType<typeof scalarLayout>, iskey: boolean, inblock: boolean) {
+  // Without knowing if keys are implicit/explicit, assume implicit for safety.
+  const singleLineOnly = iskey || !inblock
 
-function chooseForcedScalarStyle (node: ScalarNode): number | null {
+  // Style hints carried on the node take precedence. They were valid in their
+  // original context; only a parent change can break them, and only block
+  // styles in a single-line context — quoted styles survive any context. A
+  // rejected block hint falls through to selection by content below.
   if (node.style.singleQuoted) return STYLE_SINGLE
   if (node.style.doubleQuoted) return STYLE_DOUBLE
-  if (node.style.literal) return STYLE_LITERAL
-  if (node.style.folded) return STYLE_FOLDED
-  return null
-}
+  if (!singleLineOnly) {
+    if (node.style.literal) return STYLE_LITERAL
+    if (node.style.folded) return STYLE_FOLDED
+  }
 
-function writeScalar (state: PresenterState, node: ScalarNode, level: number, iskey: boolean, inblock: boolean) {
   const string = node.value
 
   if (string.length === 0) {
-    const style = resolveImplicitTag(state, string) === node.tag ? STYLE_PLAIN : chooseQuoteStyle(state)
-    return { text: renderScalarStyle(state, string, style, level), style }
+    if (state.quoteStyle === 'auto' && resolveImplicitTag(state, string) === node.tag) return STYLE_PLAIN
+    return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
 
-  const indent = state.indent * Math.max(1, level)
-  const blockIndent = level === 0 ? state.indent + 1 : state.indent
-  const lineWidth = (state.lineWidth === -1)
-    ? -1
-    : Math.max(Math.min(state.lineWidth, 40), state.lineWidth - indent)
+  const style = chooseScalarStyle(state, string, layout, singleLineOnly, inblock)
 
-  // Without knowing if keys are implicit/explicit, assume implicit for safety.
-  const singleLineOnly = iskey || !inblock
-  function canUsePlain (string: string) {
-    return node.style.tagged || resolveImplicitTag(state, string) === node.tag
+  // Plain writes no tag, so it round-trips only if the bare text resolves back
+  // to the node's tag (or the tag gets printed explicitly). Else downgrade.
+  if (style === STYLE_PLAIN && !node.style.tagged && resolveImplicitTag(state, string) !== node.tag) {
+    return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
-
-  const style = chooseScalarStyle(string, singleLineOnly, blockIndent, lineWidth,
-    canUsePlain, state.quoteStyle, inblock)
-
-  return { text: renderScalarStyle(state, string, style, level), style }
-}
-
-function writeScalarNode (state: PresenterState, node: ScalarNode, level: number, iskey: boolean, inblock: boolean) {
-  const forcedStyle = chooseForcedScalarStyle(node)
-  if (forcedStyle !== null) {
-    return { text: renderScalarStyle(state, node.value, forcedStyle, level), style: forcedStyle }
-  }
-  return writeScalar(state, node, level, iskey, inblock)
+  return style
 }
 
 // Pre-conditions: string is valid for a block scalar, 1 <= indentPerLevel <= 9.
@@ -504,12 +496,10 @@ function foldString (string: string, width: number) {
   const lineRe = /(\n+)([^\n]*)/g
 
   // first line (possibly an empty line)
-  let result = (() => {
-    let nextLF = string.indexOf('\n')
-    nextLF = nextLF !== -1 ? nextLF : string.length
-    lineRe.lastIndex = nextLF
-    return foldLine(string.slice(0, nextLF), width)
-  })()
+  let nextLF = string.indexOf('\n')
+  if (nextLF === -1) nextLF = string.length
+  lineRe.lastIndex = nextLF
+  let result = foldLine(string.slice(0, nextLF), width)
   // If we haven't reached the first content line yet, don't add an extra \n.
   let prevMoreIndented = string[0] === '\n' || string[0] === ' '
   let moreIndented
@@ -576,7 +566,6 @@ function foldLine (line: string, width: number) {
   return result.slice(1) // drop extra \n joiner
 }
 
-// Escapes a double-quoted string.
 function escapeString (string: string) {
   let result = ''
   let char = 0
@@ -596,75 +585,71 @@ function escapeString (string: string) {
   return result
 }
 
-function hasExplicitTag (node: Node) {
-  return node.kind !== 'alias' && node.style.tagged
-}
-
-function shouldPrintScalarTag (state: PresenterState, node: ScalarNode, style: number) {
-  return node.style.tagged || (style !== STYLE_PLAIN && node.tag !== state.defaultScalarTagName)
-}
-
 function writeFlowSequence (state: PresenterState, level: number, node: SequenceNode) {
-  let _result = ''
+  let result = ''
 
   for (let index = 0, length = node.items.length; index < length; index += 1) {
-    const item = writeNode(state, level, node.items[index], false, false, false, false)
-    if (_result !== '') _result += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
-    _result += item
+    const item = writeNode(state, level, node.items[index], {})
+    if (result !== '') result += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
+    result += item
   }
 
-  const pad = state.flowBracketPadding && _result !== '' ? ' ' : ''
-  return `[${pad}${_result}${pad}]`
+  const pad = state.flowBracketPadding && result !== '' ? ' ' : ''
+  return `[${pad}${result}${pad}]`
 }
 
 function writeBlockSequence (state: PresenterState, level: number, node: SequenceNode, compact: boolean) {
-  let _result = ''
+  let result = ''
 
   for (let index = 0, length = node.items.length; index < length; index += 1) {
-    const item = writeNode(state, level + 1, node.items[index], true, state.seqInlineFirst, false, true)
+    const item = writeNode(state, level + 1, node.items[index],
+      { block: true, compact: state.seqInlineFirst, isblockseq: true })
 
-    if (!compact || _result !== '') {
-      _result += generateNextLine(state, level)
+    if (!compact || result !== '') {
+      result += generateNextLine(state, level)
     }
 
     // No trailing space when the value renders empty (e.g. null → '').
     if (item === '' || CHAR_LINE_FEED === item.charCodeAt(0)) {
-      _result += '-'
+      result += '-'
     } else {
-      _result += '- '
+      result += '- '
     }
 
-    _result += item
+    result += item
   }
 
-  return _result || '[]' // Empty sequence if no valid values.
+  return result
 }
 
 function writeFlowMapping (state: PresenterState, level: number, node: MappingNode) {
-  let _result = ''
+  let result = ''
   const items = sortMappingItems(state, node.items)
 
   for (const { key, value } of items) {
     let pairBuffer = ''
-    if (_result !== '') pairBuffer += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
+    if (result !== '') pairBuffer += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
 
-    if (state.quoteFlowKeys) pairBuffer += '"'
+    const keyText = writeNode(state, level, key, {})
+    const explicitPair = keyText.length > 1024
 
-    const keyText = writeNode(state, level, key, false, false, false, false)
+    if (explicitPair) {
+      pairBuffer += '? '
+    } else if (state.quoteFlowKeys) {
+      pairBuffer += '"'
+    }
 
-    if (keyText.length > 1024) pairBuffer += '? '
-
-    const valueText = writeNode(state, level, value, false, false, false, false)
+    const valueText = writeNode(state, level, value, {})
     // No separating space when the value renders empty (e.g. null → '').
     const sep = state.flowSkipColonSpace || valueText === '' ? '' : ' '
 
-    pairBuffer += `${keyText}${state.quoteFlowKeys ? '"' : ''}:${sep}${valueText}`
+    pairBuffer += `${keyText}${state.quoteFlowKeys && !explicitPair ? '"' : ''}:${sep}${valueText}`
 
-    _result += pairBuffer
+    result += pairBuffer
   }
 
-  const pad = state.flowBracketPadding && _result !== '' ? ' ' : ''
-  return `{${pad}${_result}${pad}}`
+  const pad = state.flowBracketPadding && result !== '' ? ' ' : ''
+  return `{${pad}${result}${pad}}`
 }
 
 // A scalar key sorts by its text; the default sort and a custom comparator both
@@ -695,25 +680,25 @@ function sortMappingItems (state: PresenterState, items: MappingNode['items']) {
 }
 
 function writeBlockMapping (state: PresenterState, level: number, node: MappingNode, compact: boolean) {
-  let _result = ''
+  let result = ''
   const items = sortMappingItems(state, node.items)
 
   for (let index = 0, length = items.length; index < length; index += 1) {
     let pairBuffer = ''
 
-    if (!compact || _result !== '') {
+    if (!compact || result !== '') {
       pairBuffer += generateNextLine(state, level)
     }
 
     const { key, value } = items[index]
 
-    // Keys are written in flow context: a collection key (only reachable via a
-    // real `Map`) then renders inline (`{x: 1}` / `[1, 2]`) instead of as a
-    // multi-line block that can't sit on a `key:` line. Scalar keys are
-    // unaffected by flow-vs-block.
-    const keyText = writeNode(state, level + 1, key, false, true, true, false)
+    // Keys are written without `block`, so a collection key renders inline
+    // (`{x: 1}` / `[1, 2]`) instead of as a multi-line block that can't sit on
+    // a `key:` line. (Currently a simplification — block keys aren't handled
+    // yet.) Scalar keys are unaffected by flow-vs-block.
+    const keyText = writeNode(state, level + 1, key, { compact: true, iskey: true })
 
-    const explicitPair = hasExplicitTag(key) || (keyText.length > 1024)
+    const explicitPair = key.style.tagged || (keyText.length > 1024)
 
     if (explicitPair) {
       if (keyText && CHAR_LINE_FEED === keyText.charCodeAt(0)) {
@@ -729,7 +714,7 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
       pairBuffer += generateNextLine(state, level)
     }
 
-    const valueText = writeNode(state, level + 1, value, true, explicitPair, false, false)
+    const valueText = writeNode(state, level + 1, value, { block: true, compact: explicitPair })
 
     // No trailing space when the value renders empty (e.g. null → '').
     if (valueText === '' || CHAR_LINE_FEED === valueText.charCodeAt(0)) {
@@ -740,10 +725,10 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
 
     pairBuffer += valueText
 
-    _result += pairBuffer
+    result += pairBuffer
   }
 
-  return _result || '{}' // Empty mapping if no valid pairs.
+  return result
 }
 
 // Encodes an explicit tag name into its printable `!!foo` / `!foo` / `!<uri>`
@@ -777,19 +762,29 @@ function encodeTag (tag: string) {
   return tagStr
 }
 
-function writeNode (state: PresenterState, level: number, node: Node, block: boolean, compact: boolean, iskey: boolean, isblockseq: boolean): string {
+// Where a node sits relative to its parent — drives layout/style decisions.
+// All flags default to false (the flow-context, non-key, non-compact case).
+interface NodeContext {
+  block?: boolean      // block context (vs flow); propagates downward
+  compact?: boolean    // may start on the current line (no leading newline)
+  iskey?: boolean      // node is a mapping key
+  isblockseq?: boolean // parent is a block sequence (only for seqNoIndent)
+}
+
+function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeContext): string {
   if (node.kind === 'alias') return `*${node.anchor}`
 
-  const inblock = block
+  const { block = false, iskey = false, isblockseq = false } = ctx
+  let compact = ctx.compact ?? false
 
   const hasAnchor = node.anchor !== undefined
 
-  if (hasExplicitTag(node) || hasAnchor || (state.indent !== 2 && level > 0)) {
+  if (node.style.tagged || hasAnchor || (state.indent !== 2 && level > 0)) {
     compact = false
   }
 
   let body: string
-  let explicitTag = hasExplicitTag(node)
+  let shouldPrintTag = node.style.tagged
 
   if (node.kind === 'mapping') {
     const useBlock = block && !node.style.flow && node.items.length !== 0
@@ -810,14 +805,15 @@ function writeNode (state: PresenterState, level: number, node: Node, block: boo
       body = writeFlowSequence(state, level, node)
     }
   } else {
-    const scalar = writeScalarNode(state, node, level, iskey, inblock)
-    body = scalar.text
-    explicitTag = shouldPrintScalarTag(state, node, scalar.style)
+    const layout = scalarLayout(state, level)
+    const style = resolveScalarStyle(state, node, layout, iskey, block)
+    body = renderScalarStyle(node.value, style, layout)
+    shouldPrintTag = node.style.tagged || (style !== STYLE_PLAIN && node.tag !== state.defaultScalarTagName)
   }
 
-  if (explicitTag || hasAnchor) {
+  if (shouldPrintTag || hasAnchor) {
     const props: string[] = []
-    const tag = explicitTag ? encodeTag(node.tag) : null
+    const tag = shouldPrintTag ? encodeTag(node.tag) : null
     const anchor = hasAnchor ? `&${node.anchor}` : null
 
     if (state.tagBeforeAnchor) {
@@ -835,11 +831,6 @@ function writeNode (state: PresenterState, level: number, node: Node, block: boo
 }
 
 // Stream (Document[]) → text, including the trailing newline.
-//
-// A `---` is printed when the document isn't the first, or it asks for one
-// explicitly, or it carries document-level directive data. Markers sit on their own lines.
-// A single document with empty fields (the only case the dumper builds today)
-// emits no markers — byte-for-byte the v4 output.
 function present (stream: Document[], options: PresenterOptions): string {
   const state = createPresenterState(options)
   let result = ''
@@ -853,7 +844,7 @@ function present (stream: Document[], options: PresenterOptions): string {
     }
 
     if (doc.contents !== null) {
-      result += writeNode(state, 0, doc.contents, true, true, false, false) + '\n'
+      result += writeNode(state, 0, doc.contents, { block: true, compact: true }) + '\n'
     }
 
     if (doc.explicitEnd) {

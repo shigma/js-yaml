@@ -135,7 +135,6 @@ options:
 - `lineWidth` _(default: `80`)_ - set max line width. Set `-1` for unlimited width.
 - `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into references
 - `quoteStyle` _(`auto`, `single`, or `double`, default: `auto`)_ - preferred quote style when a scalar needs quotes.
-- `escapeForm` _(`short` or `hex`, default: `short`)_ - preferred escape form for double-quoted scalars.
 - `flowBracketPadding` _(default: `false`)_ - add spaces inside flow collection brackets.
 - `flowSkipCommaSpace` _(default: `false`)_ - omit the space after commas in flow collections.
 - `flowSkipColonSpace` _(default: `false`)_ - omit the space after `:` in flow mappings.
