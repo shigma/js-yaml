@@ -1,4 +1,4 @@
-import YAMLException from './exception.ts'
+import YAMLException from '../exception.ts'
 import {
   EVENT_ALIAS,
   EVENT_DOCUMENT,
@@ -12,15 +12,15 @@ import {
   type ScalarEvent,
   type SequenceEvent
 } from './events.ts'
-import { getScalarValue } from './scalar.ts'
-import { CORE_SCHEMA, type Schema } from './schema.ts'
+import { getScalarValue } from './parser_scalar.ts'
+import { CORE_SCHEMA, type Schema } from '../schema.ts'
 import {
   MERGE_KEY,
   NOT_RESOLVED,
   type MappingTagDefinition,
   type ScalarTagDefinition,
   type SequenceTagDefinition
-} from './tag.ts'
+} from '../tag.ts'
 import { throwErrorAt, type ParserState } from './parser.ts'
 
 const NO_RANGE = -1

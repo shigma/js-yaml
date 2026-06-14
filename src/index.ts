@@ -81,16 +81,16 @@ import {
   type AliasEvent,
   type PopEvent,
   type Event
-} from './events.ts'
+} from './parser/events.ts'
 
 import {
   createParserState,
   parseEvents,
   type ParserState,
   type ParserOptions
-} from './parser.ts'
+} from './parser/parser.ts'
 
-import { getScalarValue } from './scalar.ts'
+import { getScalarValue } from './parser/parser_scalar.ts'
 
 import {
   createConstructorState,
@@ -98,7 +98,7 @@ import {
   constructDocuments,
   type ConstructorOptions,
   type ConstructorState
-} from './constructor.ts'
+} from './parser/constructor.ts'
 
 export {
   Schema,

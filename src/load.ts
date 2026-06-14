@@ -2,11 +2,11 @@ import YAMLException from './exception.ts'
 import {
   constructEvents,
   createConstructorState
-} from './constructor.ts'
+} from './parser/constructor.ts'
 import {
   createParserState,
   parseEvents
-} from './parser.ts'
+} from './parser/parser.ts'
 import { CORE_SCHEMA, type Schema } from './schema.ts'
 
 interface LoadOptions {
