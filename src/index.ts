@@ -103,6 +103,13 @@ import {
 import { eventsToAst, type FromEventsOptions } from './ast/from_events.ts'
 import { present, type PresenterOptions } from './ast/presenter.ts'
 import {
+  visit,
+  VISIT_BREAK,
+  VISIT_SKIP,
+  type Visitor,
+  type VisitContext
+} from './ast/visit.ts'
+import {
   Style,
   type Node,
   type Document,
@@ -184,6 +191,9 @@ export {
   eventsToAst,
   present,
   Style,
+  visit,
+  VISIT_BREAK,
+  VISIT_SKIP,
 
   type LoadOptions,
   type DumpOptions,
@@ -226,5 +236,8 @@ export {
   type ScalarNode,
   type SequenceNode,
   type MappingNode,
-  type AliasNode
+  type AliasNode,
+
+  type Visitor,
+  type VisitContext
 }

@@ -80,7 +80,10 @@ const expectedKeys = [
 
   'eventsToAst',
   'present',
-  'Style'
+  'Style',
+  'visit',
+  'VISIT_BREAK',
+  'VISIT_SKIP'
 ]
 
 function checkExports (yaml, options) {
