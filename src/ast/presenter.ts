@@ -830,6 +830,38 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
   return body
 }
 
+// A bare (untagged, unanchored) non-empty block collection: writeNode renders it
+// in compact form with its first item on the opening line. That works mid-stream,
+// but right after a `---` the first item must drop to the next line. A tag/anchor
+// already forces the body onto its own line, so those stay on the `---` line.
+function rootStartsOwnLine (node: Node) {
+  return (node.kind === 'sequence' || node.kind === 'mapping') &&
+    !node.style.flow &&
+    node.items.length !== 0 &&
+    !node.style.tagged &&
+    node.anchor === undefined
+}
+
+// A document whose serialization ends with a keep-chomped (`+`) block scalar is
+// open-ended: the trailing blank line(s) would otherwise be ambiguous, so it
+// needs a `...` terminator. Mirrors the keep test in `blockHeader`.
+function isOpenEnded (node: Node) {
+  // Descend to the last leaf, always taking the last item of a block collection
+  // (a flow collection renders on one line, so it ends the document itself).
+  let leaf = node
+  while ((leaf.kind === 'sequence' || leaf.kind === 'mapping') &&
+    !leaf.style.flow && leaf.items.length !== 0) {
+    leaf = leaf.kind === 'sequence'
+      ? leaf.items[leaf.items.length - 1]
+      : leaf.items[leaf.items.length - 1].value
+  }
+
+  if (leaf.kind !== 'scalar' || !(leaf.style.literal || leaf.style.folded)) return false
+  const { value } = leaf
+  // Keep chomping: ends in a blank line (`\n\n`) or is a lone `\n`.
+  return value.endsWith('\n\n') || value === '\n'
+}
+
 // Stream (Document[]) → text, including the trailing newline.
 function present (stream: Document[], options: PresenterOptions): string {
   const state = createPresenterState(options)
@@ -838,16 +870,22 @@ function present (stream: Document[], options: PresenterOptions): string {
   for (let index = 0; index < stream.length; index += 1) {
     const doc = stream[index]
     const hasDirectives = doc.version !== undefined || doc.tagHandles !== undefined
+    const marker = index > 0 || doc.explicitStart || hasDirectives
 
-    if (index > 0 || doc.explicitStart || hasDirectives) {
-      result += '---\n'
-    }
-
-    if (doc.contents !== null) {
+    if (doc.contents === null) {
+      if (marker) result += '---\n'
+    } else if (marker) {
+      const body = writeNode(state, 0, doc.contents, { block: true, compact: true })
+      // Content shares the `---` line, except: an empty render (no separator at
+      // all), a bare block collection (wraps to the next line), or directives
+      // forcing `---` onto its own line.
+      const sep = body === '' ? '' : (hasDirectives || rootStartsOwnLine(doc.contents) ? '\n' : ' ')
+      result += `---${sep}${body}\n`
+    } else {
       result += writeNode(state, 0, doc.contents, { block: true, compact: true }) + '\n'
     }
 
-    if (doc.explicitEnd) {
+    if (doc.explicitEnd || (doc.contents !== null && isOpenEnded(doc.contents))) {
       result += '...\n'
     }
   }
