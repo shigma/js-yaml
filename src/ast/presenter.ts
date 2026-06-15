@@ -692,15 +692,27 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
 
     const { key, value } = items[index]
 
-    // Keys are written without `block`, so a collection key renders inline
-    // (`{x: 1}` / `[1, 2]`) instead of as a multi-line block that can't sit on
-    // a `key:` line. (Currently a simplification — block keys aren't handled
-    // yet.) Scalar keys are unaffected by flow-vs-block.
-    const keyText = writeNode(state, level + 1, key, { compact: true, iskey: true })
+    // A block key — a block collection (mapping/sequence) or a block scalar
+    // (literal/folded) — can't sit on a `key:` line, so it's written with block
+    // context and the pair takes the explicit `? key / : value` form. A simple
+    // scalar key stays inline (flow-vs-block is invisible there).
+    const keyIsBlock =
+      ((key.kind === 'mapping' || key.kind === 'sequence') &&
+        !key.style.flow && key.items.length !== 0) ||
+      (key.kind === 'scalar' && (key.style.literal || key.style.folded))
 
-    // A tagged scalar key (`!!str a: b`) is still a valid simple key, so only an
-    // over-long key forces the explicit `? key / : value` form.
-    const explicitPair = keyText.length > 1024
+    // The `?`/`:` indicators shift content right like a `-`, so a block key or
+    // value that stays on the indicator line keeps its indentation under
+    // seqNoIndent (`isblockseq`). One that drops to its own line (tag/anchor)
+    // collapses to the parent indent, so leave the flag off there.
+    const keyText = keyIsBlock
+      ? writeNode(state, level + 1, key,
+        { block: true, compact: true, isblockseq: !cannotBeCompact(state, key, level + 1) })
+      : writeNode(state, level + 1, key, { compact: true, iskey: true })
+
+    // A block key always needs explicit form; for a simple scalar key only an
+    // over-long key (which would overflow the line) forces it.
+    const explicitPair = keyIsBlock || keyText.length > 1024
 
     if (explicitPair) {
       if (keyText && CHAR_LINE_FEED === keyText.charCodeAt(0)) {
@@ -716,7 +728,8 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
       pairBuffer += generateNextLine(state, level)
     }
 
-    const valueText = writeNode(state, level + 1, value, { block: true, compact: explicitPair })
+    const valueText = writeNode(state, level + 1, value,
+      { block: true, compact: explicitPair, isblockseq: explicitPair && !cannotBeCompact(state, value, level + 1) })
 
     // Dumper convention: keep a space between an inline alias key and its colon
     // (`*b : v`), so the alias never runs straight into the indicator.
@@ -774,7 +787,18 @@ interface NodeContext {
   block?: boolean      // block context (vs flow); propagates downward
   compact?: boolean    // may start on the current line (no leading newline)
   iskey?: boolean      // node is a mapping key
-  isblockseq?: boolean // parent is a block sequence (only for seqNoIndent)
+  isblockseq?: boolean // content follows an indicator (`-`, or `?`/`:` in an
+                       // explicit pair) that already shifted it right; keeps
+                       // its indentation under seqNoIndent
+}
+
+// A node can't sit compact on its parent's indicator (`-`/`?`/`:`) line when it
+// carries leading props (tag/anchor) that would collide with the indicator, or
+// when `indent != 2` makes the fixed 2-char indicator misalign with the deeper
+// indent step. Such a node drops to its own line; a block collection that does
+// so also collapses its seqNoIndent indentation back to the parent.
+function cannotBeCompact (state: PresenterState, node: Node, level: number) {
+  return node.style.tagged || node.anchor !== undefined || (state.indent !== 2 && level > 0)
 }
 
 function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeContext): string {
@@ -785,7 +809,7 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
 
   const hasAnchor = node.anchor !== undefined
 
-  if (node.style.tagged || hasAnchor || (state.indent !== 2 && level > 0)) {
+  if (cannotBeCompact(state, node, level)) {
     compact = false
   }
 
