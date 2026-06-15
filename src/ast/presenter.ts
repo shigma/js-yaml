@@ -418,9 +418,9 @@ function renderScalarStyle (string: string, style: number, layout: ReturnType<ty
 
   switch (style) {
     case STYLE_PLAIN:
-      return string
+      return foldFlowScalar(string, indent)
     case STYLE_SINGLE:
-      return `'${string.replace(/'/g, "''")}'`
+      return `'${foldFlowScalar(string, indent).replace(/'/g, "''")}'`
     case STYLE_LITERAL:
       return '|' + blockHeader(string, blockIndent) +
         dropEndingNewline(indentString(string, indent))
@@ -479,6 +479,33 @@ function blockHeader (string: string, indentPerLevel: number) {
   const chomp = keep ? '+' : (clip ? '' : '-')
 
   return `${indentIndicator}${chomp}\n`
+}
+
+// Flow scalars (plain, single-quoted) fold line breaks: a run of k source line
+// breaks reparses to k-1 literal `\n`. So a single break is just line-wrapping
+// (folds back to a space), while a literal `\n` in the value must be emitted as
+// a blank line (two breaks). Encode each run of p literal `\n` as p+1 breaks and
+// indent the following content line so the continuation isn't read as a new node
+// (a bare break would yield invalid "deficient indentation" output). Block
+// folding's `foldString` can't be reused here: it treats a leading space as a
+// "more-indented" line and suppresses the doubling, which a flow scalar must not.
+function foldFlowScalar (string: string, indent: number) {
+  let nextLF = string.indexOf('\n')
+  if (nextLF === -1) return string
+
+  const pad = ' '.repeat(indent)
+  let result = string.slice(0, nextLF) // first line follows the quote, no indent
+
+  const lineRe = /(\n+)([^\n]*)/g
+  lineRe.lastIndex = nextLF
+  let match
+  while ((match = lineRe.exec(string))) {
+    const breaks = match[1].length
+    const line = match[2]
+    result += '\n'.repeat(breaks + 1) + (line === '' ? '' : pad + line)
+  }
+
+  return result
 }
 
 // (See the note for renderScalarStyle.)
