@@ -76,7 +76,11 @@ const expectedKeys = [
 
   'createConstructorState',
   'constructEvents',
-  'constructDocuments'
+  'constructDocuments',
+
+  'eventsToAst',
+  'present',
+  'Style'
 ]
 
 function checkExports (yaml, options) {

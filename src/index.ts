@@ -100,6 +100,20 @@ import {
   type ConstructorState
 } from './parser/constructor.ts'
 
+import { eventsToAst, type FromEventsOptions } from './ast/from_events.ts'
+import { present, type PresenterOptions } from './ast/presenter.ts'
+import {
+  Style,
+  type Node,
+  type Document,
+  type Stream,
+  type NodeBase,
+  type ScalarNode,
+  type SequenceNode,
+  type MappingNode,
+  type AliasNode
+} from './ast/nodes.ts'
+
 export {
   Schema,
   FAILSAFE_SCHEMA,
@@ -167,6 +181,10 @@ export {
   constructEvents,
   constructDocuments,
 
+  eventsToAst,
+  present,
+  Style,
+
   type LoadOptions,
   type DumpOptions,
   type TagDefinitionMap,
@@ -197,5 +215,16 @@ export {
   type ParserOptions,
 
   type ConstructorOptions,
-  type ConstructorState
+  type ConstructorState,
+
+  type FromEventsOptions,
+  type PresenterOptions,
+  type Node,
+  type Document,
+  type Stream,
+  type NodeBase,
+  type ScalarNode,
+  type SequenceNode,
+  type MappingNode,
+  type AliasNode
 }
