@@ -758,9 +758,16 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
     const valueText = writeNode(state, level + 1, value,
       { block: true, compact: explicitPair, isblockseq: explicitPair && !cannotBeCompact(state, value, level + 1) })
 
-    // Dumper convention: keep a space between an inline alias key and its colon
-    // (`*b : v`), so the alias never runs straight into the indicator.
-    const keyColonSep = key.kind === 'alias' && !explicitPair ? ' ' : ''
+    // Keep a space before the colon when the key text ends in a leading
+    // property rather than scalar content, so the colon can't be read as part
+    // of it. Two cases: an inline alias key (`*b : v`), and an empty scalar key
+    // whose whole text is its anchor/tag (`&a :`, `!!str :`) — without the
+    // space `&a:` reparses as an anchored value, dropping the null key.
+    const keyIsBareProps = key.kind === 'scalar' && key.value === '' &&
+      keyText !== '' &&
+      keyText.charCodeAt(keyText.length - 1) !== CHAR_SINGLE_QUOTE &&
+      keyText.charCodeAt(keyText.length - 1) !== CHAR_DOUBLE_QUOTE
+    const keyColonSep = !explicitPair && (key.kind === 'alias' || keyIsBareProps) ? ' ' : ''
 
     // No trailing space when the value renders empty (e.g. null → '').
     if (valueText === '' || CHAR_LINE_FEED === valueText.charCodeAt(0)) {
