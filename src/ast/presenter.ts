@@ -455,7 +455,12 @@ function resolveScalarStyle (state: PresenterState, node: ScalarNode,
   const string = node.value
 
   if (string.length === 0) {
-    if (state.quoteStyle === 'auto' && resolveImplicitTag(state, string) === node.tag) return STYLE_PLAIN
+    // An empty scalar carries no text to resolve, so a bare plain one reads
+    // back as the implicit tag. That round-trips only if an explicit tag is
+    // printed (disambiguating it) or the implicit tag already matches; else
+    // quote it. Without a property a plain empty would vanish entirely.
+    if (state.quoteStyle === 'auto' &&
+      (node.style.tagged || resolveImplicitTag(state, string) === node.tag)) return STYLE_PLAIN
     return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
 
