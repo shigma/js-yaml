@@ -215,6 +215,14 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions = {})
           explicitStart: event.explicitStart,
           explicitEnd: event.explicitEnd
         }
+        // Carry directives faithfully: `version` only when a %YAML directive was
+        // present (default is ''), `tagHandles` only for explicit %TAG (the event
+        // map never holds the implicit `!`/`!!` handles).
+        if (event.version) doc.version = event.version
+        const handles = Object.keys(event.tagDirectives)
+        if (handles.length > 0) {
+          doc.tagHandles = handles.map(handle => ({ handle, prefix: event.tagDirectives[handle] }))
+        }
         state.frames.push({ kind: 'document', doc })
         break
       }
