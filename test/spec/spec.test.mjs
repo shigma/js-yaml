@@ -179,6 +179,25 @@ function actualTreeLines (input) {
   return lines
 }
 
+// Mirror YAMLTestSuite.pm: within a multi-document fixture file, each document
+// inherits unset fields from the previous one via a rolling cache. `name`/`yaml`
+// fall back through `||`; `tree`/`json`/`dump` are copied when the key is absent;
+// `fail` is strictly local (never inherited). The merged fixture becomes the
+// cache for the next document.
+function mergeDefaults (fixture, cache) {
+  const merged = { ...fixture }
+
+  merged.name = merged.name || cache.name
+  merged.yaml = merged.yaml || cache.yaml
+  merged.fail = 'fail' in fixture
+
+  for (const key of ['tree', 'json', 'dump']) {
+    if (!(key in fixture) && cache[key] != null) merged[key] = cache[key]
+  }
+
+  return merged
+}
+
 describe('yaml-test-suite parser tree', () => {
   if (!fs.existsSync(srcDir)) {
     throw new Error('Missing yaml-test-suite fixtures. Run npm run spec:get first.')
@@ -191,19 +210,32 @@ describe('yaml-test-suite parser tree', () => {
     const fixtureFile = path.join(srcDir, file)
     const fixtures = load(fs.readFileSync(fixtureFile, 'utf8'), { filename: fixtureFile })
 
-    fixtures.forEach((fixture, index) => {
-      const name = fixture.name || id
+    // A `skip: true` on the first document means the whole file is excluded from
+    // the suite; keep one visible marker so it isn't dropped silently.
+    if (fixtures[0]?.skip) {
+      describe(id, () => {
+        it(id, { skip: 'suite marks file skip' }, () => {})
+      })
+      continue
+    }
+
+    let cache = {}
+
+    fixtures.forEach((rawFixture, index) => {
+      const fixture = mergeDefaults(rawFixture, cache)
+      cache = fixture
+
       const suffix = fixtures.length > 1 ? `/${String(index).padStart(2, '0')}` : ''
-      const title = `${id}${suffix} ${name}`
+
+      // Positively annotate the reduced sets; the full tree+json+round-trip case
+      // carries no suffix.
+      let annotation = ''
+      if (fixture.fail) annotation = ' (invalid)'
+      else if (fixture.json == null) annotation = ' (tree only)'
+
+      const title = `${id}${suffix} ${fixture.name || id}${annotation}`
 
       describe(title, () => {
-        if (fixture.yaml == null) {
-          it(`${id} tree`, { skip: 'no yaml/tree success expectation' }, () => {})
-          it(`${id} json`, { skip: 'no yaml/json success expectation' }, () => {})
-          it(`${id} round-trip`, { skip: 'no yaml to dump' }, () => {})
-          return
-        }
-
         if (fixture.fail) {
           it(`${id} tree`, () => {
             const input = unescapeFixtureText(fixture.yaml)
@@ -216,50 +248,45 @@ describe('yaml-test-suite parser tree', () => {
 
             assert.throws(() => loadAll(input))
           })
-
-          it(`${id} round-trip`, { skip: 'invalid yaml, nothing to dump' }, () => {})
           return
         }
 
-        if (fixture.tree == null) {
-          it(`${id} tree`, { skip: 'no tree success expectation' }, () => {})
-        } else {
-          it(`${id} tree`, () => {
-            const input = unescapeFixtureText(fixture.yaml)
-
-            assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
+        // After inheritance a non-fail fixture must carry at least a `tree`
+        // (usually also a `json`). Neither present means nothing to assert,
+        // which signals a broken merge or an unexpected suite shape — fail loud.
+        if (fixture.tree == null && fixture.json == null) {
+          it(`${id} usable`, () => {
+            assert.fail('fixture has no usable expectation after merge')
           })
+          return
         }
 
-        if (fixture.json == null) {
-          it(`${id} json`, { skip: 'no json success expectation' }, () => {})
-        } else {
-          it(`${id} json`, () => {
-            const input = unescapeFixtureText(fixture.yaml)
-            const result = loadAll(input, { schema: SPEC_SCHEMA })
-            const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
+        it(`${id} tree`, () => {
+          const input = unescapeFixtureText(fixture.yaml)
 
-            assert.deepStrictEqual(result, expected)
-          })
-        }
+          assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
+        })
 
-        // Round-trip is only meaningful when the suite asserts a native value
-        // exists (the `json` field); fixtures with only a `tree` may parse but
-        // have no constructible value to dump (duplicate keys, complex keys…).
-        if (fixture.json == null) {
-          it(`${id} round-trip`, { skip: 'no native value to dump' }, () => {})
-        } else {
-          it(`${id} round-trip`, () => {
-            const input = unescapeFixtureText(fixture.yaml)
-            const docs = loadAll(input, { schema: SPEC_SCHEMA })
+        if (fixture.json == null) return
 
-            // dump() emits a single document without a `---` marker, so join
-            // multi-document fixtures with explicit markers before reloading.
-            const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
+        it(`${id} json`, () => {
+          const input = unescapeFixtureText(fixture.yaml)
+          const result = loadAll(input, { schema: SPEC_SCHEMA })
+          const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
 
-            assert.deepStrictEqual(loadAll(dumped, { schema: SPEC_SCHEMA }), docs)
-          })
-        }
+          assert.deepStrictEqual(result, expected)
+        })
+
+        it(`${id} round-trip`, () => {
+          const input = unescapeFixtureText(fixture.yaml)
+          const docs = loadAll(input, { schema: SPEC_SCHEMA })
+
+          // dump() emits a single document without a `---` marker, so join
+          // multi-document fixtures with explicit markers before reloading.
+          const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
+
+          assert.deepStrictEqual(loadAll(dumped, { schema: SPEC_SCHEMA }), docs)
+        })
       })
     })
   }
