@@ -7,13 +7,16 @@ describe('tags', () => {
     assert.deepStrictEqual(load('string: abcd'), { string: 'abcd' })
   })
 
-  it('str ascii', () => {
-    assert.strictEqual(load('--- !!str "ascii string"'), 'ascii string')
+  it('str unicode', () => {
+    const src = '!!str "Это уникодная строка"'
+    const expected = 'Это уникодная строка'
+
+    assert.strictEqual(load(src), expected)
   })
 
-  it('str utf8', () => {
-    const src = '--- !!str "Это уникодная строка"'
-    const expected = '\u042d\u0442\u043e \u0443\u043d\u0438\u043a\u043e\u0434\u043d\u0430\u044f \u0441\u0442\u0440\u043e\u043a\u0430'
+  it('bad unicode char', () => {
+    const src = '"\udd00"'
+    const expected = '\udd00'
 
     assert.strictEqual(load(src), expected)
   })
