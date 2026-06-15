@@ -696,10 +696,16 @@ function readBlockScalar (state: ParserState, parentIndent: number, props: NodeP
     const first = state.input.charCodeAt(linePosition + column)
     if (first === 0) {
       // End of input acts as a line terminator, but there is no line break to
-      // include here. A final all-spaces line whose indentation exceeds the
-      // content indent is real content (its extra spaces), so capture it;
-      // otherwise the block ends at the start of this (empty) line.
-      if (contentIndent >= 0 && column > contentIndent) valueEnd = linePosition + column
+      // include here. A final all-spaces line still counts: when the block has a
+      // content indent, the spaces beyond it are real content; in a wholly blank
+      // block (contentIndent < 0) the spaces form a blank line that chomping must
+      // see, exactly as it would if the line ended with a break. Capture the line
+      // in both cases; otherwise the block ends at the start of this empty line.
+      if (contentIndent >= 0) {
+        if (column > contentIndent) valueEnd = linePosition + column
+      } else if (column > 0) {
+        valueEnd = linePosition + column
+      }
       break
     }
     if (linePosition === state.lineStart && testDocumentSeparator(state, linePosition)) break
