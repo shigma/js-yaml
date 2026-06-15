@@ -740,7 +740,7 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
     const keyText = keyIsBlock
       ? writeNode(state, level + 1, key,
         { block: true, compact: true, isblockseq: !cannotBeCompact(state, key, level + 1) })
-      : writeNode(state, level + 1, key, { compact: true, iskey: true })
+      : writeNode(state, level + 1, key, { block: true, compact: true, iskey: true })
 
     // A block key always needs explicit form; for a simple scalar key only an
     // over-long key (which would overflow the line) forces it.
