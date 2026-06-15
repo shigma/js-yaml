@@ -698,7 +698,9 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
     // yet.) Scalar keys are unaffected by flow-vs-block.
     const keyText = writeNode(state, level + 1, key, { compact: true, iskey: true })
 
-    const explicitPair = key.style.tagged || (keyText.length > 1024)
+    // A tagged scalar key (`!!str a: b`) is still a valid simple key, so only an
+    // over-long key forces the explicit `? key / : value` form.
+    const explicitPair = keyText.length > 1024
 
     if (explicitPair) {
       if (keyText && CHAR_LINE_FEED === keyText.charCodeAt(0)) {
@@ -716,11 +718,15 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
 
     const valueText = writeNode(state, level + 1, value, { block: true, compact: explicitPair })
 
+    // Dumper convention: keep a space between an inline alias key and its colon
+    // (`*b : v`), so the alias never runs straight into the indicator.
+    const keyColonSep = key.kind === 'alias' && !explicitPair ? ' ' : ''
+
     // No trailing space when the value renders empty (e.g. null → '').
     if (valueText === '' || CHAR_LINE_FEED === valueText.charCodeAt(0)) {
-      pairBuffer += ':'
+      pairBuffer += `${keyColonSep}:`
     } else {
-      pairBuffer += ': '
+      pairBuffer += `${keyColonSep}: `
     }
 
     pairBuffer += valueText
@@ -824,7 +830,10 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
       if (tag !== null) props.push(tag)
     }
 
-    body = `${props.join(' ')}${body.charCodeAt(0) === CHAR_LINE_FEED ? '' : ' '}${body}`
+    // No separator when the body is empty (e.g. `&anchor` on a null node) or
+    // already starts on its own line.
+    const sep = body === '' || body.charCodeAt(0) === CHAR_LINE_FEED ? '' : ' '
+    body = `${props.join(' ')}${sep}${body}`
   }
 
   return body
