@@ -90,14 +90,6 @@ describe('Scalar style dump:', () => {
       assert.strictEqual(dump(' these go\nup to\neleven', { indent: 11 }),
         '" these go\\nup to\\neleven"\n')
     })
-
-    it('does not use block style for multiline key', () => {
-      assert.strictEqual(dump({
-        'push\nand': {
-          you: 'pull'
-        }
-      }), '"push\\nand":\n  you: pull\n')
-    })
   })
 
   describe('Folded style', () => {

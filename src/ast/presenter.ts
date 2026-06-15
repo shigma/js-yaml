@@ -742,9 +742,10 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
         { block: true, compact: true, isblockseq: !cannotBeCompact(state, key, level + 1) })
       : writeNode(state, level + 1, key, { block: true, compact: true, iskey: true })
 
-    // A block key always needs explicit form; for a simple scalar key only an
-    // over-long key (which would overflow the line) forces it.
-    const explicitPair = keyIsBlock || keyText.length > 1024
+    // Block key, over-long key, or multiline scalar key forces explicit form.
+    // Multiline isn't a spec requirement — just matches pyyaml's simple-key rule.
+    const keyHasLineBreak = key.kind === 'scalar' && key.value.indexOf('\n') !== -1
+    const explicitPair = keyIsBlock || keyHasLineBreak || keyText.length > 1024
 
     if (explicitPair) {
       if (keyText && CHAR_LINE_FEED === keyText.charCodeAt(0)) {
