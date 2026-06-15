@@ -875,11 +875,12 @@ function isOpenEnded (node: Node) {
 function present (stream: Document[], options: PresenterOptions): string {
   const state = createPresenterState(options)
   let result = ''
+  let previousEnded = false
 
   for (let index = 0; index < stream.length; index += 1) {
     const doc = stream[index]
     const hasDirectives = doc.version !== undefined || doc.tagHandles !== undefined
-    const marker = index > 0 || doc.explicitStart || hasDirectives
+    const marker = doc.explicitStart || hasDirectives || (index > 0 && !previousEnded)
 
     if (doc.contents === null) {
       if (marker) result += '---\n'
@@ -894,7 +895,8 @@ function present (stream: Document[], options: PresenterOptions): string {
       result += writeNode(state, 0, doc.contents, { block: true, compact: true }) + '\n'
     }
 
-    if (doc.explicitEnd || (doc.contents !== null && isOpenEnded(doc.contents))) {
+    previousEnded = doc.explicitEnd || (doc.contents !== null && isOpenEnded(doc.contents))
+    if (previousEnded) {
       result += '...\n'
     }
   }
