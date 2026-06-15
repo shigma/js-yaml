@@ -227,11 +227,16 @@ describe('yaml-test-suite parser tree', () => {
 
       const suffix = fixtures.length > 1 ? `/${String(index).padStart(2, '0')}` : ''
 
-      // Positively annotate the reduced sets; the full tree+json+round-trip case
-      // carries no suffix.
-      let annotation = ''
-      if (fixture.fail) annotation = ' (invalid)'
-      else if (fixture.json == null) annotation = ' (tree only)'
+      // Annotate the title with the checks this fixture actually runs. The full
+      // tree+json+round-trip set carries no suffix; reduced sets list their
+      // active checks by name. `(tree, json)` (no round-trip) uniquely marks a
+      // fail fixture, since a non-fail fixture with `json` always round-trips.
+      let checks
+      if (fixture.fail) checks = ['tree', 'json']
+      else if (fixture.tree == null && fixture.json == null) checks = ['usable']
+      else if (fixture.json == null) checks = ['tree']
+      else checks = ['tree', 'json', 'round-trip']
+      const annotation = checks.length === 3 ? '' : ` (${checks.join(', ')})`
 
       const title = `${id}${suffix} ${fixture.name || id}${annotation}`
 
