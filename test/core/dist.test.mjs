@@ -79,6 +79,7 @@ const expectedKeys = [
   'constructDocuments',
 
   'eventsToAst',
+  'jsToAst',
   'present',
   'Style',
   'visit',

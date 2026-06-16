@@ -101,6 +101,7 @@ import {
 } from './parser/constructor.ts'
 
 import { eventsToAst, type FromEventsOptions } from './ast/from_events.ts'
+import { jsToAst, type FromJsOptions } from './ast/from_js.ts'
 import { present, type PresenterOptions } from './ast/presenter.ts'
 import {
   visit,
@@ -189,6 +190,7 @@ export {
   constructDocuments,
 
   eventsToAst,
+  jsToAst,
   present,
   Style,
   visit,
@@ -228,6 +230,7 @@ export {
   type ConstructorState,
 
   type FromEventsOptions,
+  type FromJsOptions,
   type PresenterOptions,
   type Node,
   type Document,
