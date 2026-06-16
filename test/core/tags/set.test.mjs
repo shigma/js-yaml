@@ -26,4 +26,13 @@ baseball teams: !!set { Boston Red Sox, Detroit Tigers, New York Yankees }
 
     assert.deepStrictEqual(load(src, { schema: YAML11_SCHEMA }), expected)
   })
+
+  it('set throws on an item with a non-null value', () => {
+    const src = `
+--- !!set
+? key
+: not null
+`
+    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve a set item/)
+  })
 })

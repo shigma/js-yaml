@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load } from 'js-yaml'
+import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump } from 'js-yaml'
 
 const variants = [
   ['JSON', JSON_SCHEMA],
@@ -20,8 +20,16 @@ valid_false: false
     }
 
     for (const [name, schema] of variants) {
-      it(name, () => {
+      it(`${name} common part`, () => {
         assert.deepStrictEqual(load(src, { schema }), expected)
+      })
+
+      it(`${name} round-trip`, () => {
+        assert.deepStrictEqual(load(dump(expected, { schema }), { schema }), expected)
+      })
+
+      it(`${name} fail explicit tag`, () => {
+        assert.throws(() => load('!!bool garbage', { schema }), /cannot resolve/)
       })
     }
   })

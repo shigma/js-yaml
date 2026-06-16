@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, JSON_SCHEMA, load, loadAll } from 'js-yaml'
+import { CORE_SCHEMA, JSON_SCHEMA, load, loadAll, dump } from 'js-yaml'
 
 describe('tags', () => {
   it('null', () => {
@@ -40,6 +40,7 @@ sparse:
     ]
 
     assert.deepStrictEqual(loadAll(src, { schema: CORE_SCHEMA }), expected)
+    assert.deepStrictEqual(load(dump(expected[1], { schema: CORE_SCHEMA }), { schema: CORE_SCHEMA }), expected[1])
   })
 
   it('null/JSON schema', () => {
@@ -58,5 +59,9 @@ variants: [ Null, NULL ]
     }
 
     assert.deepStrictEqual(load(src, { schema: JSON_SCHEMA }), expected)
+    assert.deepStrictEqual(load(dump(expected, { schema: JSON_SCHEMA }), { schema: JSON_SCHEMA }), expected)
+
+    // explicit empty !!null resolves to null
+    assert.strictEqual(load('!!null', { schema: JSON_SCHEMA }), null)
   })
 })

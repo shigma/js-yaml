@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, YAML11_SCHEMA } from 'js-yaml'
+import { load, dump, YAML11_SCHEMA } from 'js-yaml'
 
 describe('tags', () => {
   it('seq', () => {
@@ -23,5 +23,6 @@ Flow style: !!seq [ Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptun
     }
 
     assert.deepStrictEqual(load(src, { schema: YAML11_SCHEMA }), expected)
+    assert.deepStrictEqual(load(dump(expected, { schema: YAML11_SCHEMA }), { schema: YAML11_SCHEMA }), expected)
   })
 })

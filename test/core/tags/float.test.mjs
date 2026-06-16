@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load } from 'js-yaml'
+import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump } from 'js-yaml'
 
 const variants = [
   ['JSON', JSON_SCHEMA],
@@ -19,16 +19,33 @@ describe('tags/float', () => {
 - -1.0
 - 0.
 - -0.0
+- 1e999 # overflows to Infinity, stays a string
 `
     const expected = [
       685230.15, 685230.15, 685230.15,
 
-      '.', -1.0, 0.0, -0.0
+      '.', -1.0, 0.0, -0.0, '1e999'
     ]
 
     for (const [name, schema] of variants) {
-      it(name, () => {
+      it(`${name} common part`, () => {
         assert.deepStrictEqual(load(src, { schema }), expected)
+      })
+
+      it(`${name} round-trip`, () => {
+        assert.deepStrictEqual(load(dump(expected, { schema }), { schema }), expected)
+      })
+
+      it(`${name} special round-trip`, () => {
+        // .nan, .inf, -.inf, exponent — every representYamlFloat branch
+        // plus both signs of the .inf resolve branch
+        const values = [NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 1e-7]
+        assert.deepStrictEqual(load(dump(values, { schema }), { schema }), values)
+      })
+
+      it(`${name} fail explicit tag`, () => {
+        assert.throws(() => load('!!float abc', { schema }), /cannot resolve/)
+        assert.throws(() => load('!!float 1e999', { schema }), /cannot resolve/)
       })
     }
   })
