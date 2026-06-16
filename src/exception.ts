@@ -4,9 +4,8 @@ import type { SnippetMark } from './snippet.ts'
 //
 function formatError (exception: YAMLException, compact?: boolean) {
   let where = ''
-  const message = exception.reason || '(unknown reason)'
 
-  if (!exception.mark) return message
+  if (!exception.mark) return exception.reason
 
   if (exception.mark.name) {
     where += `in "${exception.mark.name}" `
@@ -18,7 +17,7 @@ function formatError (exception: YAMLException, compact?: boolean) {
     where += `\n\n${exception.mark.snippet}`
   }
 
-  return `${message} ${where}`
+  return `${exception.reason} ${where}`
 }
 
 class YAMLException extends Error {
@@ -26,7 +25,6 @@ class YAMLException extends Error {
   mark?: SnippetMark
 
   constructor (reason: string, mark?: SnippetMark) {
-    // Super constructor
     super()
 
     this.name = 'YAMLException'
@@ -34,13 +32,10 @@ class YAMLException extends Error {
     this.mark = mark
     this.message = formatError(this, false)
 
-    // Include stack trace in error object
+    // Guard for ancient browsers
     if (Error.captureStackTrace) {
-      // Chrome and NodeJS
+      // Include stack trace in error object,
       Error.captureStackTrace(this, this.constructor)
-    } else {
-      // FF, IE 10+ and Safari 6+. Fallback for others
-      this.stack = (new Error()).stack || ''
     }
   }
 
