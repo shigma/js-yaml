@@ -63,28 +63,8 @@ interface Document {
 
 type Stream = Document[]
 
-function isScalar (node: Node): node is ScalarNode {
-  return node.kind === 'scalar'
-}
-
-function isSequence (node: Node): node is SequenceNode {
-  return node.kind === 'sequence'
-}
-
-function isMapping (node: Node): node is MappingNode {
-  return node.kind === 'mapping'
-}
-
-function isAlias (node: Node): node is AliasNode {
-  return node.kind === 'alias'
-}
-
 export {
   Style,
-  isScalar,
-  isSequence,
-  isMapping,
-  isAlias,
 
   type Node,
   type TagHandles,
