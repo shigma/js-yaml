@@ -81,4 +81,22 @@ describe('ast presenter', () => {
     // A real empty string stays quoted, distinct from null/empty.
     assert.equal(dump({ a: '' }, { schema }), "a: ''\n")
   })
+
+  it('applies flow recursively to descendants', () => {
+    const node = jsToAst([{ a: [1, 2], b: 'x\ny' }], CORE_SCHEMA)
+    node.style.flow = true // only the outer sequence
+
+    // Nested collections render flow despite their own block style, and a
+    // multiline scalar can't stay block inside flow — it falls back to quoting.
+    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA }), '[{a: [1, 2], b: "x\\ny"}]\n')
+  })
+
+  it('propagates seqNoIndent to nested sequences', () => {
+    const node = jsToAst([{ items: [{ a: 1 }] }], CORE_SCHEMA)
+
+    // The deeper `items` sequence keeps its dashes aligned with the key too,
+    // not just the top-level one.
+    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA }), '- items:\n    - a: 1\n')
+    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA, seqNoIndent: true }), '- items:\n  - a: 1\n')
+  })
 })
