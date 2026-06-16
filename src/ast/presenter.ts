@@ -418,15 +418,15 @@ function renderScalarStyle (string: string, style: number, layout: ReturnType<ty
 
   switch (style) {
     case STYLE_PLAIN:
-      return foldFlowScalar(string, indent)
+      return encodeFlowBreaks(string, indent)
     case STYLE_SINGLE:
-      return `'${foldFlowScalar(string, indent).replace(/'/g, "''")}'`
+      return `'${encodeFlowBreaks(string, indent).replace(/'/g, "''")}'`
     case STYLE_LITERAL:
       return '|' + blockHeader(string, blockIndent) +
         dropEndingNewline(indentString(string, indent))
     case STYLE_FOLDED:
       return '>' + blockHeader(string, blockIndent) +
-        dropEndingNewline(indentString(foldString(string, lineWidth), indent))
+        dropEndingNewline(indentString(foldBlockScalar(string, lineWidth), indent))
     case STYLE_DOUBLE:
       return `"${escapeString(string)}"`
     default:
@@ -491,10 +491,10 @@ function blockHeader (string: string, indentPerLevel: number) {
 // (folds back to a space), while a literal `\n` in the value must be emitted as
 // a blank line (two breaks). Encode each run of p literal `\n` as p+1 breaks and
 // indent the following content line so the continuation isn't read as a new node
-// (a bare break would yield invalid "deficient indentation" output). Block
-// folding's `foldString` can't be reused here: it treats a leading space as a
+// (a bare break would yield invalid "deficient indentation" output).
+// `foldBlockScalar` can't be reused here: it treats a leading space as a
 // "more-indented" line and suppresses the doubling, which a flow scalar must not.
-function foldFlowScalar (string: string, indent: number) {
+function encodeFlowBreaks (string: string, indent: number) {
   let nextLF = string.indexOf('\n')
   if (nextLF === -1) return string
 
@@ -515,14 +515,15 @@ function foldFlowScalar (string: string, indent: number) {
   return result
 }
 
-// (See the note for renderScalarStyle.)
+// Strips one trailing newline from a block scalar: the dumper adds its own,
+// so without this a "+" (keep) chomp would gain an extra blank line.
 function dropEndingNewline (string: string) {
   return string[string.length - 1] === '\n' ? string.slice(0, -1) : string
 }
 
 // Note: a long line without a suitable break point will exceed the width limit.
 // Pre-conditions: every char in str isPrintable, str.length > 0, width > 0.
-function foldString (string: string, width: number) {
+function foldBlockScalar (string: string, width: number) {
   // In folded style, $k$ consecutive newlines output as $k+1$ newlines—
   // unless they're before or after a more-indented line, or at the very
   // beginning or end, in which case $k$ maps to $k$.
