@@ -507,7 +507,9 @@ function foldFlowScalar (string: string, indent: number) {
   while ((match = lineRe.exec(string))) {
     const breaks = match[1].length
     const line = match[2]
-    result += '\n'.repeat(breaks + 1) + (line === '' ? '' : pad + line)
+    // line === '' only at the end (the greedy \n+ leaves no empty line mid-string);
+    // pad it so the closing quote carries indent instead of sitting at column 0.
+    result += '\n'.repeat(breaks + 1) + pad + line
   }
 
   return result
