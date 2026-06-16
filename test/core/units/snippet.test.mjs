@@ -1,4 +1,4 @@
-import { it } from 'node:test'
+import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
 import snippet from '../../../src/snippet.ts'
@@ -176,28 +176,36 @@ Looooooooooooooooooooooooooooooooong Liiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
   ]
 ]
 
-it('Snippet', () => {
-  for (const [input, expected] of cases) {
-    assert(input.indexOf('*') >= 0)
+describe('snippet', () => {
+  it('renders pointer at the marked position', () => {
+    for (const [input, expected] of cases) {
+      assert(input.indexOf('*') >= 0)
 
-    let index = 0
-    let line = 0
-    let column = 0
+      let index = 0
+      let line = 0
+      let column = 0
 
-    while (input[index] !== '*') {
-      if (input[index] === '\n') {
-        line += 1
-        column = 0
-      } else {
-        column += 1
+      while (input[index] !== '*') {
+        if (input[index] === '\n') {
+          line += 1
+          column = 0
+        } else {
+          column += 1
+        }
+        index += 1
       }
-      index += 1
+
+      const mark = { name: 'snippet', buffer: input, position: index, line, column }
+
+      const code = snippet(mark, { indent: 1, maxLength: 78, linesBefore: 3, linesAfter: 2 })
+
+      assert.strictEqual(code, expected)
     }
+  })
 
-    const mark = { name: 'snippet', buffer: input, position: index, line, column }
+  it('returns null when buffer is empty', () => {
+    const mark = { name: 'snippet', buffer: '', position: 0, line: 0, column: 0 }
 
-    const code = snippet(mark, { indent: 1, maxLength: 78, linesBefore: 3, linesAfter: 2 })
-
-    assert.strictEqual(code, expected)
-  }
+    assert.strictEqual(snippet(mark), null)
+  })
 })
