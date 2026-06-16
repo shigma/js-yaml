@@ -6,10 +6,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { JSONParser } from '@streamparser/json'
 
+import { tagNameFull, tagNameShort } from '../../src/ast/tagname_tools.ts'
 import {
   load,
   loadAll,
   dump,
+  eventsToAst,
+  present,
+  visit,
   EVENT_DOCUMENT,
   EVENT_SEQUENCE,
   EVENT_MAPPING,
@@ -96,32 +100,24 @@ function formatRange (input, start, end) {
   return start === -1 ? '' : input.slice(start, end)
 }
 
-const DEFAULT_TAG_HANDLES = { '!': '!', '!!': 'tag:yaml.org,2002:' }
-
-function percentDecode (suffix) {
-  return suffix.replace(/%([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-}
-
 // Resolve a raw tag (e.g. !foo, !!str, !e!tag%21, !<verbatim>) into its full
 // form using the current document's TAG directives, mirroring what the
 // yaml-test-suite tree expects. The parser stores raw tag ranges; the directives
 // needed to resolve them are carried on the DOCUMENT event.
-function formatTag (tag, tagDirectives) {
+function formatTag (tag, tagHandles) {
   if (tag === '') return ''
   if (tag.startsWith('!<') && tag.endsWith('>')) return `<${tag.slice(2, -1)}>`
 
-  const handle = (/^(![\w-]*!|!)/.exec(tag))[1]
-  const prefix = tagDirectives[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
-  return `<${prefix}${percentDecode(tag.slice(handle.length))}>`
+  return `<${tagNameFull(tag, tagHandles)}>`
 }
 
-function formatProperties (input, event, tagDirectives) {
+function formatProperties (input, event, tagHandles) {
   const parts = []
   const anchor = formatRange(input, event.anchorStart, event.anchorEnd)
   const tag = formatRange(input, event.tagStart, event.tagEnd)
 
   if (anchor) parts.push(`&${anchor}`)
-  if (tag) parts.push(formatTag(tag, tagDirectives))
+  if (tag) parts.push(formatTag(tag, tagHandles))
 
   return parts.length > 0 ? `${parts.join(' ')} ` : ''
 }
@@ -140,25 +136,25 @@ function actualTreeLines (input) {
 
   const lines = []
   const stack = []
-  let tagDirectives = {}
+  let tagHandles = []
 
   for (const event of state.events) {
     if (event.type === EVENT_DOCUMENT) {
-      tagDirectives = event.tagDirectives
+      tagHandles = Object.keys(event.tagDirectives).map(handle => ({ handle, prefix: event.tagDirectives[handle] }))
       lines.push(event.explicitStart ? '+DOC ---' : '+DOC')
       stack.push(event)
     } else if (event.type === EVENT_SEQUENCE) {
       const style = event.style === COLLECTION_STYLE_FLOW ? ' []' : ''
-      const props = formatProperties(input, event, tagDirectives)
+      const props = formatProperties(input, event, tagHandles)
       lines.push(`+SEQ${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
       stack.push(event)
     } else if (event.type === EVENT_MAPPING) {
       const style = event.style === COLLECTION_STYLE_FLOW ? ' {}' : ''
-      const props = formatProperties(input, event, tagDirectives)
+      const props = formatProperties(input, event, tagHandles)
       lines.push(`+MAP${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
       stack.push(event)
     } else if (event.type === EVENT_SCALAR) {
-      const props = formatProperties(input, event, tagDirectives)
+      const props = formatProperties(input, event, tagHandles)
       const value = escapeTreeValue(getScalarValue(state, event))
       lines.push(`=VAL ${props}${scalarStyleMarker(event.style)}${value}`)
     } else if (event.type === EVENT_ALIAS) {
@@ -179,23 +175,35 @@ function actualTreeLines (input) {
   return lines
 }
 
-// Mirror YAMLTestSuite.pm: within a multi-document fixture file, each document
-// inherits unset fields from the previous one via a rolling cache. `name`/`yaml`
-// fall back through `||`; `tree`/`json`/`dump` are copied when the key is absent;
-// `fail` is strictly local (never inherited). The merged fixture becomes the
-// cache for the next document.
-function mergeDefaults (fixture, cache) {
-  const merged = { ...fixture }
+// The suite's outer stream markers are inconsistent across generations: ignore
+// an optional leading `---` and trailing `...`.
+function normalizeDumpMarkers (yaml) {
+  const withoutStart = yaml.replace(/^---(?:(?:[ \t]+)(?=\S)|[ \t]*\n)/, '')
+  return withoutStart.endsWith('...\n') ? withoutStart.slice(0, -4) : withoutStart
+}
 
-  merged.name = merged.name || cache.name
-  merged.yaml = merged.yaml || cache.yaml
-  merged.fail = 'fail' in fixture
+function normalizeFixtureDump (sample) {
+  let result = sample
+  result = unescapeFixtureText(result)
+  result = normalizeDumpMarkers(result)
+  // Quick hack for a couple of tests using legacy \uXXXX escapes for non-ASCII
+  result = result.replace(/\\u([0-9A-Fa-f]{4})/g, (match, hex) => {
+    const code = parseInt(hex, 16)
+    return code > 0x7E ? String.fromCharCode(code) : match
+  })
 
-  for (const key of ['tree', 'json', 'dump']) {
-    if (!(key in fixture) && cache[key] != null) merged[key] = cache[key]
-  }
+  return result
+}
 
-  return merged
+// `emit` keeps the %YAML/%TAG directives that the presenter doesn't render;
+// drop those lines so the rest of the stream can be compared.
+function normalizeFixtureEmit (sample) {
+  let result = sample
+  result = unescapeFixtureText(result)
+  result = normalizeDumpMarkers(result)
+  // emit can contain directives, drop those.
+  result = result.replace(/^%(YAML|TAG)\b.*\n/gm, '')
+  return result
 }
 
 describe('yaml-test-suite parser tree', () => {
@@ -210,6 +218,13 @@ describe('yaml-test-suite parser tree', () => {
     const fixtureFile = path.join(srcDir, file)
     const fixtures = load(fs.readFileSync(fixtureFile, 'utf8'), { filename: fixtureFile })
 
+    for (let index = 1; index < fixtures.length; index++) {
+      const current = fixtures[index]
+      fixtures[index] = Object.assign({}, fixtures[index - 1], current)
+
+      if (!Object.hasOwn(current, 'fail')) delete fixtures[index].fail
+    }
+
     // A `skip: true` on the first document means the whole file is excluded from
     // the suite; keep one visible marker so it isn't dropped silently.
     if (fixtures[0]?.skip) {
@@ -219,13 +234,12 @@ describe('yaml-test-suite parser tree', () => {
       continue
     }
 
-    let cache = {}
-
-    fixtures.forEach((rawFixture, index) => {
-      const fixture = mergeDefaults(rawFixture, cache)
-      cache = fixture
-
+    fixtures.forEach((fixture, index) => {
       const suffix = fixtures.length > 1 ? `/${String(index).padStart(2, '0')}` : ''
+      const hasTree = typeof fixture.tree === 'string'
+      const hasJson = typeof fixture.json === 'string'
+      const hasDump = typeof fixture.dump === 'string'
+      const hasEmit = typeof fixture.emit === 'string'
 
       // Annotate the title with the checks this fixture actually runs. The full
       // tree+json+round-trip set carries no suffix; reduced sets list their
@@ -233,8 +247,8 @@ describe('yaml-test-suite parser tree', () => {
       // fail fixture, since a non-fail fixture with `json` always round-trips.
       let checks
       if (fixture.fail) checks = ['tree', 'json']
-      else if (fixture.tree == null && fixture.json == null) checks = ['usable']
-      else if (fixture.json == null) checks = ['tree']
+      else if (!hasTree && !hasJson) checks = ['usable']
+      else if (!hasJson) checks = ['tree']
       else checks = ['tree', 'json', 'round-trip']
       const annotation = checks.length === 3 ? '' : ` (${checks.join(', ')})`
 
@@ -259,7 +273,7 @@ describe('yaml-test-suite parser tree', () => {
         // After inheritance a non-fail fixture must carry at least a `tree`
         // (usually also a `json`). Neither present means nothing to assert,
         // which signals a broken merge or an unexpected suite shape — fail loud.
-        if (fixture.tree == null && fixture.json == null) {
+        if (!hasTree && !hasJson) {
           it(`${id} usable`, () => {
             assert.fail('fixture has no usable expectation after merge')
           })
@@ -272,26 +286,122 @@ describe('yaml-test-suite parser tree', () => {
           assert.deepStrictEqual(actualTreeLines(input), expectedTreeLines(fixture.tree))
         })
 
-        if (fixture.json == null) return
+        // `json`/`round-trip` need the suite's JSON expectation; `dump` below
+        // does not — it parses YAML and compares to the `dump` field directly,
+        // so it must not sit behind this gate.
+        if (hasJson) {
+          it(`${id} json`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+            const result = loadAll(input, { schema: SPEC_SCHEMA })
+            const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
 
-        it(`${id} json`, () => {
-          const input = unescapeFixtureText(fixture.yaml)
-          const result = loadAll(input, { schema: SPEC_SCHEMA })
-          const expected = parseConcatenatedJson(unescapeFixtureText(fixture.json))
+            assert.deepStrictEqual(result, expected)
+          })
 
-          assert.deepStrictEqual(result, expected)
-        })
+          it(`${id} round-trip`, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+            const docs = loadAll(input, { schema: SPEC_SCHEMA })
 
-        it(`${id} round-trip`, () => {
-          const input = unescapeFixtureText(fixture.yaml)
-          const docs = loadAll(input, { schema: SPEC_SCHEMA })
+            // dump() emits a single document without a `---` marker, so join
+            // multi-document fixtures with explicit markers before reloading.
+            const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
 
-          // dump() emits a single document without a `---` marker, so join
-          // multi-document fixtures with explicit markers before reloading.
-          const dumped = docs.map(doc => `---\n${dump(doc)}`).join('')
+            assert.deepStrictEqual(loadAll(dumped, { schema: SPEC_SCHEMA }), docs)
+          })
+        }
 
-          assert.deepStrictEqual(loadAll(dumped, { schema: SPEC_SCHEMA }), docs)
-        })
+        // Some fixture style diverge, and difficult to use
+        const divergedFixtures = [
+          // null vs empty scalar
+          '4ABK', 'DK95',
+          // missing block scalar indent indicator
+          '4QFQ', 'K858', 'R4YG',
+        ]
+
+        if (hasDump || hasEmit) {
+          // Dump straight from the parsed events (styles/tags/anchors preserved)
+          // and compare byte-for-byte to the suite's canonical `dump`.
+          it(`${id} dump`, { skip: divergedFixtures.includes(id) }, () => {
+            const input = unescapeFixtureText(fixture.yaml)
+            const state = createParserState(input)
+            parseEvents(state)
+
+            const opts = { schema: SPEC_SCHEMA, seqNoIndent: true }
+            const stream = eventsToAst(state, opts)
+
+            // Our AST stays faithful to the input, but the suite's `dump`
+            // samples follow fixed canonical-dump conventions. Bend the AST to
+            // match those samples before presenting; the presenter and
+            // `from_events` stay faithful, this lives test-side.
+
+            // Samples carry no %YAML/%TAG directives — tags are expanded inline.
+            for (const doc of stream) {
+              visit([doc], (node) => {
+                if (node.style.tagged && node.tag !== '!') node.tag = tagNameShort(tagNameFull(node.tag, doc.tagHandles))
+              })
+
+              delete doc.version
+              delete doc.tagHandles
+            }
+
+            // Samples always render collections as block; only empty `{}`/`[]`
+            // stay flow (they have no block form).
+            visit(stream, (node) => {
+              if (node.kind === 'sequence' || node.kind === 'mapping') {
+                node.style.flow = false
+              }
+            })
+
+            // Samples never present scalar values as block/plain, so fall back
+            // to the quoting they use.
+            visit(stream, (node) => {
+              if (node.kind !== 'scalar') return
+
+              const { style, value } = node
+
+              const isPlain = !style.singleQuoted && !style.doubleQuoted &&
+                !style.literal && !style.folded
+
+              const unsafeBlock = /^ +$/m.test(value) || /^ +\t/m.test(value) ||
+                (style.folded && value.includes('\t'))
+
+              if ((style.literal || style.folded) && (unsafeBlock || value === '')) {
+                style.literal = false
+                style.folded = false
+                style.doubleQuoted = true
+              } else if (isPlain && (value.includes('\n') || value.startsWith('---'))) {
+                style.singleQuoted = true
+              }
+            })
+
+            // Samples double-quote any scalar with non-ASCII chars.
+            visit(stream, (node) => {
+              if (node.kind === 'scalar' && /[\u0080-\uffff]/.test(node.value)) {
+                node.style.singleQuoted = false
+                node.style.literal = false
+                node.style.folded = false
+                node.style.doubleQuoted = true
+              }
+            })
+
+            const out = normalizeDumpMarkers(present(stream, opts))
+
+            const emitOk = hasEmit && out === normalizeFixtureEmit(fixture.emit)
+            const dumpOk = hasDump && out === normalizeFixtureDump(fixture.dump)
+
+            // The suite carries two reference renderings: `dump` (canonical) and
+            // an optional `emit`. They were assembled across generations and a
+            // handful disagree; accept our faithful output if it matches either,
+            // otherwise assert against `dump` for a readable diff.
+            if (!emitOk && !dumpOk) {
+              if (hasDump) {
+                assert.strictEqual(out, normalizeFixtureDump(fixture.dump))
+              } else {
+                assert.strictEqual(out, normalizeFixtureEmit(fixture.emit))
+              }
+            }
+          })
+        }
       })
     })
   }
