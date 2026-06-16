@@ -1,0 +1,103 @@
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
+import { dump, JSON_SCHEMA, CORE_SCHEMA, defineMappingTag, YAMLException } from 'js-yaml'
+
+describe('dump options', () => {
+  it('schema — decides which plain scalars need quoting', () => {
+    // The default dump schema is YAML 1.1, where `yes` is a boolean, so the
+    // string must be quoted; JSON_SCHEMA has no such collision.
+    assert.equal(dump('yes'), "'yes'\n")
+    assert.equal(dump('yes', { schema: JSON_SCHEMA }), 'yes\n')
+  })
+
+  it('skipInvalid — drops unrepresentable values instead of throwing', () => {
+    assert.throws(() => dump({ a: () => 1 }), YAMLException)
+    assert.equal(dump({ a: () => 1, b: 2 }, { skipInvalid: true }), 'b: 2\n')
+  })
+
+  it('noRefs — inlines repeated references instead of anchoring', () => {
+    const shared = { k: 1 }
+
+    assert.equal(dump([shared, shared]), '- &ref_0\n  k: 1\n- *ref_0\n')
+    assert.equal(dump([shared, shared], { noRefs: true }), '- k: 1\n- k: 1\n')
+  })
+
+  it('indent — sets block indentation width', () => {
+    assert.equal(dump({ a: { b: 1 } }), 'a:\n  b: 1\n')
+    assert.equal(dump({ a: { b: 1 } }, { indent: 4 }), 'a:\n    b: 1\n')
+  })
+
+  it('seqNoIndent — aligns sequence dashes with the key', () => {
+    assert.equal(dump({ a: [1, 2] }), 'a:\n  - 1\n  - 2\n')
+    assert.equal(dump({ a: [1, 2] }, { seqNoIndent: true }), 'a:\n- 1\n- 2\n')
+  })
+
+  it('seqInlineFirst — keeps a nested sequence on the parent dash line', () => {
+    assert.equal(dump([[1, 2]]), '- - 1\n  - 2\n')
+    assert.equal(dump([[1, 2]], { seqInlineFirst: false }), '-\n  - 1\n  - 2\n')
+  })
+
+  it('sortKeys — orders mapping keys', () => {
+    assert.equal(dump({ b: 1, a: 2 }), 'b: 1\na: 2\n')
+    assert.equal(dump({ b: 1, a: 2 }, { sortKeys: true }), 'a: 2\nb: 1\n')
+    assert.equal(dump({ b: 1, a: 2 }, { sortKeys: (x, y) => y.localeCompare(x) }), 'b: 1\na: 2\n')
+  })
+
+  it('lineWidth — wraps long scalars', () => {
+    const value = { a: 'one two three four five six seven eight nine ten' }
+
+    assert.equal(dump(value, { lineWidth: 20 }), 'a: >-\n  one two three four\n  five six seven eight\n  nine ten\n')
+    assert(!dump(value).includes('\n  '))
+  })
+
+  it('quoteStyle — forces a scalar quoting style', () => {
+    assert.equal(dump('hello'), 'hello\n')
+    assert.equal(dump('hello', { quoteStyle: 'single' }), "'hello'\n")
+    assert.equal(dump('hello', { quoteStyle: 'double' }), '"hello"\n')
+  })
+
+  it('flowLevel — switches to flow style from the given depth', () => {
+    assert.equal(dump({ a: [1, 2] }), 'a:\n  - 1\n  - 2\n')
+    assert.equal(dump({ a: [1, 2] }, { flowLevel: 0 }), '{a: [1, 2]}\n')
+    assert.equal(dump({ a: [1, 2] }, { flowLevel: 1 }), 'a: [1, 2]\n')
+  })
+
+  it('flowBracketPadding — pads inside flow brackets', () => {
+    assert.equal(dump([1, 2], { flowLevel: 0 }), '[1, 2]\n')
+    assert.equal(dump([1, 2], { flowLevel: 0, flowBracketPadding: true }), '[ 1, 2 ]\n')
+  })
+
+  it('flowSkipCommaSpace — drops the space after flow commas', () => {
+    assert.equal(dump([1, 2], { flowLevel: 0 }), '[1, 2]\n')
+    assert.equal(dump([1, 2], { flowLevel: 0, flowSkipCommaSpace: true }), '[1,2]\n')
+  })
+
+  it('flowSkipColonSpace — drops the space after flow colons', () => {
+    assert.equal(dump({ a: 1 }, { flowLevel: 0 }), '{a: 1}\n')
+    assert.equal(dump({ a: 1 }, { flowLevel: 0, flowSkipColonSpace: true }), '{a:1}\n')
+  })
+
+  it('quoteFlowKeys — quotes keys in flow mappings', () => {
+    assert.equal(dump({ a: 1 }, { flowLevel: 0 }), '{a: 1}\n')
+    assert.equal(dump({ a: 1 }, { flowLevel: 0, quoteFlowKeys: true }), '{"a": 1}\n')
+  })
+
+  it('tagBeforeAnchor — emits the tag before the anchor', () => {
+    function Tagged () {}
+    const schema = CORE_SCHEMA.withTags(defineMappingTag('!t', {
+      create: () => new Tagged(),
+      addPair: (c, k, v) => { c[k] = v },
+      has: () => false,
+      keys: (c) => Object.keys(c),
+      get: (c, k) => c[k],
+      identify: (o) => o instanceof Tagged,
+      represent: (o) => new Map(Object.entries(o))
+    }))
+    const shared = new Tagged()
+    shared.x = 1
+
+    // A shared, custom-tagged mapping carries both an anchor and a tag.
+    assert.equal(dump([shared, shared], { schema }), '- &ref_0 !t\n  x: 1\n- *ref_0\n')
+    assert.equal(dump([shared, shared], { schema, tagBeforeAnchor: true }), '- !t &ref_0\n  x: 1\n- *ref_0\n')
+  })
+})

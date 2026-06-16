@@ -5,20 +5,6 @@ import { CORE_SCHEMA, defineScalarTag, dump, load, NOT_RESOLVED } from 'js-yaml'
 
 describe('dump options', () => {
   describe('seqNoIndent', () => {
-    it('indents arrays an extra level by default', () => {
-      assert.equal(
-        dump({ array: ['a', 'b'] }),
-        'array:\n  - a\n  - b\n'
-      )
-    })
-
-    it('does not indent arrays an extra level when enabled', () => {
-      assert.equal(
-        dump({ array: ['a', 'b'] }, { seqNoIndent: true }),
-        'array:\n- a\n- b\n'
-      )
-    })
-
     it('keeps nested array/object layout stable', () => {
       assert.equal(
         dump([
@@ -38,18 +24,6 @@ describe('dump options', () => {
         ], { seqNoIndent: true }),
         '- a: a_val\n  b: b_val\n- a: a2_val\n  items:\n  - a: a_a_val\n    b: a_b_val\n'
       )
-    })
-  })
-
-  describe('quoteStyle', () => {
-    it('uses single quotes when required by default', () => {
-      assert.equal(dump('true', { quoteStyle: 'single' }), "'true'\n")
-      assert.equal(dump(' leading', { quoteStyle: 'single' }), "' leading'\n")
-    })
-
-    it('uses double quotes when requested', () => {
-      assert.equal(dump('true', { quoteStyle: 'double' }), '"true"\n')
-      assert.equal(dump(' leading', { quoteStyle: 'double' }), '" leading"\n')
     })
   })
 })
