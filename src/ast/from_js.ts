@@ -5,6 +5,7 @@
 import YAMLException from '../exception.ts'
 import { type Schema } from '../schema.ts'
 import { type TagDefinition } from '../tag.ts'
+import { tagNameShort } from './tagname_tools.ts'
 import {
   Style,
   type Node,
@@ -106,6 +107,7 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   }
 
   const { tag, tagName, implicitTag } = matched
+  const nodeTagName = implicitTag ? tagName : tagNameShort(tagName)
 
   if (tag.nodeKind === 'scalar') {
     const value = applyRepresent(tag, object)
@@ -113,7 +115,7 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
     style.tagged = !implicitTag
     const node: ScalarNode = {
       kind: 'scalar',
-      tag: tagName,
+      tag: nodeTagName,
       style,
       value: typeof value === 'string' ? value : String(value)
     }
@@ -124,7 +126,7 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
     const container = applyRepresent(tag, object)
     const style = new Style()
     style.tagged = !implicitTag
-    const node: SequenceNode = { kind: 'sequence', tag: tagName, style, items: [] }
+    const node: SequenceNode = { kind: 'sequence', tag: nodeTagName, style, items: [] }
     if (!state.noRefs) state.refs.set(object, node)
 
     for (let index = 0, length = container.length; index < length; index += 1) {
@@ -141,7 +143,7 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   const map: Map<unknown, unknown> = applyRepresent(tag, object)
   const style = new Style()
   style.tagged = !implicitTag
-  const node: MappingNode = { kind: 'mapping', tag: tagName, style, items: [] }
+  const node: MappingNode = { kind: 'mapping', tag: nodeTagName, style, items: [] }
   if (!state.noRefs) state.refs.set(object, node)
 
   for (const [objectKey, objectValue] of map) {

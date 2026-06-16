@@ -35,12 +35,9 @@ import {
   type MappingNode,
   type AliasNode
 } from './nodes.ts'
+import { tagCheckError, tagNameFull } from './tagname_tools.ts'
 
 const NO_RANGE = -1
-const DEFAULT_TAG_HANDLES: Record<string, string> = {
-  '!': '!',
-  '!!': 'tag:yaml.org,2002:'
-}
 
 interface DocumentFrame {
   kind: 'document'
@@ -71,6 +68,7 @@ interface FromEventsState {
   position: number
   frames: Frame[]
   tagDirectives: Record<string, string>
+  tagHandles: Array<{ handle: string, prefix: string }>
   stream: Stream
 }
 
@@ -95,25 +93,10 @@ function anchorName (state: FromEventsState, event: ScalarEvent | SequenceEvent 
 }
 
 function resolveTagName (state: FromEventsState, rawTag: string): string {
-  if (rawTag.startsWith('!<') && rawTag.endsWith('>')) {
-    try {
-      return decodeURIComponent(rawTag.slice(2, -1))
-    } catch {
-      throwErrorAt(state.parserState, state.position, `tag name is malformed: ${rawTag}`)
-    }
-  }
+  const error = tagCheckError(rawTag)
+  if (error !== null) throwErrorAt(state.parserState, state.position, error)
 
-  const match = /^(![\w-]*!|!)/.exec(rawTag)
-  if (!match) throwErrorAt(state.parserState, state.position, `cannot resolve tag "${rawTag}"`)
-
-  const handle = match[1]
-  const prefix = state.tagDirectives[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
-
-  try {
-    return decodeURIComponent(prefix) + decodeURIComponent(rawTag.slice(handle.length))
-  } catch {
-    throwErrorAt(state.parserState, state.position, `tag name is malformed: ${rawTag}`)
-  }
+  return tagNameFull(rawTag, state.tagHandles)
 }
 
 // Tag name carried by an empty/plain scalar with no explicit tag: the first
@@ -144,7 +127,8 @@ function buildScalar (state: FromEventsState, event: ScalarEvent): ScalarNode {
   let tag: string
   if (raw !== '') {
     style.tagged = true
-    tag = raw === '!' ? state.schema.defaultScalarTag.tagName : resolveTagName(state, raw)
+    if (raw !== '!') resolveTagName(state, raw)
+    tag = raw
   } else if (event.style === SCALAR_STYLE_PLAIN) {
     tag = implicitScalarTagName(state, value)
   } else {
@@ -164,11 +148,11 @@ function buildCollection (
   if (event.style === COLLECTION_STYLE_FLOW) style.flow = true
 
   let tag: string
-  if (raw === '' || raw === '!') {
+  if (raw === '') {
     tag = defaultTagName
-    if (raw === '!') style.tagged = true
   } else {
-    tag = resolveTagName(state, raw)
+    if (raw !== '!') resolveTagName(state, raw)
+    tag = raw
     style.tagged = true
   }
 
@@ -200,6 +184,7 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions = {})
     position: 0,
     frames: [],
     tagDirectives: Object.create(null),
+    tagHandles: [],
     stream: []
   }
 
@@ -210,6 +195,10 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions = {})
     switch (event.type) {
       case EVENT_DOCUMENT: {
         state.tagDirectives = event.tagDirectives
+        state.tagHandles = Object.keys(event.tagDirectives).map(handle => ({
+          handle,
+          prefix: event.tagDirectives[handle]
+        }))
         const doc: Document = {
           contents: null,
           explicitStart: event.explicitStart,
@@ -219,10 +208,7 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions = {})
         // present (default is ''), `tagHandles` only for explicit %TAG (the event
         // map never holds the implicit `!`/`!!` handles).
         if (event.version) doc.version = event.version
-        const handles = Object.keys(event.tagDirectives)
-        if (handles.length > 0) {
-          doc.tagHandles = handles.map(handle => ({ handle, prefix: event.tagDirectives[handle] }))
-        }
+        if (state.tagHandles.length > 0) doc.tagHandles = state.tagHandles
         state.frames.push({ kind: 'document', doc })
         break
       }

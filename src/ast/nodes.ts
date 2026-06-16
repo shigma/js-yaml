@@ -12,7 +12,8 @@ class Style {
 }
 
 interface NodeBase {
-  // Semantic YAML tag. Whether to print it explicitly lives in `style.tagged`.
+  // YAML tag. Untagged nodes carry the semantic resolved tag; tagged nodes carry
+  // the printable/verbatim tag spelling.
   tag: string
   style: Style
   anchor?: string
@@ -46,6 +47,7 @@ interface AliasNode extends NodeBase {
 }
 
 type Node = ScalarNode | SequenceNode | MappingNode | AliasNode
+type TagHandles = Array<{ handle: string, prefix: string }>
 
 // The layer above `Node`: a stream is a list of documents, each wrapping one
 // content node plus its own markers/directives. Not a member of `Node` — the
@@ -56,7 +58,7 @@ interface Document {
   explicitStart?: boolean          // print '---'
   explicitEnd?: boolean            // print '...'
   version?: string | null
-  tagHandles?: Array<{ handle: string, prefix: string }>
+  tagHandles?: TagHandles
 }
 
 type Stream = Document[]
@@ -85,6 +87,7 @@ export {
   isAlias,
 
   type Node,
+  type TagHandles,
   type Document,
   type Stream,
   type NodeBase,

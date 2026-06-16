@@ -11,6 +11,7 @@ import {
   type SequenceNode,
   type MappingNode
 } from './nodes.ts'
+import { nodeTagShort } from './tagname_tools.ts'
 
 const CHAR_BOM = 0xFEFF
 const CHAR_TAB = 0x09 /* Tab */
@@ -793,37 +794,6 @@ function writeBlockMapping (state: PresenterState, level: number, node: MappingN
   return result
 }
 
-// Encodes an explicit tag name into its printable `!!foo` / `!foo` / `!<uri>`
-// form.
-function encodeTag (tag: string) {
-  // Need to encode all characters except those allowed by the spec:
-  //
-  // [35] ns-dec-digit    ::=  [#x30-#x39] /* 0-9 */
-  // [36] ns-hex-digit    ::=  ns-dec-digit
-  //                         | [#x41-#x46] /* A-F */ | [#x61-#x66] /* a-f */
-  // [37] ns-ascii-letter ::=  [#x41-#x5A] /* A-Z */ | [#x61-#x7A] /* a-z */
-  // [38] ns-word-char    ::=  ns-dec-digit | ns-ascii-letter | “-”
-  // [39] ns-uri-char     ::=  “%” ns-hex-digit ns-hex-digit | ns-word-char | “#”
-  //                         | “;” | “/” | “?” | “:” | “@” | “&” | “=” | “+” | “$” | “,”
-  //                         | “_” | “.” | “!” | “~” | “*” | “'” | “(” | “)” | “[” | “]”
-  //
-  // Also need to encode '!' because it has special meaning (end of tag prefix).
-  //
-  let tagStr = encodeURI(
-    tag[0] === '!' ? tag.slice(1) : tag
-  ).replace(/!/g, '%21')
-
-  if (tag[0] === '!') {
-    tagStr = `!${tagStr}`
-  } else if (tagStr.slice(0, 18) === 'tag:yaml.org,2002:') {
-    tagStr = `!!${tagStr.slice(18)}`
-  } else {
-    tagStr = `!<${tagStr}>`
-  }
-
-  return tagStr
-}
-
 // Where a node sits relative to its parent — drives layout/style decisions.
 // All flags default to false (the flow-context, non-key, non-compact case).
 interface NodeContext {
@@ -886,7 +856,7 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
 
   if (shouldPrintTag || hasAnchor) {
     const props: string[] = []
-    const tag = shouldPrintTag ? encodeTag(node.tag) : null
+    const tag = shouldPrintTag ? nodeTagShort(node) : null
     const anchor = hasAnchor ? `&${node.anchor}` : null
 
     if (state.tagBeforeAnchor) {
@@ -938,6 +908,22 @@ function isOpenEnded (node: Node) {
   return value.endsWith('\n\n') || value === '\n'
 }
 
+function writeDocumentDirectives (doc: Document) {
+  let result = ''
+
+  if (doc.version !== undefined && doc.version !== null) {
+    result += `%YAML ${doc.version}\n`
+  }
+
+  if (doc.tagHandles !== undefined) {
+    for (const { handle, prefix } of doc.tagHandles) {
+      result += `%TAG ${handle} ${prefix}\n`
+    }
+  }
+
+  return result
+}
+
 // Stream (Document[]) → text, including the trailing newline.
 function present (stream: Document[], options: PresenterOptions): string {
   const state = createPresenterState(options)
@@ -946,8 +932,11 @@ function present (stream: Document[], options: PresenterOptions): string {
 
   for (let index = 0; index < stream.length; index += 1) {
     const doc = stream[index]
-    const hasDirectives = doc.version !== undefined || doc.tagHandles !== undefined
+    const directives = writeDocumentDirectives(doc)
+    const hasDirectives = directives !== ''
     const marker = doc.explicitStart || hasDirectives || (index > 0 && !previousEnded)
+
+    result += directives
 
     if (doc.contents === null) {
       if (marker) result += '---\n'

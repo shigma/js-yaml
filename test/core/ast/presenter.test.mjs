@@ -1,10 +1,20 @@
 import { it } from 'node:test'
 import assert from 'node:assert/strict'
 
+import { dump } from '../../../src/dump.ts'
 import { load } from '../../../src/load.ts'
+import { defineScalarTag } from '../../../src/tag.ts'
+import { createParserState, parseEvents } from '../../../src/parser/parser.ts'
 import { jsToAst } from '../../../src/ast/from_js.ts'
+import { eventsToAst } from '../../../src/ast/from_events.ts'
 import { present } from '../../../src/ast/presenter.ts'
 import { CORE_SCHEMA } from '../../../src/schema.ts'
+
+function presentParsed (input) {
+  const state = createParserState(input)
+  parseEvents(state)
+  return present(eventsToAst(state, { schema: CORE_SCHEMA }), { schema: CORE_SCHEMA })
+}
 
 it('keeps quoteFlowKeys outside an explicit long flow key', () => {
   const key = `${'a'.repeat(1024)}\nb`
@@ -17,4 +27,40 @@ it('keeps quoteFlowKeys outside an explicit long flow key', () => {
 
   assert.equal(output, `{? "${'a'.repeat(1024)}\\nb": value}\n`)
   assert.deepEqual(load(output, { schema: CORE_SCHEMA }), { [key]: 'value' })
+})
+
+it('prints document directives before the document marker', () => {
+  const contents = jsToAst('bar', CORE_SCHEMA)
+  const output = present([{
+    version: '1.2',
+    tagHandles: [{ handle: '!e!', prefix: 'tag:example.com,2024:' }],
+    contents
+  }], { schema: CORE_SCHEMA })
+
+  assert.equal(output, '%YAML 1.2\n%TAG !e! tag:example.com,2024:\n---\nbar\n')
+})
+
+it('keeps explicit parsed tag spelling', () => {
+  assert.equal(presentParsed('!!str 123\n'), '!!str 123\n')
+  assert.equal(presentParsed('!!%73tr 123\n'), '!!%73tr 123\n')
+  assert.equal(presentParsed('!<tag:yaml.org,2002:str> 123\n'), '!<tag:yaml.org,2002:str> 123\n')
+  assert.equal(presentParsed('! 123\n'), '! 123\n')
+})
+
+it('keeps explicit parsed tag handles with directives', () => {
+  const input = '%TAG !e! tag:example.com,2024:\n--- !e!foo bar\n'
+
+  assert.equal(presentParsed(input), '%TAG !e! tag:example.com,2024:\n---\n!e!foo bar\n')
+})
+
+it('prints explicit from_js tags in printable form', () => {
+  const customTag = defineScalarTag('!custom', {
+    resolve: source => source,
+    identify: object => object && object.custom === true,
+    represent: object => object.value
+  })
+  const schema = CORE_SCHEMA.withTags(customTag)
+
+  assert.equal(dump({ custom: true, value: 'ok' }, { schema }), '!custom ok\n')
+  assert.equal(dump(new Uint8Array([1, 2, 3])), '!!binary AQID\n')
 })
