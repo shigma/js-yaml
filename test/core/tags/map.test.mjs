@@ -38,6 +38,10 @@ z: 3
       it(`${name} merge`, () => {
         assert.deepStrictEqual(load(mergeSrc, { schema }), wrap(mergeEntries))
       })
+
+      it(`${name} Resolving explicit !!map on empty node`, () => {
+        assert.deepStrictEqual(load('!!map', { schema }), wrap([]))
+      })
     }
   })
 

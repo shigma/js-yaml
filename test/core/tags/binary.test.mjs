@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, dump, YAML11_SCHEMA } from 'js-yaml'
+import { load, dump, YAML11_SCHEMA, YAMLException } from 'js-yaml'
 
 function toTyped (data, encoding) {
   return new Uint8Array(Buffer.from(data, encoding))
@@ -40,5 +40,9 @@ description:
     // non-base64 character and unpadded (wrong-length) input are both rejected
     assert.throws(() => load('!!binary "@@@@"', { schema: YAML11_SCHEMA }), /cannot resolve/)
     assert.throws(() => load('!!binary "AAA"', { schema: YAML11_SCHEMA }), /cannot resolve/)
+  })
+
+  it('Resolving explicit !!binary on empty node', () => {
+    assert.throws(() => { load('!!binary') }, YAMLException)
   })
 })

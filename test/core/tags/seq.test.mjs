@@ -25,4 +25,8 @@ Flow style: !!seq [ Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptun
     assert.deepStrictEqual(load(src, { schema: YAML11_SCHEMA }), expected)
     assert.deepStrictEqual(load(dump(expected, { schema: YAML11_SCHEMA }), { schema: YAML11_SCHEMA }), expected)
   })
+
+  it('Resolving explicit !!seq on empty node', () => {
+    assert.deepStrictEqual(load('!!seq'), [])
+  })
 })

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump } from 'js-yaml'
+import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump, YAMLException } from 'js-yaml'
 
 const variants = [
   ['JSON', JSON_SCHEMA],
@@ -46,6 +46,10 @@ describe('tags/float', () => {
       it(`${name} fail explicit tag`, () => {
         assert.throws(() => load('!!float abc', { schema }), /cannot resolve/)
         assert.throws(() => load('!!float 1e999', { schema }), /cannot resolve/)
+      })
+
+      it(`${name} Resolving explicit !!float on empty node`, () => {
+        assert.throws(() => load('!!float', { schema }), YAMLException)
       })
     }
   })

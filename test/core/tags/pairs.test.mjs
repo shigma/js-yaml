@@ -55,4 +55,8 @@ baz: bat
 `
     assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve a pairs item/)
   })
+
+  it('Resolving explicit !!pairs on empty node', () => {
+    assert.deepStrictEqual(load('!!pairs', { schema: YAML11_SCHEMA }), [])
+  })
 })

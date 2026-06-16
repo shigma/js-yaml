@@ -113,4 +113,23 @@ describe('tags', () => {
       assert.strictEqual(Object.getPrototypeOf(actual[i]), Object.getPrototypeOf(expected[i]))
     }
   })
+
+  // One tag name registered for two node kinds; dispatch picks by node kind.
+  it('custom tag with multiple node kinds', () => {
+    const multiSchema = CORE_SCHEMA.withTags([
+      defineScalarTag('!Include', {
+        resolve: (obj) => obj
+      }),
+      defineMappingTag('!Include', {
+        create: () => ({}),
+        addPair: (container, key, value) => { container[String(key)] = value },
+        has: (container, key) => Object.hasOwn(container, String(key)),
+        keys: (container) => Object.keys(container),
+        get: (container, key) => container[String(key)]
+      })
+    ])
+
+    assert.deepStrictEqual(load('!Include foobar', { schema: multiSchema }), 'foobar')
+    assert.deepStrictEqual(load('!Include\n  location: foobar', { schema: multiSchema }), { location: 'foobar' })
+  })
 })

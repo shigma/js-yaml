@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import { loadAll, YAMLException } from 'js-yaml'
+import { load, loadAll, YAMLException } from 'js-yaml'
 
 const samples = [
   {
@@ -101,4 +101,18 @@ describe('load errors', () => {
       }, YAMLException)
     })
   }
+
+  it('forbid non-printable characters', () => {
+    assert.throws(() => { load('\x01') }, YAMLException)
+    assert.throws(() => { load('\x7f') }, YAMLException)
+    assert.throws(() => { load('\x9f') }, YAMLException)
+  })
+
+  it('forbid lone surrogates', () => {
+    assert.throws(() => { load('\udc00\ud800') }, YAMLException)
+  })
+
+  it('forbid control sequences inside quoted scalars', () => {
+    assert.throws(() => { load('"\x03"') }, YAMLException)
+  })
 })

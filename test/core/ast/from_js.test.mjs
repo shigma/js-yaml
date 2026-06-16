@@ -4,7 +4,7 @@ import { CORE_SCHEMA, dump, load, realMapTag } from 'js-yaml'
 
 const schema = CORE_SCHEMA.withTags(realMapTag)
 
-describe('ast anchors', () => {
+describe('ast from_js', () => {
   it('dedups a cycle through a Map', () => {
     const source = new Map()
     source.set('self', source)

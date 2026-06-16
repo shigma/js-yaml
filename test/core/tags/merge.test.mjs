@@ -79,4 +79,8 @@ foo: bar
       /cannot merge mappings/
     )
   })
+
+  it('Resolving explicit !!merge on empty node', () => {
+    assert.doesNotThrow(() => load('? !!merge\n: []', { schema: CORE_SCHEMA.withTags(mergeTag) }))
+  })
 })

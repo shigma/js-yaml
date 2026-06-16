@@ -35,4 +35,8 @@ baseball teams: !!set { Boston Red Sox, Detroit Tigers, New York Yankees }
 `
     assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve a set item/)
   })
+
+  it('Resolving explicit !!set on empty node', () => {
+    assert.deepStrictEqual(load('!!set', { schema: YAML11_SCHEMA }), {})
+  })
 })

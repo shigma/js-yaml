@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, dump, YAML11_SCHEMA } from 'js-yaml'
+import { load, dump, YAML11_SCHEMA, YAMLException } from 'js-yaml'
 
 describe('tags', () => {
   it('timestamp', () => {
@@ -38,5 +38,9 @@ describe('tags', () => {
 
     assert.deepStrictEqual(load(src, { schema: YAML11_SCHEMA }), expected)
     assert.deepStrictEqual(load(dump(expected, { schema: YAML11_SCHEMA }), { schema: YAML11_SCHEMA }), expected)
+  })
+
+  it('Resolving explicit !!timestamp on empty node', () => {
+    assert.throws(() => { load('!!timestamp', { schema: YAML11_SCHEMA }) }, YAMLException)
   })
 })

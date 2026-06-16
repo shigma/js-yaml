@@ -54,4 +54,8 @@ baz: bat
 `
     assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve an ordered map item/)
   })
+
+  it('Resolving explicit !!omap on empty node', () => {
+    assert.deepStrictEqual(load('!!omap', { schema: YAML11_SCHEMA }), [])
+  })
 })

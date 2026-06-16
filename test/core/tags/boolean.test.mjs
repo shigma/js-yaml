@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump } from 'js-yaml'
+import { CORE_SCHEMA, JSON_SCHEMA, YAML11_SCHEMA, load, dump, YAMLException } from 'js-yaml'
 
 const variants = [
   ['JSON', JSON_SCHEMA],
@@ -30,6 +30,10 @@ valid_false: false
 
       it(`${name} fail explicit tag`, () => {
         assert.throws(() => load('!!bool garbage', { schema }), /cannot resolve/)
+      })
+
+      it(`${name} Resolving explicit !!bool on empty node`, () => {
+        assert.throws(() => load('!!bool', { schema }), YAMLException)
       })
     }
   })
