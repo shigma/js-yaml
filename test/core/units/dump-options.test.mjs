@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { dump, JSON_SCHEMA, CORE_SCHEMA, defineMappingTag, YAMLException } from 'js-yaml'
+import { dump, JSON_SCHEMA, CORE_SCHEMA, defineMappingTag, realMapTag, YAMLException } from 'js-yaml'
 
 describe('dump options', () => {
   it('schema — decides which plain scalars need quoting', () => {
@@ -13,6 +13,15 @@ describe('dump options', () => {
   it('skipInvalid — drops unrepresentable values instead of throwing', () => {
     assert.throws(() => dump({ a: () => 1 }), YAMLException)
     assert.equal(dump({ a: () => 1, b: 2 }, { skipInvalid: true }), 'b: 2\n')
+  })
+
+  it('skipInvalid — drops pairs with an unrepresentable key too', () => {
+    // Plain-object keys are always strings; a real Map keeps raw keys, so the
+    // key itself can be unrepresentable.
+    const schema = CORE_SCHEMA.withTags(realMapTag)
+    const map = new Map([[() => 1, 'x'], ['b', 2]])
+    assert.throws(() => dump(map, { schema }), YAMLException)
+    assert.equal(dump(map, { schema, skipInvalid: true }), 'b: 2\n')
   })
 
   it('noRefs — inlines repeated references instead of anchoring', () => {
