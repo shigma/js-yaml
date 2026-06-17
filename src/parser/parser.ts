@@ -35,10 +35,20 @@ const CONTEXT_BLOCK_OUT = 4
 const PATTERN_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/
 // eslint-disable-next-line no-useless-escape
 const PATTERN_FLOW_INDICATORS = /[,\[\]{}]/
+// YAML 1.2.2, [91] c-tag-handle.
 // eslint-disable-next-line no-useless-escape
 const PATTERN_TAG_HANDLE = /^(?:!|!!|![0-9A-Za-z-]+!)$/
+// YAML 1.2.2, [39] ns-uri-char.
 // eslint-disable-next-line no-useless-escape
-const PATTERN_TAG_URI = /^(?:!|[^,\[\]{}])(?:%[0-9a-f]{2}|[0-9a-z\-#;/?:@&=+$,_.!~*'()\[\]])*$/i
+const NS_URI_CHAR = String.raw`(?:%[0-9A-Fa-f]{2}|[0-9A-Za-z\-#;/?:@&=+$,_.!~*'()\[\]])`
+// YAML 1.2.2, [40] ns-tag-char = ns-uri-char - "!" - c-flow-indicator.
+// eslint-disable-next-line no-useless-escape
+const NS_TAG_CHAR = String.raw`(?:%[0-9A-Fa-f]{2}|[0-9A-Za-z\-#;/?:@&=+$.~*'()_])`
+const PATTERN_TAG_URI = new RegExp(`^(?:${NS_URI_CHAR})*$`)
+// YAML 1.2.2, [99] c-ns-shorthand-tag suffix part.
+const PATTERN_TAG_SUFFIX = new RegExp(`^(?:${NS_TAG_CHAR})+$`)
+// YAML 1.2.2, [93] ns-tag-prefix.
+const PATTERN_TAG_PREFIX = new RegExp(`^(?:!(?:${NS_URI_CHAR})*|${NS_TAG_CHAR}(?:${NS_URI_CHAR})*)$`)
 
 type NodeContext =
   typeof CONTEXT_FLOW_IN | typeof CONTEXT_FLOW_OUT |
@@ -481,7 +491,9 @@ function readTagProperty (state: ParserState, props: NodeProperties, inFlow: boo
     if (PATTERN_FLOW_INDICATORS.test(tagName)) throwError(state, 'tag suffix cannot contain flow indicator characters')
   }
 
-  if (tagName && !PATTERN_TAG_URI.test(tagName)) throwError(state, `tag name cannot contain such characters: ${tagName}`)
+  if (tagName && !(isVerbatim ? PATTERN_TAG_URI.test(tagName) : PATTERN_TAG_SUFFIX.test(tagName))) {
+    throwError(state, `tag name cannot contain such characters: ${tagName}`)
+  }
   try {
     decodeURIComponent(tagName)
   } catch {
@@ -1403,7 +1415,7 @@ function readDirective (state: ParserState) {
     const [handle, prefix] = args
     if (!PATTERN_TAG_HANDLE.test(handle)) throwError(state, 'ill-formed tag handle (first argument) of the TAG directive')
     if (Object.hasOwn(state.tagDirectives, handle)) throwError(state, `there is a previously declared suffix for "${handle}" tag handle`)
-    if (!PATTERN_TAG_URI.test(prefix)) throwError(state, 'ill-formed tag prefix (second argument) of the TAG directive')
+    if (!PATTERN_TAG_PREFIX.test(prefix)) throwError(state, 'ill-formed tag prefix (second argument) of the TAG directive')
     try {
       decodeURIComponent(prefix)
     } catch {

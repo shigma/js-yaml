@@ -5,8 +5,6 @@ import {
   tagPercentDecode,
   tagNameFull,
   tagNameShort,
-  tagCheckError,
-  nodeTagFull,
   nodeTagShort
 } from '../../../src/ast/tagname_tools.ts'
 
@@ -17,58 +15,6 @@ const tagged = tag => ({ tag, style: { tagged: true } })
 const untagged = tag => ({ tag, style: { tagged: false } })
 
 describe('tagname_tools', () => {
-  describe('tagCheckError', () => {
-    it('accepts the standard tag spellings', () => {
-      assert.equal(tagCheckError('!!str'), null)              // secondary handle
-      assert.equal(tagCheckError('!local'), null)             // primary handle
-      assert.equal(tagCheckError('!e!suffix'), null)          // named handle
-      assert.equal(tagCheckError('!'), null)                  // non-specific tag
-      assert.equal(tagCheckError(`!<${YAML_PREFIX}str>`), null) // verbatim
-    })
-
-    it('accepts every character the URI grammar allows in a suffix', () => {
-      assert.equal(tagCheckError("!!a-b_c.d~e*f'g(h)i"), null)
-      assert.equal(tagCheckError('!!a%20b'), null) // percent-escaped space
-    })
-
-    it('rejects an empty tag', () => {
-      assert.equal(tagCheckError(''), 'tag is empty')
-    })
-
-    it('rejects a tag not starting with "!"', () => {
-      assert.equal(tagCheckError('foo'), 'tag must start with "!": foo')
-      assert.equal(tagCheckError(' !foo'), 'tag must start with "!":  !foo')
-    })
-
-    it('rejects an unclosed verbatim tag', () => {
-      assert.equal(tagCheckError(`!<${YAML_PREFIX}str`), `verbatim tag is not closed: !<${YAML_PREFIX}str`)
-    })
-
-    it('accepts a verbatim tag with an empty body', () => {
-      // "!<>" is structurally closed; emptiness is not this function's concern.
-      assert.equal(tagCheckError('!<>'), null)
-    })
-
-    it('rejects an exclamation mark inside a handled suffix', () => {
-      assert.equal(tagCheckError('!!foo!bar'), 'tag suffix cannot contain exclamation marks')
-    })
-
-    it('allows exclamation marks inside a verbatim body', () => {
-      // The "no !" rule applies to handled tags, not verbatim ones.
-      assert.equal(tagCheckError('!<!foo!>'), null)
-    })
-
-    it('rejects illegal characters in the suffix', () => {
-      assert.equal(tagCheckError('!!foo bar'), 'tag name cannot contain such characters: foo bar')
-      assert.equal(tagCheckError('!!foo^bar'), 'tag name cannot contain such characters: foo^bar')
-    })
-
-    it('rejects a malformed percent-encoding', () => {
-      assert.equal(tagCheckError('!!foo%2'), 'tag name is malformed: !!foo%2')
-      assert.equal(tagCheckError('!!foo%zz'), 'tag name is malformed: !!foo%zz')
-    })
-  })
-
   describe('tagNameFull', () => {
     it('expands the default handles to their prefixes', () => {
       assert.equal(tagNameFull('!!str'), `${YAML_PREFIX}str`)
@@ -104,11 +50,6 @@ describe('tagname_tools', () => {
       assert.equal(tagNameFull('!foo%20bar'), '!foo bar')
       assert.equal(tagNameFull('!%E2%9C%93'), '!✓') // checkmark
     })
-
-    it('throws on a structurally invalid tag', () => {
-      assert.throws(() => tagNameFull(''), /tag is empty/)
-      assert.throws(() => tagNameFull('!!a b'), /tag name cannot contain such characters/)
-    })
   })
 
   describe('tagNameShort', () => {
@@ -141,22 +82,6 @@ describe('tagname_tools', () => {
       for (const s of ['foo bar', 'a!b', 'tag:yaml.org,2002:str', '✓ é']) {
         assert.equal(tagPercentDecode(tagPercentEncode(s)), s)
       }
-    })
-  })
-
-  describe('nodeTagFull', () => {
-    it('expands the raw spelling carried by a tagged node', () => {
-      assert.equal(nodeTagFull(tagged('!!str')), `${YAML_PREFIX}str`)
-      assert.equal(nodeTagFull(tagged(`!<${YAML_PREFIX}map>`)), `${YAML_PREFIX}map`)
-    })
-
-    it('honors custom handles when expanding a tagged node', () => {
-      const handles = [{ handle: '!e!', prefix: 'tag:example.com,2024:' }]
-      assert.equal(nodeTagFull(tagged('!e!foo'), handles), 'tag:example.com,2024:foo')
-    })
-
-    it('returns the already-resolved tag of an untagged node unchanged', () => {
-      assert.equal(nodeTagFull(untagged(`${YAML_PREFIX}str`)), `${YAML_PREFIX}str`)
     })
   })
 

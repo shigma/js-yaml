@@ -35,7 +35,6 @@ import {
   type MappingNode,
   type AliasNode
 } from './nodes.ts'
-import { tagCheckError, tagNameFull } from './tagname_tools.ts'
 
 const NO_RANGE = -1
 
@@ -92,13 +91,6 @@ function anchorName (state: FromEventsState, event: ScalarEvent | SequenceEvent 
     : state.parserState.input.slice(event.anchorStart, event.anchorEnd)
 }
 
-function resolveTagName (state: FromEventsState, rawTag: string): string {
-  const error = tagCheckError(rawTag)
-  if (error !== null) throwErrorAt(state.parserState, state.position, error)
-
-  return tagNameFull(rawTag, state.tagHandles)
-}
-
 // Tag name carried by an empty/plain scalar with no explicit tag: the first
 // implicit scalar resolver that accepts the text, falling back to str. Mirrors
 // the implicit branch of `constructScalar`, but we only want the tag name.
@@ -127,7 +119,6 @@ function buildScalar (state: FromEventsState, event: ScalarEvent): ScalarNode {
   let tag: string
   if (raw !== '') {
     style.tagged = true
-    if (raw !== '!') resolveTagName(state, raw)
     tag = raw
   } else if (event.style === SCALAR_STYLE_PLAIN) {
     tag = implicitScalarTagName(state, value)
@@ -151,7 +142,6 @@ function buildCollection (
   if (raw === '') {
     tag = defaultTagName
   } else {
-    if (raw !== '!') resolveTagName(state, raw)
     tag = raw
     style.tagged = true
   }
