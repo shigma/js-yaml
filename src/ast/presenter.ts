@@ -332,6 +332,13 @@ const STYLE_LITERAL = 3
 const STYLE_FOLDED = 4
 const STYLE_DOUBLE = 5
 
+type ScalarStyleId =
+  typeof STYLE_PLAIN |
+  typeof STYLE_SINGLE |
+  typeof STYLE_LITERAL |
+  typeof STYLE_FOLDED |
+  typeof STYLE_DOUBLE
+
 // Determines which scalar styles are possible and returns the preferred style.
 // lineWidth = -1 => no limit.
 // Pre-conditions: str.length > 0.
@@ -340,7 +347,7 @@ const STYLE_DOUBLE = 5
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
 function chooseScalarStyle (state: PresenterState, string: string, layout: ReturnType<typeof scalarLayout>,
-  singleLineOnly: boolean, inblock: boolean) {
+  singleLineOnly: boolean, inblock: boolean): ScalarStyleId {
   const { blockIndent, lineWidth } = layout
   // quoteStyle !== 'auto' forces quoting: suppress plain and block styles.
   const forceQuote = state.quoteStyle !== 'auto'
@@ -414,7 +421,7 @@ function chooseScalarStyle (state: PresenterState, string: string, layout: Retur
 //    • No ending newline => unaffected; already using strip "-" chomping.
 //    • Ending newline    => removed then restored.
 //  Importantly, this keeps the "+" chomp indicator from gaining an extra line.
-function renderScalarStyle (string: string, style: number, layout: ReturnType<typeof scalarLayout>) {
+function renderScalarStyle (string: string, style: ScalarStyleId, layout: ReturnType<typeof scalarLayout>) {
   const { indent, blockIndent, lineWidth } = layout
 
   switch (style) {
@@ -430,15 +437,13 @@ function renderScalarStyle (string: string, style: number, layout: ReturnType<ty
         dropEndingNewline(indentString(foldBlockScalar(string, lineWidth), indent))
     case STYLE_DOUBLE:
       return `"${escapeString(string)}"`
-    default:
-      throw new YAMLException('impossible error: invalid scalar style')
   }
 }
 
 // Picks the scalar style for `node`: a style hint carried on the node wins,
 // otherwise the style chosen by the machinery. Returns a numeric STYLE_*.
 function resolveScalarStyle (state: PresenterState, node: ScalarNode,
-  layout: ReturnType<typeof scalarLayout>, iskey: boolean, inblock: boolean) {
+  layout: ReturnType<typeof scalarLayout>, iskey: boolean, inblock: boolean): ScalarStyleId {
   // Without knowing if keys are implicit/explicit, assume implicit for safety.
   const singleLineOnly = iskey || !inblock
 
@@ -705,11 +710,9 @@ function sortMappingItems (state: PresenterState, items: MappingNode['items']) {
       const y = sortKeyValue(b.key)
       return x < y ? -1 : x > y ? 1 : 0
     })
-  } else if (typeof state.sortKeys === 'function') {
+  } else {
     const fn = state.sortKeys
     copy.sort((a, b) => fn(sortKeyValue(a.key), sortKeyValue(b.key)))
-  } else {
-    throw new YAMLException('sortKeys must be a boolean or a function')
   }
 
   return copy
