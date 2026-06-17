@@ -23,12 +23,9 @@ import {
   type SequenceTagDefinition
 } from '../tag.ts'
 import { throwErrorAt, type ParserState } from './parser.ts'
+import { tagNameFull } from '../ast/tagname_tools.ts'
 
 const NO_RANGE = -1
-const DEFAULT_TAG_HANDLES: Record<string, string> = {
-  '!': '!',
-  '!!': 'tag:yaml.org,2002:'
-}
 
 interface DocumentFrame {
   kind: 'document'
@@ -130,28 +127,6 @@ function callTag<T> (state: ConstructorState, callback: () => T): T {
   }
 }
 
-function resolveTagName (state: ConstructorState, rawTag: string) {
-  if (rawTag.startsWith('!<') && rawTag.endsWith('>')) {
-    try {
-      return decodeURIComponent(rawTag.slice(2, -1))
-    } catch {
-      throwError(state, `tag name is malformed: ${rawTag}`)
-    }
-  }
-
-  const match = /^(![\w-]*!|!)/.exec(rawTag)
-  if (!match) throwError(state, `cannot resolve tag "${rawTag}"`)
-
-  const handle = match[1]
-  const prefix = state.tagHandlers[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
-
-  try {
-    return decodeURIComponent(prefix) + decodeURIComponent(rawTag.slice(handle.length))
-  } catch {
-    throwError(state, `tag name is malformed: ${rawTag}`)
-  }
-}
-
 function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
   exact: Record<string, T>,
   prefix: readonly T[],
@@ -193,7 +168,7 @@ function constructScalar (
   if (rawTag !== '') {
     if (rawTag === '!') return { value: source, tag: strTag }
 
-    const tagName = resolveTagName(state, rawTag)
+    const tagName = tagNameFull(rawTag, state.tagHandlers)
     const scalarTag = lookupTag(state.schema.exact.scalar, state.schema.prefix.scalar, tagName)
 
     if (scalarTag) {
@@ -251,7 +226,7 @@ function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition>
     : state.parserState.input.slice(event.tagStart, event.tagEnd)
   const tagName = rawTag === '' || rawTag === '!'
     ? defaultTagName
-    : resolveTagName(state, rawTag)
+    : tagNameFull(rawTag, state.tagHandlers)
 
   return {
     tagName,
@@ -317,12 +292,9 @@ function addMappingValue (state: ConstructorState, frame: MappingFrame, key: unk
 }
 
 function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
-  const frame = state.frames[state.frames.length - 1]
-
-  if (!frame) throwError(state, 'node appears outside a document')
+  const frame = state.frames[state.frames.length - 1]!
 
   if (frame.kind === 'document') {
-    if (frame.hasValue) throwError(state, 'document contains more than one root node')
     frame.value = value
     frame.hasValue = true
   } else if (frame.kind === 'sequence') {
@@ -355,7 +327,7 @@ function storeAnchor (state: ConstructorState, event: ScalarEvent | SequenceEven
   }
 }
 
-function constructEvents (state: ConstructorState) {
+function constructFromEvents (state: ConstructorState) {
   while (state.eventIndex < state.parserState.events.length) {
     const event = state.parserState.events[state.eventIndex++]
     state.position = eventPosition(event)
@@ -427,9 +399,7 @@ function constructEvents (state: ConstructorState) {
       }
 
       case EVENT_ALIAS: {
-        const name = event.anchorStart === NO_RANGE
-          ? ''
-          : state.parserState.input.slice(event.anchorStart, event.anchorEnd)
+        const name = state.parserState.input.slice(event.anchorStart, event.anchorEnd)
         const anchor = state.anchors.get(name)
         if (!anchor) {
           throwError(state, `unidentified alias "${name}"`)
@@ -439,16 +409,12 @@ function constructEvents (state: ConstructorState) {
       }
 
       case EVENT_POP: {
-        const frame = state.frames.pop()
-        if (!frame) throwError(state, 'unexpected collection end')
+        const frame = state.frames.pop()!
 
         if (frame.kind === 'document') {
           state.documents.push(frame.value)
         } else {
           state.position = frame.position
-          if (frame.kind === 'mapping' && frame.hasKey) {
-            throwError(state, 'mapping contains a key without a value')
-          }
           if (frame.tag.finish) callTag(state, () => frame.tag.finish!(frame.value))
           addValue(state, frame.value, frame.tag)
         }
@@ -456,20 +422,11 @@ function constructEvents (state: ConstructorState) {
       }
     }
   }
-
-  if (state.frames.length !== 0) throwError(state, 'unexpected end of event stream')
-}
-
-function constructDocuments (parserState: ParserState, options: ConstructorOptions = {}) {
-  const state = createConstructorState(parserState, options)
-  constructEvents(state)
-  return state.documents
 }
 
 export {
   createConstructorState,
-  constructEvents,
-  constructDocuments,
+  constructFromEvents,
   type ConstructorOptions,
   type ConstructorState
 }

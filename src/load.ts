@@ -1,6 +1,6 @@
 import YAMLException from './exception.ts'
 import {
-  constructEvents,
+  constructFromEvents,
   createConstructorState
 } from './parser/constructor.ts'
 import {
@@ -34,7 +34,7 @@ function loadDocuments (input: string, options: LoadOptions = {}) {
   parseEvents(parserState)
 
   const constructorState = createConstructorState(parserState, opts)
-  constructEvents(constructorState)
+  constructFromEvents(constructorState)
 
   return constructorState.documents
 }

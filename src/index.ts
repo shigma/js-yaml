@@ -97,8 +97,7 @@ import { getScalarValue } from './parser/parser_scalar.ts'
 
 import {
   createConstructorState,
-  constructEvents,
-  constructDocuments,
+  constructFromEvents,
   type ConstructorOptions,
   type ConstructorState
 } from './parser/constructor.ts'
@@ -189,8 +188,7 @@ export {
   getScalarValue,
 
   createConstructorState,
-  constructEvents,
-  constructDocuments,
+  constructFromEvents,
 
   eventsToAst,
   jsToAst,

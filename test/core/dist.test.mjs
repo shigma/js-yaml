@@ -75,8 +75,7 @@ const expectedKeys = [
   'getScalarValue',
 
   'createConstructorState',
-  'constructEvents',
-  'constructDocuments',
+  'constructFromEvents',
 
   'eventsToAst',
   'jsToAst',
