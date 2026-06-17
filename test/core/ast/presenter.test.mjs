@@ -11,7 +11,8 @@ import {
   eventsToAst,
   present,
   CORE_SCHEMA,
-  nullCoreTag
+  nullCoreTag,
+  realMapTag
 } from 'js-yaml'
 
 function presentParsed (input) {
@@ -32,6 +33,34 @@ describe('ast presenter', () => {
 
     assert.equal(output, `{? "${'a'.repeat(1024)}\\nb": value}\n`)
     assert.deepEqual(load(output, { schema: CORE_SCHEMA }), { [key]: 'value' })
+  })
+
+  it('emits a bare `?` when an explicit key starts on its own line', () => {
+    // A block-collection key under indent != 2 drops to its own line, so its
+    // text begins with a newline — the `?` must carry no trailing space.
+    const map = new Map([[[1, 2], 'v']])
+    const schema = CORE_SCHEMA.withTags(realMapTag)
+    const output = dump(map, { schema, indent: 4 })
+
+    assert.equal(output, '?\n    - 1\n    - 2\n: v\n')
+    assert.deepEqual(load(output, { schema }), map)
+  })
+
+  it('keeps equal sortKeys keys in their original order', () => {
+    // Two keys that compare equal exercise the comparator's tie branch; a stable
+    // sort leaves them as-is.
+    const node = jsToAst({ a: 1, b: 2 }, CORE_SCHEMA)
+    node.items[1].key.value = 'a'
+
+    const output = present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, sortKeys: true })
+
+    assert.equal(output, 'a: 1\na: 2\n')
+  })
+
+  it('emits a bare marker for an explicit-start null document', () => {
+    const output = present([{ contents: null, directives: [], explicitStart: true }], { schema: CORE_SCHEMA })
+
+    assert.equal(output, '---\n')
   })
 
   it('prints document directives before the document marker', () => {

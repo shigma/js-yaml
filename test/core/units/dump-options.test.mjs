@@ -52,6 +52,14 @@ describe('dump options', () => {
     assert.equal(dump({ b: 1, a: 2 }, { sortKeys: (x, y) => y.localeCompare(x) }), 'b: 1\na: 2\n')
   })
 
+  it('sortKeys — leaves non-scalar (complex) keys in their original order', () => {
+    // A complex key sorts by the key node itself; node-vs-node never compares
+    // unequal, so the stable sort preserves insertion order.
+    const schema = CORE_SCHEMA.withTags(realMapTag)
+    const map = new Map([[{ b: 2 }, 'y'], [{ a: 1 }, 'x']])
+    assert.equal(dump(map, { schema, sortKeys: true }), '? b: 2\n: y\n? a: 1\n: x\n')
+  })
+
   it('lineWidth — wraps long scalars', () => {
     const value = { a: 'one two three four five six seven eight nine ten' }
 
@@ -74,11 +82,13 @@ describe('dump options', () => {
   it('flowBracketPadding — pads inside flow brackets', () => {
     assert.equal(dump([1, 2], { flowLevel: 0 }), '[1, 2]\n')
     assert.equal(dump([1, 2], { flowLevel: 0, flowBracketPadding: true }), '[ 1, 2 ]\n')
+    assert.equal(dump({ a: 1, b: 2 }, { flowLevel: 0, flowBracketPadding: true }), '{ a: 1, b: 2 }\n')
   })
 
   it('flowSkipCommaSpace — drops the space after flow commas', () => {
     assert.equal(dump([1, 2], { flowLevel: 0 }), '[1, 2]\n')
     assert.equal(dump([1, 2], { flowLevel: 0, flowSkipCommaSpace: true }), '[1,2]\n')
+    assert.equal(dump({ a: 1, b: 2 }, { flowLevel: 0, flowSkipCommaSpace: true }), '{a: 1,b: 2}\n')
   })
 
   it('flowSkipColonSpace — drops the space after flow colons', () => {
