@@ -49,6 +49,7 @@ describe('dump options', () => {
   it('sortKeys — orders mapping keys', () => {
     assert.equal(dump({ b: 1, a: 2 }), 'b: 1\na: 2\n')
     assert.equal(dump({ b: 1, a: 2 }, { sortKeys: true }), 'a: 2\nb: 1\n')
+    assert.equal(dump({ a: 1, b: 2 }, { sortKeys: true }), 'a: 1\nb: 2\n')
     assert.equal(dump({ b: 1, a: 2 }, { sortKeys: (x, y) => y.localeCompare(x) }), 'b: 1\na: 2\n')
   })
 

@@ -104,24 +104,12 @@ function createPresenterState (options: PresenterOptions): PresenterState {
   }
 }
 
-function encodeHex (character: number) {
-  let handle
-  let length
-
+function encodeNonPrintable (character: number) {
+  // YAML non-printable code points are all in BMP (max FFFF);
+  // astral code points are printable and can't come here.
   const string = character.toString(16).toUpperCase()
-
-  if (character <= 0xFF) {
-    handle = 'x'
-    length = 2
-  } else if (character <= 0xFFFF) {
-    handle = 'u'
-    length = 4
-  } else if (character <= 0xFFFFFFFF) {
-    handle = 'U'
-    length = 8
-  } else {
-    throw new YAMLException('code point within a string may not be greater than 0xFFFFFFFF')
-  }
+  const handle = character <= 0xFF ? 'x' : 'u'
+  const length = character <= 0xFF ? 2 : 4
 
   return `\\${handle}${'0'.repeat(length - string.length)}${string}`
 }
@@ -294,7 +282,7 @@ function isPlainSafeAtStart (string: string, inblock: boolean) {
     string.length > 1 &&
     (first === CHAR_MINUS || first === CHAR_QUESTION || first === CHAR_COLON)
   ) {
-    return isPlainSafe(codePointAt(string, first >= 0x10000 ? 2 : 1), first, inblock)
+    return isPlainSafe(codePointAt(string, 1), first, inblock)
   }
 
   return false
@@ -474,8 +462,10 @@ function resolveScalarStyle (state: PresenterState, node: ScalarNode,
 
   // Plain writes no tag, so it round-trips only if the bare text resolves back
   // to the node's tag (or the tag gets printed explicitly). Else downgrade.
+  // `chooseScalarStyle` can return plain only in auto mode, so downgrade to
+  // the default quote style here.
   if (style === STYLE_PLAIN && !node.style.tagged && resolveImplicitTag(state, string) !== node.tag) {
-    return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
+    return STYLE_SINGLE
   }
   return style
 }
@@ -615,12 +605,18 @@ function escapeString (string: string) {
     char = codePointAt(string, i)
     const escapeSeq = ESCAPE_SEQUENCES[char]
 
-    if (!escapeSeq && isPrintable(char)) {
+    if (escapeSeq) {
+      result += escapeSeq
+      continue
+    }
+
+    if (isPrintable(char)) {
       result += string[i]
       if (char >= 0x10000) result += string[i + 1]
-    } else {
-      result += escapeSeq || encodeHex(char)
+      continue
     }
+
+    result += encodeNonPrintable(char)
   }
 
   return result
@@ -708,7 +704,9 @@ function sortMappingItems (state: PresenterState, items: MappingNode['items']) {
     copy.sort((a, b) => {
       const x = sortKeyValue(a.key)
       const y = sortKeyValue(b.key)
-      return x < y ? -1 : x > y ? 1 : 0
+      if (x < y) return -1
+      if (x > y) return 1
+      return 0
     })
   } else {
     const fn = state.sortKeys
