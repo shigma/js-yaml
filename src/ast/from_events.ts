@@ -22,7 +22,7 @@ import {
   type SequenceEvent
 } from '../parser/events.ts'
 import { getScalarValue } from '../parser/parser_scalar.ts'
-import { throwErrorAt, type ParserState } from '../parser/parser.ts'
+import { type ParserState } from '../parser/parser.ts'
 import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED } from '../tag.ts'
 import {
@@ -152,8 +152,6 @@ function buildCollection (
 function addNode (state: FromEventsState, node: Node) {
   const frame = state.frames[state.frames.length - 1]
 
-  if (!frame) throwErrorAt(state.parserState, state.position, 'node appears outside a document')
-
   if (frame.kind === 'document') {
     frame.doc.contents = node
   } else if (frame.kind === 'sequence') {
@@ -222,18 +220,14 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
       }
 
       case EVENT_ALIAS: {
-        const name = event.anchorStart === NO_RANGE
-          ? ''
-          : parserState.input.slice(event.anchorStart, event.anchorEnd)
+        const name = parserState.input.slice(event.anchorStart, event.anchorEnd)
         const node: AliasNode = { kind: 'alias', tag: '', style: new Style(), anchor: name }
         addNode(state, node)
         break
       }
 
       case EVENT_POP: {
-        const frame = state.frames.pop()
-        if (!frame) throwErrorAt(parserState, state.position, 'unexpected collection end')
-
+        const frame = state.frames.pop()!
         if (frame.kind === 'document') {
           state.stream.push(frame.doc)
         } else {
@@ -243,8 +237,6 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
       }
     }
   }
-
-  if (state.frames.length !== 0) throwErrorAt(parserState, state.position, 'unexpected end of event stream')
 
   return state.stream
 }
