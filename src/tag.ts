@@ -34,8 +34,7 @@ interface SequenceTagDefinition<Container = unknown> {
   implicit: false
   matchByTagPrefix: boolean
   create: (tagName: string) => Container
-  addItem: (container: Container, item: unknown, index: number) => void
-  finish: ((container: Container) => void) | null
+  addItem: (container: Container, item: unknown, index: number) => void | string
   identify: IdentifyFn | null
   represent: SequenceRepresent
   representTagName: RepresentTagNameFn | null
@@ -57,7 +56,6 @@ interface MappingTagDefinition<Container = unknown> {
   has: (container: Container, key: unknown) => boolean
   keys: (container: Container) => Iterable<unknown>
   get: (container: Container, key: unknown) => unknown
-  finish: ((container: Container) => void) | null
   identify: IdentifyFn | null
   represent: MappingRepresent
   representTagName: RepresentTagNameFn | null
@@ -100,7 +98,6 @@ type SequenceTagOptions<Container> = {
   matchByTagPrefix?: boolean
   create: SequenceTagDefinition<Container>['create']
   addItem: SequenceTagDefinition<Container>['addItem']
-  finish?: SequenceTagDefinition<Container>['finish']
 } & RepresentOptions<Container, ArrayLike<unknown>, SequenceRepresent>
 
 type MappingTagOptions<Container> = {
@@ -110,7 +107,6 @@ type MappingTagOptions<Container> = {
   has: MappingTagDefinition<Container>['has']
   keys: MappingTagDefinition<Container>['keys']
   get: MappingTagDefinition<Container>['get']
-  finish?: MappingTagDefinition<Container>['finish']
 } & RepresentOptions<Container, Map<unknown, unknown>, MappingRepresent>
 
 function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Result>): ScalarTagDefinition<Result> {
@@ -135,7 +131,6 @@ function defineSequenceTag<Container> (tagName: string, options: SequenceTagOpti
     matchByTagPrefix: options.matchByTagPrefix ?? false,
     create: options.create,
     addItem: options.addItem,
-    finish: options.finish ?? null,
     identify: options.identify ?? null,
     represent: options.represent ?? (data => data as ArrayLike<unknown>),
     representTagName: options.representTagName ?? null
@@ -153,7 +148,6 @@ function defineMappingTag<Container> (tagName: string, options: MappingTagOption
     has: options.has,
     keys: options.keys,
     get: options.get,
-    finish: options.finish ?? null,
     identify: options.identify ?? null,
     represent: options.represent ?? (data => data as Map<unknown, unknown>),
     representTagName: options.representTagName ?? null

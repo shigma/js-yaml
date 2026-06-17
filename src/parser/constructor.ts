@@ -1,4 +1,3 @@
-import YAMLException from '../exception.ts'
 import {
   EVENT_ALIAS,
   EVENT_DOCUMENT,
@@ -116,15 +115,6 @@ function eventPosition (event: Event) {
 
 function throwError (state: ConstructorState, message: string): never {
   throwErrorAt(state.parserState, state.position, message)
-}
-
-function callTag<T> (state: ConstructorState, callback: () => T): T {
-  try {
-    return callback()
-  } catch (error) {
-    if (error instanceof YAMLException) throw error
-    throwError(state, error instanceof Error ? error.message : String(error))
-  }
 }
 
 function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
@@ -308,7 +298,8 @@ function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
         throwError(state, `merge sequence length exceeded maxMergeSeqLength (${state.maxMergeSeqLength})`)
       }
     }
-    frame.tag.addItem(frame.value, value, frame.index++)
+    const err = frame.tag.addItem(frame.value, value, frame.index++)
+    if (err) throwError(state, err)
   } else if (frame.hasKey) {
     const key = frame.key
     frame.key = undefined
@@ -414,8 +405,6 @@ function constructFromEvents (state: ConstructorState) {
         if (frame.kind === 'document') {
           state.documents.push(frame.value)
         } else {
-          state.position = frame.position
-          if (frame.tag.finish) callTag(state, () => frame.tag.finish!(frame.value))
           addValue(state, frame.value, frame.tag)
         }
         break
