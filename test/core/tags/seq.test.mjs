@@ -29,4 +29,8 @@ Flow style: !!seq [ Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptun
   it('Resolving explicit !!seq on empty node', () => {
     assert.deepStrictEqual(load('!!seq'), [])
   })
+
+  it('throws on a non-empty scalar with explicit !!seq', () => {
+    assert.throws(() => load('!!seq foo'), /cannot resolve a node with !<tag:yaml\.org,2002:seq> explicit tag/)
+  })
 })
