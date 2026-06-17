@@ -7,7 +7,8 @@ const DEFAULT_TAG_HANDLES: TagHandle[] = [
   { handle: '!!', prefix: 'tag:yaml.org,2002:' }
 ]
 
-const TAG_HANDLE_RE = /^(![\w-]*!|!)/
+// A named handle ("!name!"); anything else handled here uses the primary "!".
+const TAG_NAMED_HANDLE_RE = /^![\w-]*!/
 const TAG_URI_RE = /^(?:[0-9A-Za-z\-#;/?:@&=+$,_.!~*'()[\]%]|%[0-9A-Fa-f]{2})*$/
 
 function tagHandlePrefix (handle: string, tagHandles?: TagHandles) {
@@ -35,9 +36,9 @@ function tagCheckError (rawTag: string) {
     if (!rawTag.endsWith('>')) return `verbatim tag is not closed: ${rawTag}`
     suffix = rawTag.slice(2, -1)
   } else {
-    const match = TAG_HANDLE_RE.exec(rawTag)
-    if (!match) return `cannot resolve tag "${rawTag}"`
-    suffix = rawTag.slice(match[1].length)
+    const named = TAG_NAMED_HANDLE_RE.exec(rawTag)
+    const handle = named ? named[0] : '!'
+    suffix = rawTag.slice(handle.length)
     if (suffix.includes('!')) return 'tag suffix cannot contain exclamation marks'
   }
 
@@ -60,10 +61,8 @@ function tagNameFull (rawTag: string, tagHandles?: TagHandles) {
     return tagPercentDecode(rawTag.slice(2, -1))
   }
 
-  const match = TAG_HANDLE_RE.exec(rawTag)
-  if (!match) throw new Error(`cannot resolve tag "${rawTag}"`)
-
-  const handle = match[1]
+  const named = TAG_NAMED_HANDLE_RE.exec(rawTag)
+  const handle = named ? named[0] : '!'
   const prefix = tagHandlePrefix(handle, tagHandles)
 
   return tagPercentDecode(prefix) + tagPercentDecode(rawTag.slice(handle.length))
