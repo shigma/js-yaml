@@ -21,8 +21,9 @@ import {
   type ScalarTagOptions,
   type SequenceTagOptions,
   type MappingTagOptions,
-  type RepresentFn,
-  type Represent
+  type ScalarRepresent,
+  type SequenceRepresent,
+  type MappingRepresent
 } from './tag.ts'
 
 import { strTag } from './tag/scalar/str.ts'
@@ -208,8 +209,9 @@ export {
   type ScalarTagOptions,
   type SequenceTagOptions,
   type MappingTagOptions,
-  type RepresentFn,
-  type Represent,
+  type ScalarRepresent,
+  type SequenceRepresent,
+  type MappingRepresent,
 
   type EventType,
   type ScalarStyle,

@@ -1,8 +1,12 @@
 const NOT_RESOLVED: unique symbol = Symbol('NOT_RESOLVED')
 const MERGE_KEY: unique symbol = Symbol('MERGE_KEY')
 
-type RepresentFn = (data: any) => any
-type Represent = RepresentFn
+type ScalarRepresent = (data: any) => string
+type SequenceRepresent = (data: any) => ArrayLike<unknown>
+type MappingRepresent = (data: any) => Map<unknown, unknown>
+
+type IdentifyFn = (data: any) => boolean
+type RepresentTagNameFn = (data: any) => string
 
 interface ScalarTagDefinition<Result = unknown> {
   tagName: string
@@ -17,9 +21,11 @@ interface ScalarTagDefinition<Result = unknown> {
   // `isExplicit` is true for an explicit tag (`!!tag`), false for implicit plain
   // scalar resolution.
   resolve: (source: string, tagName: string, isExplicit: boolean) => Result | typeof NOT_RESOLVED
-  identify: ((data: any) => boolean) | null
-  represent: Represent | null
-  representTagName: ((data: any) => string) | null
+  identify: IdentifyFn | null
+  // A scalar's printed form is text, so `represent` always yields a string. The
+  // factory supplies a `String(data)` default when a tag omits it.
+  represent: ScalarRepresent
+  representTagName: RepresentTagNameFn | null
 }
 
 interface SequenceTagDefinition<Container = unknown> {
@@ -30,9 +36,9 @@ interface SequenceTagDefinition<Container = unknown> {
   create: (tagName: string) => Container
   addItem: (container: Container, item: unknown, index: number) => void
   finish: ((container: Container) => void) | null
-  identify: ((data: any) => boolean) | null
-  represent: Represent | null
-  representTagName: ((data: any) => string) | null
+  identify: IdentifyFn | null
+  represent: SequenceRepresent
+  representTagName: RepresentTagNameFn | null
 }
 
 interface MappingTagDefinition<Container = unknown> {
@@ -52,9 +58,9 @@ interface MappingTagDefinition<Container = unknown> {
   keys: (container: Container) => Iterable<unknown>
   get: (container: Container, key: unknown) => unknown
   finish: ((container: Container) => void) | null
-  identify: ((data: any) => boolean) | null
-  represent: Represent | null
-  representTagName: ((data: any) => string) | null
+  identify: IdentifyFn | null
+  represent: MappingRepresent
+  representTagName: RepresentTagNameFn | null
 }
 
 type TagDefinition =
@@ -72,17 +78,32 @@ interface ScalarTagOptions<Result> {
   representTagName?: ScalarTagDefinition<Result>['representTagName']
 }
 
-interface SequenceTagOptions<Container> {
+type RepresentOptions<Container, Canonical, Represent> =
+  | {
+      identify?: null
+      represent?: Represent
+      representTagName?: RepresentTagNameFn | null
+    }
+  | (Container extends Canonical
+      ? {
+          identify?: IdentifyFn | null
+          represent?: Represent
+          representTagName?: RepresentTagNameFn | null
+        }
+      : {
+          identify: IdentifyFn
+          represent: Represent
+          representTagName?: RepresentTagNameFn | null
+        })
+
+type SequenceTagOptions<Container> = {
   matchByTagPrefix?: boolean
   create: SequenceTagDefinition<Container>['create']
   addItem: SequenceTagDefinition<Container>['addItem']
   finish?: SequenceTagDefinition<Container>['finish']
-  identify?: SequenceTagDefinition<Container>['identify']
-  represent?: SequenceTagDefinition<Container>['represent']
-  representTagName?: SequenceTagDefinition<Container>['representTagName']
-}
+} & RepresentOptions<Container, ArrayLike<unknown>, SequenceRepresent>
 
-interface MappingTagOptions<Container> {
+type MappingTagOptions<Container> = {
   matchByTagPrefix?: boolean
   create: MappingTagDefinition<Container>['create']
   addPair: MappingTagDefinition<Container>['addPair']
@@ -90,10 +111,7 @@ interface MappingTagOptions<Container> {
   keys: MappingTagDefinition<Container>['keys']
   get: MappingTagDefinition<Container>['get']
   finish?: MappingTagDefinition<Container>['finish']
-  identify?: MappingTagDefinition<Container>['identify']
-  represent?: MappingTagDefinition<Container>['represent']
-  representTagName?: MappingTagDefinition<Container>['representTagName']
-}
+} & RepresentOptions<Container, Map<unknown, unknown>, MappingRepresent>
 
 function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Result>): ScalarTagDefinition<Result> {
   return {
@@ -104,7 +122,7 @@ function defineScalarTag<Result> (tagName: string, options: ScalarTagOptions<Res
     implicitFirstChars: options.implicitFirstChars ?? null,
     resolve: options.resolve,
     identify: options.identify ?? null,
-    represent: options.represent ?? null,
+    represent: options.represent ?? (data => String(data)),
     representTagName: options.representTagName ?? null
   }
 }
@@ -119,7 +137,7 @@ function defineSequenceTag<Container> (tagName: string, options: SequenceTagOpti
     addItem: options.addItem,
     finish: options.finish ?? null,
     identify: options.identify ?? null,
-    represent: options.represent ?? null,
+    represent: options.represent ?? (data => data as ArrayLike<unknown>),
     representTagName: options.representTagName ?? null
   }
 }
@@ -137,7 +155,7 @@ function defineMappingTag<Container> (tagName: string, options: MappingTagOption
     get: options.get,
     finish: options.finish ?? null,
     identify: options.identify ?? null,
-    represent: options.represent ?? null,
+    represent: options.represent ?? (data => data as Map<unknown, unknown>),
     representTagName: options.representTagName ?? null
   }
 }
@@ -156,6 +174,7 @@ export {
   type ScalarTagOptions,
   type SequenceTagOptions,
   type MappingTagOptions,
-  type RepresentFn,
-  type Represent
+  type ScalarRepresent,
+  type SequenceRepresent,
+  type MappingRepresent
 }

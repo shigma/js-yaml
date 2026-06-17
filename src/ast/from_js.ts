@@ -79,13 +79,6 @@ function matchTag (state: FromJsState, object: unknown): { tag: TagDefinition, t
   return null
 }
 
-// Run a tag's `represent`. Returns the canonical output: scalar text, or the
-// array/`Map` container. No represent means the value is already canonical
-// (default str/seq/map).
-function applyRepresent (tag: TagDefinition, object: unknown) {
-  return tag.represent ? tag.represent(object) : object
-}
-
 // Build a node for `object`, or INVALID when no tag matches. `undefined` never
 // throws (caller decides: null in a sequence, skip in a mapping, '' at root);
 // any other unrepresentable value throws unless `skipInvalid`.
@@ -110,20 +103,19 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   const nodeTagName = implicitTag ? tagName : tagNameShort(tagName)
 
   if (tag.nodeKind === 'scalar') {
-    const value = applyRepresent(tag, object)
     const style = new Style()
     style.tagged = !implicitTag
     const node: ScalarNode = {
       kind: 'scalar',
       tag: nodeTagName,
       style,
-      value: typeof value === 'string' ? value : String(value)
+      value: tag.represent(object)
     }
     return node
   }
 
   if (tag.nodeKind === 'sequence') {
-    const container = applyRepresent(tag, object)
+    const container = tag.represent(object)
     const style = new Style()
     style.tagged = !implicitTag
     const node: SequenceNode = { kind: 'sequence', tag: nodeTagName, style, items: [] }
@@ -140,7 +132,7 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   }
 
   // mapping — the canonical form is always a `Map`.
-  const map: Map<unknown, unknown> = applyRepresent(tag, object)
+  const map = tag.represent(object)
   const style = new Style()
   style.tagged = !implicitTag
   const node: MappingNode = { kind: 'mapping', tag: nodeTagName, style, items: [] }
