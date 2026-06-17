@@ -59,7 +59,7 @@ function dump (input: any, options: DumpOptions = {}) {
   // Wrap the content node into a single-document stream. With empty document
   // fields this prints no markers — byte-for-byte the v4 output (and '' when
   // the root didn't resolve, since an empty document renders nothing).
-  const stream = [{ contents }]
+  const stream = [{ contents, directives: [] }]
 
   // flowLevel: every node at this depth switches to flow; the presenter forces
   // everything below into flow too, so the walk stops there.

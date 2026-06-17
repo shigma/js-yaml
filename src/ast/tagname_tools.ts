@@ -1,17 +1,13 @@
-import { type Node, type TagHandles } from './nodes.ts'
+import { type TagHandlers } from '../parser/events.ts'
+import { type Node } from './nodes.ts'
 
-type TagHandle = TagHandles[number]
+const DEFAULT_TAG_HANDLERS: TagHandlers = {
+  '!': '!',
+  '!!': 'tag:yaml.org,2002:'
+}
 
-const DEFAULT_TAG_HANDLES: TagHandle[] = [
-  { handle: '!', prefix: '!' },
-  { handle: '!!', prefix: 'tag:yaml.org,2002:' }
-]
-
-function tagHandlePrefix (handle: string, tagHandles?: TagHandles) {
-  const userHandle = tagHandles?.find(item => item.handle === handle)
-  if (userHandle !== undefined) return userHandle.prefix
-
-  return DEFAULT_TAG_HANDLES.find(item => item.handle === handle)?.prefix ?? handle
+function tagHandlePrefix (handle: string, tagHandlers?: TagHandlers) {
+  return tagHandlers?.[handle] ?? DEFAULT_TAG_HANDLERS[handle] ?? handle
 }
 
 function tagPercentDecode (source: string) {
@@ -22,14 +18,14 @@ function tagPercentEncode (source: string) {
   return encodeURI(source).replace(/!/g, '%21')
 }
 
-function tagNameFull (rawTag: string, tagHandles?: TagHandles) {
+function tagNameFull (rawTag: string, tagHandlers?: TagHandlers) {
   if (rawTag.startsWith('!<') && rawTag.endsWith('>')) {
     return tagPercentDecode(rawTag.slice(2, -1))
   }
 
   const handleEnd = rawTag.indexOf('!', 1)
   const handle = handleEnd === -1 ? '!' : rawTag.slice(0, handleEnd + 1)
-  const prefix = tagHandlePrefix(handle, tagHandles)
+  const prefix = tagHandlePrefix(handle, tagHandlers)
 
   return tagPercentDecode(prefix) + tagPercentDecode(rawTag.slice(handle.length))
 }

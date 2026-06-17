@@ -32,13 +32,13 @@ describe('tagname_tools', () => {
     })
 
     it('resolves a registered custom handle', () => {
-      const handles = [{ handle: '!e!', prefix: 'tag:example.com,2024:' }]
-      assert.equal(tagNameFull('!e!foo', handles), 'tag:example.com,2024:foo')
+      const handlers = { '!e!': 'tag:example.com,2024:' }
+      assert.equal(tagNameFull('!e!foo', handlers), 'tag:example.com,2024:foo')
     })
 
     it('lets user handles override the defaults', () => {
-      const handles = [{ handle: '!!', prefix: 'tag:custom,1:' }]
-      assert.equal(tagNameFull('!!str', handles), 'tag:custom,1:str')
+      const handlers = { '!!': 'tag:custom,1:' }
+      assert.equal(tagNameFull('!!str', handlers), 'tag:custom,1:str')
     })
 
     it('leaves an unregistered named handle untouched', () => {

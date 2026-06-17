@@ -911,14 +911,14 @@ function isOpenEnded (node: Node) {
 function writeDocumentDirectives (doc: Document) {
   let result = ''
 
-  if (doc.version !== undefined && doc.version !== null) {
-    result += `%YAML ${doc.version}\n`
-  }
-
-  if (doc.tagHandles !== undefined) {
-    for (const { handle, prefix } of doc.tagHandles) {
-      result += `%TAG ${handle} ${prefix}\n`
+  for (const directive of doc.directives) {
+    if (directive.kind === 'yaml') {
+      result += `%YAML ${directive.version}\n`
+      continue
     }
+
+    const { handle, prefix } = directive
+    result += `%TAG ${handle} ${prefix}\n`
   }
 
   return result

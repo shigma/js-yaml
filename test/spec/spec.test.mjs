@@ -104,22 +104,30 @@ function formatRange (input, start, end) {
 // form using the current document's TAG directives, mirroring what the
 // yaml-test-suite tree expects. The parser stores raw tag ranges; the directives
 // needed to resolve them are carried on the DOCUMENT event.
-function formatTag (tag, tagHandles) {
+function formatTag (tag, tagHandlers) {
   if (tag === '') return ''
   if (tag.startsWith('!<') && tag.endsWith('>')) return `<${tag.slice(2, -1)}>`
 
-  return `<${tagNameFull(tag, tagHandles)}>`
+  return `<${tagNameFull(tag, tagHandlers)}>`
 }
 
-function formatProperties (input, event, tagHandles) {
+function formatProperties (input, event, tagHandlers) {
   const parts = []
   const anchor = formatRange(input, event.anchorStart, event.anchorEnd)
   const tag = formatRange(input, event.tagStart, event.tagEnd)
 
   if (anchor) parts.push(`&${anchor}`)
-  if (tag) parts.push(formatTag(tag, tagHandles))
+  if (tag) parts.push(formatTag(tag, tagHandlers))
 
   return parts.length > 0 ? `${parts.join(' ')} ` : ''
+}
+
+function tagHandlersFromDirectives (directives) {
+  const tagHandlers = Object.create(null)
+  for (const directive of directives) {
+    if (directive.kind === 'tag') tagHandlers[directive.handle] = directive.prefix
+  }
+  return tagHandlers
 }
 
 function scalarStyleMarker (style) {
@@ -136,25 +144,25 @@ function actualTreeLines (input) {
 
   const lines = []
   const stack = []
-  let tagHandles = []
+  let tagHandlers = Object.create(null)
 
   for (const event of state.events) {
     if (event.type === EVENT_DOCUMENT) {
-      tagHandles = Object.keys(event.tagDirectives).map(handle => ({ handle, prefix: event.tagDirectives[handle] }))
+      tagHandlers = tagHandlersFromDirectives(event.directives)
       lines.push(event.explicitStart ? '+DOC ---' : '+DOC')
       stack.push(event)
     } else if (event.type === EVENT_SEQUENCE) {
       const style = event.style === COLLECTION_STYLE_FLOW ? ' []' : ''
-      const props = formatProperties(input, event, tagHandles)
+      const props = formatProperties(input, event, tagHandlers)
       lines.push(`+SEQ${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
       stack.push(event)
     } else if (event.type === EVENT_MAPPING) {
       const style = event.style === COLLECTION_STYLE_FLOW ? ' {}' : ''
-      const props = formatProperties(input, event, tagHandles)
+      const props = formatProperties(input, event, tagHandlers)
       lines.push(`+MAP${style} ${props}`.replace(/\s+/g, ' ').trimEnd())
       stack.push(event)
     } else if (event.type === EVENT_SCALAR) {
-      const props = formatProperties(input, event, tagHandles)
+      const props = formatProperties(input, event, tagHandlers)
       const value = escapeTreeValue(getScalarValue(state, event))
       lines.push(`=VAL ${props}${scalarStyleMarker(event.style)}${value}`)
     } else if (event.type === EVENT_ALIAS) {
@@ -336,12 +344,13 @@ describe('yaml-test-suite parser tree', () => {
 
             // Samples carry no %YAML/%TAG directives — tags are expanded inline.
             for (const doc of stream) {
+              const tagHandlers = tagHandlersFromDirectives(doc.directives)
+
               visit([doc], (node) => {
-                if (node.style.tagged && node.tag !== '!') node.tag = tagNameShort(tagNameFull(node.tag, doc.tagHandles))
+                if (node.style.tagged && node.tag !== '!') node.tag = tagNameShort(tagNameFull(node.tag, tagHandlers))
               })
 
-              delete doc.version
-              delete doc.tagHandles
+              doc.directives = []
             }
 
             // Samples always render collections as block; only empty `{}`/`[]`

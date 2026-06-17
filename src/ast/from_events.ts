@@ -66,8 +66,6 @@ interface FromEventsState {
   eventIndex: number
   position: number
   frames: Frame[]
-  tagDirectives: Record<string, string>
-  tagHandles: Array<{ handle: string, prefix: string }>
   stream: Stream
 }
 
@@ -171,8 +169,6 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
     eventIndex: 0,
     position: 0,
     frames: [],
-    tagDirectives: Object.create(null),
-    tagHandles: [],
     stream: []
   }
 
@@ -182,21 +178,12 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
 
     switch (event.type) {
       case EVENT_DOCUMENT: {
-        state.tagDirectives = event.tagDirectives
-        state.tagHandles = Object.keys(event.tagDirectives).map(handle => ({
-          handle,
-          prefix: event.tagDirectives[handle]
-        }))
         const doc: Document = {
           contents: null,
           explicitStart: event.explicitStart,
-          explicitEnd: event.explicitEnd
+          explicitEnd: event.explicitEnd,
+          directives: event.directives
         }
-        // Carry directives faithfully: `version` only when a %YAML directive was
-        // present (default is ''), `tagHandles` only for explicit %TAG (the event
-        // map never holds the implicit `!`/`!!` handles).
-        if (event.version) doc.version = event.version
-        if (state.tagHandles.length > 0) doc.tagHandles = state.tagHandles
         state.frames.push({ kind: 'document', doc })
         break
       }

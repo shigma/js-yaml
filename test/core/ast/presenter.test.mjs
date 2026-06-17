@@ -28,7 +28,7 @@ describe('ast presenter', () => {
     assert.equal(node?.kind, 'mapping')
     node.style.flow = true
 
-    const output = present([{ contents: node }], { schema: CORE_SCHEMA, quoteFlowKeys: true })
+    const output = present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, quoteFlowKeys: true })
 
     assert.equal(output, `{? "${'a'.repeat(1024)}\\nb": value}\n`)
     assert.deepEqual(load(output, { schema: CORE_SCHEMA }), { [key]: 'value' })
@@ -37,8 +37,10 @@ describe('ast presenter', () => {
   it('prints document directives before the document marker', () => {
     const contents = jsToAst('bar', CORE_SCHEMA)
     const output = present([{
-      version: '1.2',
-      tagHandles: [{ handle: '!e!', prefix: 'tag:example.com,2024:' }],
+      directives: [
+        { kind: 'yaml', version: '1.2' },
+        { kind: 'tag', handle: '!e!', prefix: 'tag:example.com,2024:' }
+      ],
       contents
     }], { schema: CORE_SCHEMA })
 
@@ -88,7 +90,7 @@ describe('ast presenter', () => {
 
     // Nested collections render flow despite their own block style, and a
     // multiline scalar can't stay block inside flow — it falls back to quoting.
-    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA }), '[{a: [1, 2], b: "x\\ny"}]\n')
+    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA }), '[{a: [1, 2], b: "x\\ny"}]\n')
   })
 
   it('propagates seqNoIndent to nested sequences', () => {
@@ -96,7 +98,7 @@ describe('ast presenter', () => {
 
     // The deeper `items` sequence keeps its dashes aligned with the key too,
     // not just the top-level one.
-    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA }), '- items:\n    - a: 1\n')
-    assert.equal(present([{ contents: node }], { schema: CORE_SCHEMA, seqNoIndent: true }), '- items:\n  - a: 1\n')
+    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA }), '- items:\n    - a: 1\n')
+    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, seqNoIndent: true }), '- items:\n  - a: 1\n')
   })
 })

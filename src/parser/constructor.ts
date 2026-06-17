@@ -8,6 +8,7 @@ import {
   EVENT_SEQUENCE,
   SCALAR_STYLE_PLAIN,
   type Event,
+  type TagHandlers,
   type MappingEvent,
   type ScalarEvent,
   type SequenceEvent
@@ -91,7 +92,7 @@ interface ConstructorState extends Required<ConstructorOptions> {
   position: number
   frames: Frame[]
   anchors: Map<string, Anchor>
-  tagDirectives: Record<string, string>
+  tagHandlers: TagHandlers
 }
 
 function createConstructorState (parserState: ParserState, options: ConstructorOptions = {}): ConstructorState {
@@ -104,7 +105,7 @@ function createConstructorState (parserState: ParserState, options: ConstructorO
     position: 0,
     frames: [],
     anchors: new Map(),
-    tagDirectives: Object.create(null)
+    tagHandlers: Object.create(null)
   }
 }
 
@@ -142,7 +143,7 @@ function resolveTagName (state: ConstructorState, rawTag: string) {
   if (!match) throwError(state, `cannot resolve tag "${rawTag}"`)
 
   const handle = match[1]
-  const prefix = state.tagDirectives[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
+  const prefix = state.tagHandlers[handle] ?? DEFAULT_TAG_HANDLES[handle] ?? handle
 
   try {
     return decodeURIComponent(prefix) + decodeURIComponent(rawTag.slice(handle.length))
@@ -362,7 +363,10 @@ function constructEvents (state: ConstructorState) {
     switch (event.type) {
       case EVENT_DOCUMENT:
         state.anchors = new Map()
-        state.tagDirectives = event.tagDirectives
+        state.tagHandlers = Object.create(null)
+        for (const directive of event.directives) {
+          if (directive.kind === 'tag') state.tagHandlers[directive.handle] = directive.prefix
+        }
         state.frames.push({ kind: 'document', position: state.position, value: undefined, hasValue: false })
         break
 

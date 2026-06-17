@@ -33,12 +33,17 @@ const CHOMPING_KEEP = 3
 type Chomping =
   typeof CHOMPING_CLIP | typeof CHOMPING_STRIP | typeof CHOMPING_KEEP
 
+type DocumentDirective =
+  { kind: 'yaml', version: string } |
+  { kind: 'tag', handle: string, prefix: string }
+
+type TagHandlers = Record<string, string>
+
 interface DocumentEvent {
   type: typeof EVENT_DOCUMENT
   explicitStart: boolean
   explicitEnd: boolean
-  version: string
-  tagDirectives: Record<string, string>
+  directives: DocumentDirective[]
 }
 
 interface SequenceEvent {
@@ -119,6 +124,8 @@ export {
   type CollectionStyle,
 
   type Chomping,
+  type DocumentDirective,
+  type TagHandlers,
   type DocumentEvent,
   type SequenceEvent,
   type MappingEvent,

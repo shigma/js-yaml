@@ -2,6 +2,8 @@
 // rendered by the presenter) and, later, by load. Behaviour lives in the walkers,
 // not on the nodes.
 
+import { type DocumentDirective } from '../parser/events.ts'
+
 class Style {
   tagged = false
   flow = false
@@ -47,18 +49,15 @@ interface AliasNode extends NodeBase {
 }
 
 type Node = ScalarNode | SequenceNode | MappingNode | AliasNode
-type TagHandles = Array<{ handle: string, prefix: string }>
 
 // The layer above `Node`: a stream is a list of documents, each wrapping one
 // content node plus its own markers/directives. Not a member of `Node` — the
-// fields differ. Document directives are data slots; `%TAG` emission is not
-// implemented by the dumper yet.
+// fields differ. Document directives are ordered presentation data.
 interface Document {
   contents: Node | null            // null = empty document
   explicitStart?: boolean          // print '---'
   explicitEnd?: boolean            // print '...'
-  version?: string | null
-  tagHandles?: TagHandles
+  directives: DocumentDirective[]
 }
 
 type Stream = Document[]
@@ -67,7 +66,6 @@ export {
   Style,
 
   type Node,
-  type TagHandles,
   type Document,
   type Stream,
   type NodeBase,

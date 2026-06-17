@@ -18,13 +18,15 @@ import {
   type Event,
   type ScalarStyle,
   type CollectionStyle,
-  type Chomping
+  type Chomping,
+  type DocumentDirective,
+  type TagHandlers
 } from './events.ts'
 import YAMLException from '../exception.ts'
 import makeSnippet, { type SnippetMark } from '../snippet.ts'
 
 const NO_RANGE = -1
-const DEFAULT_YAML_VERSION = ''
+const HAS_OWN = Object.prototype.hasOwnProperty
 
 const CONTEXT_FLOW_IN = 1
 const CONTEXT_FLOW_OUT = 2
@@ -89,8 +91,8 @@ interface ParserState extends Required<ParserOptions> {
   lineIndent: number
   firstTabInLine: number
   depth: number
-  version: string
-  tagDirectives: Record<string, string>
+  directives: DocumentDirective[]
+  tagHandlers: TagHandlers
   events: Event[]
 }
 
@@ -108,8 +110,8 @@ function createParserState (input: string, options: ParserOptions = {}): ParserS
     lineIndent: 0,
     firstTabInLine: -1,
     depth: 0,
-    version: DEFAULT_YAML_VERSION,
-    tagDirectives: Object.create(null),
+    directives: [],
+    tagHandlers: Object.create(null),
     events: []
   }
 
@@ -122,16 +124,13 @@ function createParserState (input: string, options: ParserOptions = {}): ParserS
 function addDocumentEvent (
   state: ParserState,
   explicitStart: boolean,
-  explicitEnd: boolean,
-  version: string,
-  tagDirectives: Record<string, string>
+  explicitEnd: boolean
 ) {
   state.events.push({
     type: EVENT_DOCUMENT,
     explicitStart,
     explicitEnd,
-    version,
-    tagDirectives
+    directives: state.directives
   })
 }
 
@@ -500,7 +499,7 @@ function readTagProperty (state: ParserState, props: NodeProperties, inFlow: boo
     throwError(state, `tag name is malformed: ${tagName}`)
   }
 
-  if (!isVerbatim && tagHandle !== '!' && tagHandle !== '!!' && !Object.hasOwn(state.tagDirectives, tagHandle)) {
+  if (!isVerbatim && tagHandle !== '!' && tagHandle !== '!!' && !HAS_OWN.call(state.tagHandlers, tagHandle)) {
     throwError(state, `undeclared tag handle "${tagHandle}"`)
   }
 
@@ -1401,20 +1400,20 @@ function readDirective (state: ParserState) {
   if (isEol(state.input.charCodeAt(state.position))) readLineBreak(state)
 
   if (name === 'YAML') {
-    if (state.version !== DEFAULT_YAML_VERSION) throwError(state, 'duplication of %YAML directive')
+    if (state.directives.some(directive => directive.kind === 'yaml')) throwError(state, 'duplication of %YAML directive')
     if (args.length !== 1) throwError(state, 'YAML directive accepts exactly one argument')
 
     const match = /^([0-9]+)\.([0-9]+)$/.exec(args[0])
     if (match === null) throwError(state, 'ill-formed argument of the YAML directive')
     if (parseInt(match[1], 10) !== 1) throwError(state, 'unacceptable YAML version of the document')
 
-    state.version = args[0]
+    state.directives.push({ kind: 'yaml', version: args[0] })
   } else if (name === 'TAG') {
     if (args.length !== 2) throwError(state, 'TAG directive accepts exactly two arguments')
 
     const [handle, prefix] = args
     if (!PATTERN_TAG_HANDLE.test(handle)) throwError(state, 'ill-formed tag handle (first argument) of the TAG directive')
-    if (Object.hasOwn(state.tagDirectives, handle)) throwError(state, `there is a previously declared suffix for "${handle}" tag handle`)
+    if (HAS_OWN.call(state.tagHandlers, handle)) throwError(state, `there is a previously declared suffix for "${handle}" tag handle`)
     if (!PATTERN_TAG_PREFIX.test(prefix)) throwError(state, 'ill-formed tag prefix (second argument) of the TAG directive')
     try {
       decodeURIComponent(prefix)
@@ -1422,15 +1421,16 @@ function readDirective (state: ParserState) {
       throwError(state, `tag prefix is malformed: ${prefix}`)
     }
 
-    state.tagDirectives[handle] = prefix
+    state.tagHandlers[handle] = prefix
+    state.directives.push({ kind: 'tag', handle, prefix })
   }
 
   return true
 }
 
 function readDocument (state: ParserState) {
-  state.version = DEFAULT_YAML_VERSION
-  state.tagDirectives = Object.create(null)
+  state.directives = []
+  state.tagHandlers = Object.create(null)
   let hasDirectives = false
 
   skipSeparationSpace(state, true)
@@ -1468,7 +1468,7 @@ function readDocument (state: ParserState) {
     return
   }
 
-  addDocumentEvent(state, explicitStart, false, state.version, { ...state.tagDirectives })
+  addDocumentEvent(state, explicitStart, false)
   if (!parseNode(state, state.lineIndent - 1, CONTEXT_BLOCK_OUT, false, allowCompact, allowCompact)) {
     addEmptyScalarEvent(state)
   }
