@@ -23,7 +23,7 @@ import {
 } from '../parser/events.ts'
 import { getScalarValue } from '../parser/parser_scalar.ts'
 import { throwErrorAt, type ParserState } from '../parser/parser.ts'
-import { CORE_SCHEMA, type Schema } from '../schema.ts'
+import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED } from '../tag.ts'
 import {
   Style,
@@ -58,7 +58,7 @@ interface MappingFrame {
 type Frame = DocumentFrame | SequenceFrame | MappingFrame
 
 interface FromEventsOptions {
-  schema?: Schema
+  schema: Schema
 }
 
 interface FromEventsState {
@@ -176,10 +176,10 @@ function addNode (state: FromEventsState, node: Node) {
   }
 }
 
-function eventsToAst (parserState: ParserState, options: FromEventsOptions = {}): Stream {
+function eventsToAst (parserState: ParserState, options: FromEventsOptions): Stream {
   const state: FromEventsState = {
     parserState,
-    schema: options.schema ?? CORE_SCHEMA,
+    schema: options.schema,
     eventIndex: 0,
     position: 0,
     frames: [],
