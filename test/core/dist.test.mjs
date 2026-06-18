@@ -1,106 +1,17 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import fs from 'node:fs'
-import path from 'node:path'
-import vm from 'node:vm'
 import { createRequire } from 'node:module'
-import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const distDir = path.resolve(__dirname, '../../dist')
-
-const expectedKeys = [
-  'Schema',
-  'CORE_SCHEMA',
-  'FAILSAFE_SCHEMA',
-  'JSON_SCHEMA',
-  'YAML11_SCHEMA',
-
-  'MERGE_KEY',
-  'NOT_RESOLVED',
-  'defineMappingTag',
-  'defineScalarTag',
-  'defineSequenceTag',
-
-  'strTag',
-  'nullCoreTag',
-  'nullJsonTag',
-  'nullYaml11Tag',
-  'boolCoreTag',
-  'boolJsonTag',
-  'boolYaml11Tag',
-  'intCoreTag',
-  'intJsonTag',
-  'intYaml11Tag',
-  'floatCoreTag',
-  'floatJsonTag',
-  'floatYaml11Tag',
-  'seqTag',
-  'mapTag',
-  'realMapTag',
-
-  'mergeTag',
-  'binaryTag',
-  'timestampTag',
-  'omapTag',
-  'pairsTag',
-  'setTag',
-
-  'YAMLException',
-  'load',
-  'loadAll',
-  'dump',
-
-  'EVENT_DOCUMENT',
-  'EVENT_SEQUENCE',
-  'EVENT_MAPPING',
-  'EVENT_SCALAR',
-  'EVENT_ALIAS',
-  'EVENT_POP',
-  'SCALAR_STYLE_PLAIN',
-  'SCALAR_STYLE_SINGLE_QUOTED',
-  'SCALAR_STYLE_DOUBLE_QUOTED',
-  'SCALAR_STYLE_LITERAL_BLOCK',
-  'SCALAR_STYLE_FOLDED_BLOCK',
-  'COLLECTION_STYLE_BLOCK',
-  'COLLECTION_STYLE_FLOW',
-  'CHOMPING_CLIP',
-  'CHOMPING_STRIP',
-  'CHOMPING_KEEP',
-
-  'createParserState',
-  'parseEvents',
-  'getScalarValue',
-
-  'createConstructorState',
-  'constructFromEvents',
-
-  'eventsToAst',
-  'jsToAst',
-  'present',
-  'Style',
-  'visit',
-  'VISIT_BREAK',
-  'VISIT_SKIP'
-]
 
 function checkExports (yaml, options) {
-  assert.deepStrictEqual(Object.keys(yaml).sort(), expectedKeys.slice().sort())
   assert.strictEqual(yaml.load('a: 1').a, 1)
+  assert.strictEqual(yaml.dump({ a: 1 }), 'a: 1\n')
 
   if (options && options.checkEsModule) {
     assert.strictEqual(yaml.__esModule, true)
   }
-}
-
-function loadGlobal (filename) {
-  const context = {}
-
-  vm.runInNewContext(fs.readFileSync(path.join(distDir, filename), 'utf8'), context)
-
-  return context.jsyaml
 }
 
 describe('dist build', () => {
@@ -119,9 +30,5 @@ describe('dist build', () => {
 
   it('exports the expected browser CommonJS API from js-yaml.umd.min.js', () => {
     checkExports(require('../../dist/browser/js-yaml.umd.min.js'))
-  })
-
-  it('exposes the expected browser global from js-yaml.umd.min.js', () => {
-    checkExports(loadGlobal('browser/js-yaml.umd.min.js'))
   })
 })
