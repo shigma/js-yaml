@@ -22,8 +22,7 @@ import {
   type DocumentDirective,
   type TagHandlers
 } from './events.ts'
-import { YAMLException } from '../exception.ts'
-import makeSnippet, { type SnippetMark } from '../snippet.ts'
+import { throwErrorAt } from '../common/exception.ts'
 
 const NO_RANGE = -1
 const HAS_OWN = Object.prototype.hasOwnProperty
@@ -116,7 +115,7 @@ function createParserState (input: string, options: ParserOptions = {}): ParserS
   }
 
   const nullpos = source.indexOf('\0')
-  if (nullpos !== -1) throwErrorAt(state, nullpos, 'null byte is not allowed in input')
+  if (nullpos !== -1) throwErrorAt(source, nullpos, 'null byte is not allowed in input', state.filename)
 
   return state
 }
@@ -260,43 +259,8 @@ function restoreState (state: ParserState, snapshot: ParserSnapshot) {
   state.events.length = snapshot.eventsLength
 }
 
-function generateError (state: ParserState, position: number, message: string) {
-  const buffer = state.input.slice(0, state.length)
-
-  let line = 0
-  let lineStart = 0
-
-  for (let index = 0; index < position; index++) {
-    const ch = buffer.charCodeAt(index)
-
-    if (ch === 0x0A/* LF */) {
-      line++
-      lineStart = index + 1
-    } else if (ch === 0x0D/* CR */) {
-      line++
-      if (buffer.charCodeAt(index + 1) === 0x0A/* LF */) index++
-      lineStart = index + 1
-    }
-  }
-
-  const mark: SnippetMark = {
-    name: state.filename,
-    buffer,
-    position,
-    line,
-    column: position - lineStart
-  }
-
-  mark.snippet = makeSnippet(mark)
-  return new YAMLException(message, mark)
-}
-
-function throwErrorAt (state: ParserState, position: number, message: string): never {
-  throw generateError(state, position, message)
-}
-
 function throwError (state: ParserState, message: string): never {
-  throwErrorAt(state, state.position, message)
+  throwErrorAt(state.input.slice(0, state.length), state.position, message, state.filename)
 }
 
 function isEol (c: number) {
@@ -1512,7 +1476,6 @@ function parseEvents (state: ParserState) {
 export {
   createParserState,
   parseEvents,
-  throwErrorAt,
   DEFAULT_PARSER_OPTIONS,
   type ParserState,
   type ParserOptions

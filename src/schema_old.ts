@@ -1,4 +1,4 @@
-import { YAMLException } from './exception.ts'
+import { YAMLException } from './common/exception.ts'
 import {
   type NodeKindOrUnknown,
   type TagDefinition,

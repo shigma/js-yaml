@@ -1,7 +1,7 @@
 // AST → text. Walks the node `kind`; the scalar machinery (style selection,
 // quoting, folding) is driven by node text, not by sniffing a JS value.
 
-import { YAMLException } from '../exception.ts'
+import { YAMLException } from '../common/exception.ts'
 import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED, type ScalarTagDefinition } from '../tag.ts'
 import {

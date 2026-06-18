@@ -18,7 +18,7 @@ import CORE_SCHEMA from './schema_old/core.ts'
 import DEFAULT_SCHEMA from './schema_old/default.ts'
 import { load, loadAll, type LoadOptions } from './loader_old.ts'
 import { dump, type DumpOptions } from './dump.ts'
-import { YAMLException } from './exception.ts'
+import { YAMLException } from './common/exception.ts'
 
 import { binaryTag } from './tag_old/binary.ts'
 import { floatTag } from './tag_old/float.ts'

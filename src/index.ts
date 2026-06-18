@@ -53,7 +53,7 @@ export { setTag } from './tag/mapping/set.ts'
 
 export { load, loadAll, type LoadOptions } from './load.ts'
 export { dump, type DumpOptions } from './dump.ts'
-export { YAMLException } from './exception.ts'
+export { YAMLException } from './common/exception.ts'
 
 export {
   EVENT_DOCUMENT,

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 
 import assert from 'node:assert'
-import snippet from '../../../src/snippet.ts'
+import snippet from '../../../src/common/snippet.ts'
 
 // Each case is [input, expected]. The `*` in `input` marks the cursor position
 // the snippet should point at; it stays in the buffer, the column is taken from it.

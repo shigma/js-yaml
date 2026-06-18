@@ -21,7 +21,8 @@ import {
   type ScalarTagDefinition,
   type SequenceTagDefinition
 } from '../tag.ts'
-import { throwErrorAt, type ParserState } from './parser.ts'
+import { type ParserState } from './parser.ts'
+import { throwErrorAt } from '../common/exception.ts'
 import { tagNameFull } from '../ast/tagname_tools.ts'
 
 const NO_RANGE = -1
@@ -114,7 +115,8 @@ function eventPosition (event: Event) {
 }
 
 function throwError (state: ConstructorState, message: string): never {
-  throwErrorAt(state.parserState, state.position, message)
+  const { input, length, filename } = state.parserState
+  throwErrorAt(input.slice(0, length), state.position, message, filename)
 }
 
 function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
