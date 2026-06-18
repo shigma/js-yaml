@@ -23,38 +23,38 @@ class Space {
   }
 }
 
-const PointTag = defineSequenceTag('!point', {
-  create: () => new Point(),
-  addItem: (point, value, index) => {
-    if (index === 0) point.x = value
-    else if (index === 1) point.y = value
-    else if (index === 2) point.z = value
-    else throw new Error('!point expects exactly 3 items')
-  },
-  identify: value => value instanceof Point,
-  represent: point => [point.x, point.y, point.z]
-})
+const schema = CORE_SCHEMA.withTags(
+  defineSequenceTag('!point', {
+    create: () => new Point(),
+    addItem: (point, value, index) => {
+      if (index === 0) point.x = value
+      else if (index === 1) point.y = value
+      else if (index === 2) point.z = value
+      else throw new Error('!point expects exactly 3 items')
+    },
+    identify: value => value instanceof Point,
+    represent: point => [point.x, point.y, point.z]
+  }),
 
-const SpaceTag = defineMappingTag('!space', {
-  create: () => new Space(),
-  addPair: (space, key, value) => {
-    if (key === 'height') space.height = value
-    else if (key === 'width') space.width = value
-    else if (key === 'points') space.points = value
-    return ''
-  },
-  has: () => false,
-  keys: space => Object.keys(space),
-  get: (space, key) => space[key],
-  identify: value => value instanceof Space,
-  represent: space => new Map([
-    ['height', space.height],
-    ['width', space.width],
-    ['points', space.points]
-  ])
-})
-
-const schema = CORE_SCHEMA.withTags(PointTag, SpaceTag)
+  defineMappingTag('!space', {
+    create: () => new Space(),
+    addPair: (space, key, value) => {
+      if (key === 'height') space.height = value
+      else if (key === 'width') space.width = value
+      else if (key === 'points') space.points = value
+      return ''
+    },
+    has: () => false,
+    keys: space => Object.keys(space),
+    get: (space, key) => space[key],
+    identify: value => value instanceof Space,
+    represent: space => new Map([
+      ['height', space.height],
+      ['width', space.width],
+      ['points', space.points]
+    ])
+  })
+)
 
 const source = `
 spaces:

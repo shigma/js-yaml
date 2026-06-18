@@ -7,6 +7,8 @@ import {
 } from 'js-yaml'
 
 const schema = CORE_SCHEMA.withTags(
+  // Instead of defining a new tag, we override a single method of clone
+  // in one line. That's compact and simple.
   { ...boolCoreTag, represent: value => value ? 'TRUE' : 'FALSE' },
   { ...intCoreTag, represent: value => value >= 0 ? `0x${value.toString(16)}` : `-0x${(-value).toString(16)}` },
   { ...nullCoreTag, represent: () => '' }
