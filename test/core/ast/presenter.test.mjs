@@ -5,7 +5,6 @@ import {
   dump,
   load,
   defineScalarTag,
-  createParserState,
   parseEvents,
   jsToAst,
   eventsToAst,
@@ -16,9 +15,8 @@ import {
 } from 'js-yaml'
 
 function presentParsed (input) {
-  const state = createParserState(input)
-  parseEvents(state)
-  return present(eventsToAst(state, { schema: CORE_SCHEMA }), { schema: CORE_SCHEMA })
+  const events = parseEvents(input, {})
+  return present(eventsToAst(events, { source: input, schema: CORE_SCHEMA }), { schema: CORE_SCHEMA })
 }
 
 describe('ast presenter', () => {

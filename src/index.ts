@@ -88,19 +88,15 @@ export {
 } from './parser/events.ts'
 
 export {
-  createParserState,
   parseEvents,
-  type ParserState,
   type ParserOptions
 } from './parser/parser.ts'
 
 export { getScalarValue } from './parser/parser_scalar.ts'
 
 export {
-  createConstructorState,
   constructFromEvents,
-  type ConstructorOptions,
-  type ConstructorState
+  type ConstructorOptions
 } from './parser/constructor.ts'
 
 export { eventsToAst, type FromEventsOptions } from './ast/from_events.ts'

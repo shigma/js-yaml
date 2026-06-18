@@ -95,31 +95,6 @@ interface ParserState extends Required<ParserOptions> {
   events: Event[]
 }
 
-function createParserState (input: string, options: ParserOptions = {}): ParserState {
-  const source = String(input)
-  const length = source.length
-  const state: ParserState = {
-    ...DEFAULT_PARSER_OPTIONS,
-    ...options,
-    input: `${source}\0`,
-    length,
-    position: 0,
-    line: 0,
-    lineStart: 0,
-    lineIndent: 0,
-    firstTabInLine: -1,
-    depth: 0,
-    directives: [],
-    tagHandlers: Object.create(null),
-    events: []
-  }
-
-  const nullpos = source.indexOf('\0')
-  if (nullpos !== -1) throwErrorAt(source, nullpos, 'null byte is not allowed in input', state.filename)
-
-  return state
-}
-
 function addDocumentEvent (
   state: ParserState,
   explicitStart: boolean,
@@ -1448,14 +1423,26 @@ function readDocument (state: ParserState) {
   }
 }
 
-function parseEvents (state: ParserState) {
-  state.events.length = 0
-  state.position = 0
-  state.line = 0
-  state.lineStart = 0
-  state.lineIndent = 0
-  state.firstTabInLine = -1
-  state.depth = 0
+function parseEvents (input: string, options: ParserOptions): Event[] {
+  const length = input.length
+  const state: ParserState = {
+    ...DEFAULT_PARSER_OPTIONS,
+    ...options,
+    input: `${input}\0`,
+    length,
+    position: 0,
+    line: 0,
+    lineStart: 0,
+    lineIndent: 0,
+    firstTabInLine: -1,
+    depth: 0,
+    directives: [],
+    tagHandlers: Object.create(null),
+    events: []
+  }
+
+  const nullpos = input.indexOf('\0')
+  if (nullpos !== -1) throwErrorAt(input, nullpos, 'null byte is not allowed in input', state.filename)
 
   if (state.input.charCodeAt(state.position) === 0xFEFF) state.position++
 
@@ -1471,12 +1458,12 @@ function parseEvents (state: ParserState) {
       throwError(state, 'can not read a document')
     }
   }
+
+  return state.events
 }
 
 export {
-  createParserState,
   parseEvents,
   DEFAULT_PARSER_OPTIONS,
-  type ParserState,
   type ParserOptions
 }

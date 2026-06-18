@@ -21,7 +21,6 @@ import {
   type ScalarTagDefinition,
   type SequenceTagDefinition
 } from '../tag.ts'
-import { type ParserState } from './parser.ts'
 import { throwErrorAt } from '../common/exception.ts'
 import { tagNameFull } from '../ast/tagname_tools.ts'
 
@@ -69,13 +68,15 @@ interface Anchor {
 }
 
 interface ConstructorOptions {
+  source: string
   filename?: string
   schema?: Schema
   json?: boolean
   maxMergeSeqLength?: number
 }
 
-const DEFAULT_CONSTRUCTOR_OPTIONS: Required<ConstructorOptions> = {
+// `source` is input data, not config — so it has no default here.
+const DEFAULT_CONSTRUCTOR_OPTIONS: Required<Omit<ConstructorOptions, 'source'>> = {
   filename: '',
   schema: CORE_SCHEMA,
   json: false,
@@ -83,27 +84,13 @@ const DEFAULT_CONSTRUCTOR_OPTIONS: Required<ConstructorOptions> = {
 }
 
 interface ConstructorState extends Required<ConstructorOptions> {
-  parserState: ParserState
+  events: Event[]
   documents: unknown[]
   eventIndex: number
   position: number
   frames: Frame[]
   anchors: Map<string, Anchor>
   tagHandlers: TagHandlers
-}
-
-function createConstructorState (parserState: ParserState, options: ConstructorOptions = {}): ConstructorState {
-  return {
-    ...DEFAULT_CONSTRUCTOR_OPTIONS,
-    ...options,
-    parserState,
-    documents: [],
-    eventIndex: 0,
-    position: 0,
-    frames: [],
-    anchors: new Map(),
-    tagHandlers: Object.create(null)
-  }
 }
 
 function eventPosition (event: Event) {
@@ -115,8 +102,7 @@ function eventPosition (event: Event) {
 }
 
 function throwError (state: ConstructorState, message: string): never {
-  const { input, length, filename } = state.parserState
-  throwErrorAt(input.slice(0, length), state.position, message, filename)
+  throwErrorAt(state.source, state.position, message, state.filename)
 }
 
 function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
@@ -151,10 +137,10 @@ function constructScalar (
   state: ConstructorState,
   event: ScalarEvent
 ): Anchor {
-  const source = getScalarValue(state.parserState.input, event)
+  const source = getScalarValue(state.source, event)
   const rawTag = event.tagStart === NO_RANGE
     ? ''
-    : state.parserState.input.slice(event.tagStart, event.tagEnd)
+    : state.source.slice(event.tagStart, event.tagEnd)
   const strTag = state.schema.defaultScalarTag
 
   if (rawTag !== '') {
@@ -215,7 +201,7 @@ function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition>
 ) {
   const rawTag = event.tagStart === NO_RANGE
     ? ''
-    : state.parserState.input.slice(event.tagStart, event.tagEnd)
+    : state.source.slice(event.tagStart, event.tagEnd)
   const tagName = rawTag === '' || rawTag === '!'
     ? defaultTagName
     : tagNameFull(rawTag, state.tagHandlers)
@@ -316,13 +302,25 @@ function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
 
 function storeAnchor (state: ConstructorState, event: ScalarEvent | SequenceEvent | MappingEvent, value: unknown, tag: AnyTag) {
   if (event.anchorStart !== NO_RANGE) {
-    state.anchors.set(state.parserState.input.slice(event.anchorStart, event.anchorEnd), { value, tag })
+    state.anchors.set(state.source.slice(event.anchorStart, event.anchorEnd), { value, tag })
   }
 }
 
-function constructFromEvents (state: ConstructorState) {
-  while (state.eventIndex < state.parserState.events.length) {
-    const event = state.parserState.events[state.eventIndex++]
+function constructFromEvents (events: Event[], options: ConstructorOptions): unknown[] {
+  const state: ConstructorState = {
+    ...DEFAULT_CONSTRUCTOR_OPTIONS,
+    ...options,
+    events,
+    documents: [],
+    eventIndex: 0,
+    position: 0,
+    frames: [],
+    anchors: new Map(),
+    tagHandlers: Object.create(null)
+  }
+
+  while (state.eventIndex < state.events.length) {
+    const event = state.events[state.eventIndex++]
     state.position = eventPosition(event)
 
     switch (event.type) {
@@ -392,7 +390,7 @@ function constructFromEvents (state: ConstructorState) {
       }
 
       case EVENT_ALIAS: {
-        const name = state.parserState.input.slice(event.anchorStart, event.anchorEnd)
+        const name = state.source.slice(event.anchorStart, event.anchorEnd)
         const anchor = state.anchors.get(name)
         if (!anchor) {
           throwError(state, `unidentified alias "${name}"`)
@@ -413,12 +411,12 @@ function constructFromEvents (state: ConstructorState) {
       }
     }
   }
+
+  return state.documents
 }
 
 export {
-  createConstructorState,
   constructFromEvents,
   DEFAULT_CONSTRUCTOR_OPTIONS,
-  type ConstructorOptions,
-  type ConstructorState
+  type ConstructorOptions
 }

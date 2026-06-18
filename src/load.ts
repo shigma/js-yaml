@@ -1,18 +1,18 @@
 import { YAMLException } from './common/exception.ts'
+import { pick } from './common/object.ts'
 import {
   constructFromEvents,
-  createConstructorState,
   DEFAULT_CONSTRUCTOR_OPTIONS,
   type ConstructorOptions
 } from './parser/constructor.ts'
 import {
-  createParserState,
   parseEvents,
   DEFAULT_PARSER_OPTIONS,
   type ParserOptions
 } from './parser/parser.ts'
 
-interface LoadOptions extends ParserOptions, ConstructorOptions {}
+// `source` is supplied by `loadDocuments` itself, not by the public caller.
+interface LoadOptions extends ParserOptions, Omit<ConstructorOptions, 'source'> {}
 
 type LoadAllIterator = (document: unknown) => void
 
@@ -23,14 +23,15 @@ const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
 
 function loadDocuments (input: string, options: LoadOptions = {}) {
   const opts = { ...DEFAULT_LOAD_OPTIONS, ...options }
-  const parserState = createParserState(String(input), opts)
+  const source = String(input)
 
-  parseEvents(parserState)
+  const PARSER_OPT_KEYS = Object.keys(DEFAULT_PARSER_OPTIONS) as
+    (keyof typeof DEFAULT_PARSER_OPTIONS)[]
+  const CONSTRUCTOR_OPT_KEYS = Object.keys(DEFAULT_CONSTRUCTOR_OPTIONS) as
+    (keyof typeof DEFAULT_CONSTRUCTOR_OPTIONS)[]
 
-  const constructorState = createConstructorState(parserState, opts)
-  constructFromEvents(constructorState)
-
-  return constructorState.documents
+  const events = parseEvents(source, pick(opts, PARSER_OPT_KEYS))
+  return constructFromEvents(events, { ...pick(opts, CONSTRUCTOR_OPT_KEYS), source })
 }
 
 function loadAll (input: string, options?: LoadOptions): unknown[]

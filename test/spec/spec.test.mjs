@@ -29,7 +29,6 @@ import {
   strTag,
   seqTag,
   mapTag,
-  createParserState,
   parseEvents,
   getScalarValue
 } from 'js-yaml'
@@ -139,14 +138,13 @@ function scalarStyleMarker (style) {
 }
 
 function actualTreeLines (input) {
-  const state = createParserState(input)
-  parseEvents(state)
+  const events = parseEvents(input, {})
 
   const lines = []
   const stack = []
   let tagHandlers = Object.create(null)
 
-  for (const event of state.events) {
+  for (const event of events) {
     if (event.type === EVENT_DOCUMENT) {
       tagHandlers = tagHandlersFromDirectives(event.directives)
       lines.push(event.explicitStart ? '+DOC ---' : '+DOC')
@@ -331,11 +329,10 @@ describe('yaml-test-suite parser tree', () => {
           // and compare byte-for-byte to the suite's canonical `dump`.
           it(`${id} dump`, { skip: divergedFixtures.includes(id) }, () => {
             const input = unescapeFixtureText(fixture.yaml)
-            const state = createParserState(input)
-            parseEvents(state)
+            const events = parseEvents(input, {})
 
             const opts = { schema: SPEC_SCHEMA, seqNoIndent: true }
-            const documents = eventsToAst(state, opts)
+            const documents = eventsToAst(events, { ...opts, source: input })
 
             // Our AST stays faithful to the input, but the suite's `dump`
             // samples follow fixed canonical-dump conventions. Bend the AST to

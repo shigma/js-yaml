@@ -6,6 +6,7 @@ import {
   present,
   type PresenterOptions
 } from './ast/presenter.ts'
+import { pick } from './common/object.ts'
 import { NOT_RESOLVED } from './tag.ts'
 import { intCoreTag } from './tag/scalar/int_core.ts'
 import { intYaml11Tag } from './tag/scalar/int_yaml11.ts'
@@ -71,7 +72,10 @@ function dump (input: any, options: DumpOptions = {}) {
     })
   }
 
-  return present(documents, opts)
+  const PRESENTER_OPT_KEYS = Object.keys(DEFAULT_PRESENTER_OPTIONS) as
+    (keyof typeof DEFAULT_PRESENTER_OPTIONS)[]
+
+  return present(documents, { ...pick(opts, PRESENTER_OPT_KEYS), schema: opts.schema })
 }
 
 export {

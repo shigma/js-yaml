@@ -22,7 +22,6 @@ import {
   type SequenceEvent
 } from '../parser/events.ts'
 import { getScalarValue } from '../parser/parser_scalar.ts'
-import { type ParserState } from '../parser/parser.ts'
 import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED } from '../tag.ts'
 import {
@@ -56,11 +55,12 @@ interface MappingFrame {
 type Frame = DocumentFrame | SequenceFrame | MappingFrame
 
 interface FromEventsOptions {
+  source: string
   schema: Schema
 }
 
 interface FromEventsState {
-  parserState: ParserState
+  source: string
   schema: Schema
   eventIndex: number
   position: number
@@ -79,13 +79,13 @@ function eventPosition (event: Event) {
 function rawTag (state: FromEventsState, event: ScalarEvent | SequenceEvent | MappingEvent) {
   return event.tagStart === NO_RANGE
     ? ''
-    : state.parserState.input.slice(event.tagStart, event.tagEnd)
+    : state.source.slice(event.tagStart, event.tagEnd)
 }
 
 function anchorName (state: FromEventsState, event: ScalarEvent | SequenceEvent | MappingEvent) {
   return event.anchorStart === NO_RANGE
     ? undefined
-    : state.parserState.input.slice(event.anchorStart, event.anchorEnd)
+    : state.source.slice(event.anchorStart, event.anchorEnd)
 }
 
 // Tag name carried by an empty/plain scalar with no explicit tag: the first
@@ -102,7 +102,7 @@ function implicitScalarTagName (state: FromEventsState, source: string) {
 }
 
 function buildScalar (state: FromEventsState, event: ScalarEvent): ScalarNode {
-  const value = getScalarValue(state.parserState.input, event)
+  const value = getScalarValue(state.source, event)
   const raw = rawTag(state, event)
   const style = new Style()
 
@@ -161,9 +161,9 @@ function addNode (state: FromEventsState, node: Node) {
   }
 }
 
-function eventsToAst (parserState: ParserState, options: FromEventsOptions): Document[] {
+function eventsToAst (events: Event[], options: FromEventsOptions): Document[] {
   const state: FromEventsState = {
-    parserState,
+    source: options.source,
     schema: options.schema,
     eventIndex: 0,
     position: 0,
@@ -171,8 +171,8 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Doc
     documents: []
   }
 
-  while (state.eventIndex < parserState.events.length) {
-    const event = parserState.events[state.eventIndex++]
+  while (state.eventIndex < events.length) {
+    const event = events[state.eventIndex++]
     state.position = eventPosition(event)
 
     switch (event.type) {
@@ -206,7 +206,7 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Doc
       }
 
       case EVENT_ALIAS: {
-        const name = parserState.input.slice(event.anchorStart, event.anchorEnd)
+        const name = state.source.slice(event.anchorStart, event.anchorEnd)
         const node: AliasNode = { kind: 'alias', tag: '', style: new Style(), anchor: name }
         addNode(state, node)
         break
