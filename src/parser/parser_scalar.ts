@@ -7,7 +7,7 @@ import {
   CHOMPING_KEEP,
   type ScalarEvent
 } from './events.ts'
-import { throwErrorAt, type ParserState } from './parser.ts'
+import { type ParserState } from './parser.ts'
 
 const NO_RANGE = -1
 
@@ -57,15 +57,15 @@ function charFromCodepoint (c: number) {
 function fromHexCode (c: number) {
   if (c >= 0x30/* 0 */ && c <= 0x39/* 9 */) return c - 0x30
   const lc = c | 0x20
-  if (lc >= 0x61/* a */ && lc <= 0x66/* f */) return lc - 0x61 + 10
-  return -1
+  // Double-quoted scalar ranges are validated by parser.ts before cooking.
+  return lc - 0x61 + 10
 }
 
 function escapedHexLen (c: number) {
   if (c === 0x78/* x */) return 2
   if (c === 0x75/* u */) return 4
-  if (c === 0x55/* U */) return 8
-  return 0
+  // Double-quoted scalar ranges are validated by parser.ts before cooking.
+  return 8
 }
 
 // --- line folding helpers ---
@@ -99,8 +99,8 @@ function skipFoldedBreaks (input: string, position: number, end: number) {
 // space, several breaks become (count - 1) newlines.
 function foldedBreaks (count: number) {
   if (count === 1) return ' '
-  if (count > 1) return '\n'.repeat(count - 1)
-  return ''
+  // Called only after skipFoldedBreaks() consumed at least one line break.
+  return '\n'.repeat(count - 1)
 }
 
 // --- per-style extractors ---
@@ -158,7 +158,7 @@ function getSingleQuotedValue (input: string, start: number, end: number) {
   return result + input.slice(captureStart, end)
 }
 
-function getDoubleQuotedValue (state: ParserState, input: string, start: number, end: number) {
+function getDoubleQuotedValue (input: string, start: number, end: number) {
   let result = ''
   let position = start
   let captureStart = start
@@ -178,21 +178,19 @@ function getDoubleQuotedValue (state: ParserState, input: string, start: number,
       } else if (escaped < 256 && simpleEscapeCheck[escaped]) {
         result += simpleEscapeMap[escaped]
         position++
-      } else if (escapedHexLen(escaped) > 0) {
+      } else {
+        // parser.ts has already rejected unknown escapes and invalid hex digits.
         let hexLength = escapedHexLen(escaped)
         let hexResult = 0
 
         for (; hexLength > 0; hexLength--) {
           position++
           const digit = fromHexCode(input.charCodeAt(position))
-          if (digit < 0) throwErrorAt(state, position, 'expected hexadecimal character')
           hexResult = (hexResult << 4) + digit
         }
 
         result += charFromCodepoint(hexResult)
         position++
-      } else {
-        throwErrorAt(state, position, 'unknown escape sequence')
       }
 
       captureStart = captureEnd = position
@@ -299,7 +297,7 @@ function getScalarValue (state: ParserState, scalar: ScalarEvent): string {
     case SCALAR_STYLE_SINGLE_QUOTED:
       return getSingleQuotedValue(input, valueStart, valueEnd)
     case SCALAR_STYLE_DOUBLE_QUOTED:
-      return getDoubleQuotedValue(state, input, valueStart, valueEnd)
+      return getDoubleQuotedValue(input, valueStart, valueEnd)
     case SCALAR_STYLE_LITERAL_BLOCK:
       return getBlockValue(input, valueStart, valueEnd, scalar.indent, scalar.chomping, false)
     case SCALAR_STYLE_FOLDED_BLOCK:
