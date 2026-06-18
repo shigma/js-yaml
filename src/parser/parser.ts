@@ -1513,6 +1513,7 @@ export {
   createParserState,
   parseEvents,
   throwErrorAt,
+  DEFAULT_PARSER_OPTIONS,
   type ParserState,
   type ParserOptions
 }

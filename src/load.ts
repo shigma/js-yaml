@@ -1,30 +1,24 @@
 import { YAMLException } from './exception.ts'
 import {
   constructFromEvents,
-  createConstructorState
+  createConstructorState,
+  DEFAULT_CONSTRUCTOR_OPTIONS,
+  type ConstructorOptions
 } from './parser/constructor.ts'
 import {
   createParserState,
-  parseEvents
+  parseEvents,
+  DEFAULT_PARSER_OPTIONS,
+  type ParserOptions
 } from './parser/parser.ts'
-import { CORE_SCHEMA, type Schema } from './schema.ts'
 
-interface LoadOptions {
-  filename?: string
-  schema?: Schema
-  json?: boolean
-  maxDepth?: number
-  maxMergeSeqLength?: number
-}
+interface LoadOptions extends ParserOptions, ConstructorOptions {}
 
 type LoadAllIterator = (document: unknown) => void
 
 const DEFAULT_LOAD_OPTIONS: Required<LoadOptions> = {
-  filename: '',
-  schema: CORE_SCHEMA,
-  json: false,
-  maxDepth: 100,
-  maxMergeSeqLength: 20
+  ...DEFAULT_PARSER_OPTIONS,
+  ...DEFAULT_CONSTRUCTOR_OPTIONS
 }
 
 function loadDocuments (input: string, options: LoadOptions = {}) {

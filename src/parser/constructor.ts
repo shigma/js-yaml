@@ -416,6 +416,7 @@ function constructFromEvents (state: ConstructorState) {
 export {
   createConstructorState,
   constructFromEvents,
+  DEFAULT_CONSTRUCTOR_OPTIONS,
   type ConstructorOptions,
   type ConstructorState
 }
