@@ -1,4 +1,4 @@
-import YAMLException from './exception.ts'
+import { YAMLException } from './exception.ts'
 import {
   constructFromEvents,
   createConstructorState

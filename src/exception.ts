@@ -44,4 +44,4 @@ class YAMLException extends Error {
   }
 }
 
-export default YAMLException
+export { YAMLException }

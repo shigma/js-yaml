@@ -1,4 +1,4 @@
-import YAMLException from './exception.ts'
+import { YAMLException } from './exception.ts'
 import makeSnippet, { type SnippetMark } from './snippet.ts'
 import DEFAULT_SCHEMA from './schema_old/default.ts'
 import type { Schema, TagDefinitionMap } from './schema_old.ts'

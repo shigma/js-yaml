@@ -22,7 +22,7 @@ import {
   type DocumentDirective,
   type TagHandlers
 } from './events.ts'
-import YAMLException from '../exception.ts'
+import { YAMLException } from '../exception.ts'
 import makeSnippet, { type SnippetMark } from '../snippet.ts'
 
 const NO_RANGE = -1

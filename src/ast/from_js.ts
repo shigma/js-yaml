@@ -2,7 +2,7 @@
 // identity-`Map` walk handles dedup: a repeat occurrence of an object (including
 // a cycle) becomes an `alias`, and the first occurrence gets an `anchor`.
 
-import YAMLException from '../exception.ts'
+import { YAMLException } from '../exception.ts'
 import { type Schema } from '../schema.ts'
 import { type TagDefinition } from '../tag.ts'
 import { tagNameShort } from './tagname_tools.ts'
