@@ -59,7 +59,7 @@ function loadAll (
 function load (input: string, options?: LoadOptions) {
   const documents = loadDocuments(input, options)
 
-  if (documents.length === 0) return undefined
+  if (documents.length === 0) throw new YAMLException('expected a document, but the input is empty')
   if (documents.length === 1) return documents[0]
 
   throw new YAMLException('expected a single document in the stream, but found more')

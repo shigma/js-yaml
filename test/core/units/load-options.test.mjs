@@ -48,8 +48,9 @@ describe('load options', () => {
     assert.deepEqual(collected, expected)
   })
 
-  it('empty input — load is undefined, loadAll is empty', () => {
-    assert.equal(load(''), undefined)
+  it('empty input — load throws, loadAll is empty', () => {
+    assert.throws(() => load(''), YAMLException)
+    assert.throws(() => load('   \n# comment\n'), YAMLException)
     assert.deepEqual(loadAll(''), [])
   })
 })
