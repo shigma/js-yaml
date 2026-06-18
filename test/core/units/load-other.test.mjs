@@ -13,4 +13,8 @@ describe('core/units/load-other', () => {
       load('--- # first document\n--- # second document\n')
     }, YAMLException)
   })
+
+  it('reads a flow sequence explicit pair with an empty value', () => {
+    assert.deepEqual(load('[? foo]'), [{ foo: null }])
+  })
 })

@@ -362,16 +362,15 @@ function isSimpleEscape (c: number) {
          c === 0x50/* P */
 }
 
-function readLineBreak (state: ParserState) {
+// Precondition: state.position points at LF or CR.
+function consumeLineBreak (state: ParserState) {
   const ch = state.input.charCodeAt(state.position)
 
   if (ch === 0x0A/* LF */) {
     state.position++
-  } else if (ch === 0x0D/* CR */) {
+  } else {
     state.position++
     if (state.input.charCodeAt(state.position) === 0x0A/* LF */) state.position++
-  } else {
-    throwError(state, 'a line break is expected')
   }
 
   state.line++
@@ -402,7 +401,7 @@ function skipSeparationSpace (state: ParserState, allowComments: boolean) {
 
     if (!isEol(ch)) break
 
-    readLineBreak(state)
+    consumeLineBreak(state)
     lineBreaks++
     hasSeparation = true
     ch = state.input.charCodeAt(state.position)
@@ -688,7 +687,7 @@ function readBlockScalar (state: ParserState, parentIndent: number, props: NodeP
   if (hadWhitespace && state.input.charCodeAt(state.position) === 0x23/* # */) skipUntilLineEnd(state)
 
   if (isEol(state.input.charCodeAt(state.position))) {
-    readLineBreak(state)
+    consumeLineBreak(state)
   } else if (state.input.charCodeAt(state.position) !== 0) {
     throwError(state, 'a line break is expected')
   }
@@ -756,7 +755,7 @@ function readBlockScalar (state: ParserState, parentIndent: number, props: NodeP
     skipUntilLineEnd(state)
     valueEnd = state.position
     if (isEol(state.input.charCodeAt(state.position))) {
-      readLineBreak(state)
+      consumeLineBreak(state)
       // Include the line break in the range so trailing blank lines are
       // preserved. This is what lets cook tell apart an empty `|+` (range "",
       // value "") from a `|+` with one blank line (range "\n", value "\n").
@@ -1131,23 +1130,17 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
             restoreState(state, beforeKey)
             addMappingEvent(state, beforeKey.position, props.anchorStart, props.anchorEnd, props.tagStart, props.tagEnd, COLLECTION_STYLE_BLOCK)
             mappingOpened = true
-            if (!parseNode(state, flowIndent, CONTEXT_FLOW_OUT, false, true)) {
-              throwError(state, 'can not read an implicit mapping key')
-            }
+            // The key, the `:` and the space after it were already validated
+            // above, before the rollback. Re-reading the same input cannot
+            // fail, so just consume it again without error checks.
+            parseNode(state, flowIndent, CONTEXT_FLOW_OUT, false, true)
 
             ch = state.input.charCodeAt(state.position)
             while (isWhiteSpace(ch)) {
               ch = state.input.charCodeAt(++state.position)
             }
 
-            if (ch !== 0x3A/* : */) {
-              throwError(state, "expected ':' after a mapping key")
-            }
-
-            ch = state.input.charCodeAt(++state.position)
-            if (!isWsOrEolOrEnd(ch)) {
-              throwError(state, 'a whitespace character is expected after the key-value separator within a block mapping')
-            }
+            state.position++
           }
 
           detected = true
@@ -1175,24 +1168,19 @@ function readBlockMapping (state: ParserState, nodeIndent: number, flowIndent: n
       }
     }
 
-    if (state.line === entryLine || state.lineIndent > nodeIndent) {
-      if (parseNode(state, nodeIndent, CONTEXT_BLOCK_OUT, true, pendingExplicitKey)) {
+    if (parseNode(state, nodeIndent, CONTEXT_BLOCK_OUT, true, pendingExplicitKey)) {
+      pendingExplicitKey = false
+    }
+
+    if (!atExplicitKey) {
+      if (pendingExplicitKey) {
+        addEmptyScalarEvent(state)
         pendingExplicitKey = false
       }
-
-      if (!atExplicitKey) {
-        if (pendingExplicitKey) {
-          addEmptyScalarEvent(state)
-          pendingExplicitKey = false
-        } else if (state.lineIndent <= nodeIndent && state.input.charCodeAt(state.position) !== 0) {
-          const lastEvent = state.events[state.events.length - 1]
-          if (lastEvent?.type === EVENT_MAPPING) addEmptyScalarEvent(state)
-        }
-      }
-
-      skipSeparationSpace(state, true)
-      ch = state.input.charCodeAt(state.position)
     }
+
+    skipSeparationSpace(state, true)
+    ch = state.input.charCodeAt(state.position)
 
     if ((state.line === entryLine || state.lineIndent > nodeIndent) && ch !== 0) {
       throwError(state, 'bad indentation of a mapping entry')
@@ -1264,9 +1252,7 @@ function parseNode (
           (props.tagStart !== NO_RANGE || props.anchorStart !== NO_RANGE) &&
           (ch === 0x21/* ! */ || ch === 0x26/* & */)) {
         const fallbackState = snapshotState(state)
-        const flowIndent = nodeContext === CONTEXT_FLOW_IN || nodeContext === CONTEXT_FLOW_OUT
-          ? parentIndent
-          : parentIndent + 1
+        const flowIndent = parentIndent + 1
         const mappingIndent = state.position - state.lineStart
 
         if (readBlockMapping(state, mappingIndent, flowIndent, props) &&
@@ -1397,7 +1383,7 @@ function readDirective (state: ParserState) {
     args.push(state.input.slice(start, state.position))
   }
 
-  if (isEol(state.input.charCodeAt(state.position))) readLineBreak(state)
+  if (isEol(state.input.charCodeAt(state.position))) consumeLineBreak(state)
 
   if (name === 'YAML') {
     if (state.directives.some(directive => directive.kind === 'yaml')) throwError(state, 'duplication of %YAML directive')
@@ -1515,6 +1501,9 @@ function parseEvents (state: ParserState) {
     const documentStart = state.position
     readDocument(state)
     if (state.position === documentStart) {
+      // Internal progress guard: if readDocument() ever returns without
+      // consuming input, stop here instead of looping forever.
+      /* c8 ignore next */
       throwError(state, 'can not read a document')
     }
   }

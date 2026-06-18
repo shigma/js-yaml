@@ -41,6 +41,14 @@ const samples = [
 `
   },
   {
+    name: 'duplicate anchor property',
+    source: '&a &b v'
+  },
+  {
+    name: 'empty anchor name',
+    source: '& [x]'
+  },
+  {
     name: 'invalid tag directive handle',
     source: `%TAG !!! !!!
 ---
@@ -53,8 +61,38 @@ const samples = [
 `
   },
   {
+    name: 'invalid tag directive argument count',
+    source: `%TAG !e!
+---
+x
+`
+  },
+  {
+    name: 'invalid tag directive prefix',
+    source: `%TAG !e! []
+---
+x
+`
+  },
+  {
     name: 'invalid uri escapes',
     source: '--- !<tag:%x?y> foo\n'
+  },
+  {
+    name: 'unterminated verbatim tag',
+    source: '!<foo bar'
+  },
+  {
+    name: 'duplicate tag property',
+    source: '!!str !foo bar'
+  },
+  {
+    name: 'invalid named tag handle',
+    source: '!foo_bar!x v'
+  },
+  {
+    name: 'exclamation mark inside tag suffix',
+    source: '!foo!bar!baz v'
   },
   {
     name: 'invalid yaml version',
@@ -81,11 +119,27 @@ const samples = [
 `
   },
   {
+    name: 'unclosed double quoted scalar',
+    source: '"foo'
+  },
+  {
+    name: 'repeated block chomping marker',
+    source: '|++\n'
+  },
+  {
+    name: 'repeated block indentation width',
+    source: '|11\n'
+  },
+  {
     name: 'undefined anchor',
     source: `- foo
 - &bar baz
 - *bat
 `
+  },
+  {
+    name: 'no whitespace after key-value separator',
+    source: '"foo":bar\n'
   }
 ]
 
@@ -113,6 +167,19 @@ describe('load errors', () => {
   })
 
   it('forbid control sequences inside quoted scalars', () => {
+    assert.throws(() => { load("'\x03'") }, YAMLException)
     assert.throws(() => { load('"\x03"') }, YAMLException)
+  })
+
+  it('tracks error position after CRLF line breaks', () => {
+    assert.throws(() => {
+      load('a: 1\r\n@', { filename: 'crlf-error.yml' })
+    }, error => {
+      assert.ok(error instanceof YAMLException)
+      assert.equal(error.mark.name, 'crlf-error.yml')
+      assert.equal(error.mark.line, 1)
+      assert.equal(error.mark.column, 0)
+      return true
+    })
   })
 })
