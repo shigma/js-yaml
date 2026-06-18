@@ -7,7 +7,6 @@ import {
   CHOMPING_KEEP,
   type ScalarEvent
 } from './events.ts'
-import { type ParserState } from './parser.ts'
 
 const NO_RANGE = -1
 
@@ -282,10 +281,9 @@ function getBlockValue (
   return result
 }
 
-function getScalarValue (state: ParserState, scalar: ScalarEvent): string {
+function getScalarValue (input: string, scalar: ScalarEvent): string {
   if (scalar.valueStart === NO_RANGE) return ''
 
-  const { input } = state
   const { valueStart, valueEnd } = scalar
 
   // Fast path: the parser marked this scalar as a verbatim slice of the input

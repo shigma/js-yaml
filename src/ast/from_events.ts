@@ -102,7 +102,7 @@ function implicitScalarTagName (state: FromEventsState, source: string) {
 }
 
 function buildScalar (state: FromEventsState, event: ScalarEvent): ScalarNode {
-  const value = getScalarValue(state.parserState, event)
+  const value = getScalarValue(state.parserState.input, event)
   const raw = rawTag(state, event)
   const style = new Style()
 

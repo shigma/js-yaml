@@ -149,7 +149,7 @@ function constructScalar (
   state: ConstructorState,
   event: ScalarEvent
 ): Anchor {
-  const source = getScalarValue(state.parserState, event)
+  const source = getScalarValue(state.parserState.input, event)
   const rawTag = event.tagStart === NO_RANGE
     ? ''
     : state.parserState.input.slice(event.tagStart, event.tagEnd)

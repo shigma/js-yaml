@@ -163,7 +163,7 @@ function actualTreeLines (input) {
       stack.push(event)
     } else if (event.type === EVENT_SCALAR) {
       const props = formatProperties(input, event, tagHandlers)
-      const value = escapeTreeValue(getScalarValue(state, event))
+      const value = escapeTreeValue(getScalarValue(input, event))
       lines.push(`=VAL ${props}${scalarStyleMarker(event.style)}${value}`)
     } else if (event.type === EVENT_ALIAS) {
       lines.push(`=ALI *${formatRange(input, event.anchorStart, event.anchorEnd)}`)
