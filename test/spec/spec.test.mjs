@@ -335,7 +335,7 @@ describe('yaml-test-suite parser tree', () => {
             parseEvents(state)
 
             const opts = { schema: SPEC_SCHEMA, seqNoIndent: true }
-            const stream = eventsToAst(state, opts)
+            const documents = eventsToAst(state, opts)
 
             // Our AST stays faithful to the input, but the suite's `dump`
             // samples follow fixed canonical-dump conventions. Bend the AST to
@@ -343,7 +343,7 @@ describe('yaml-test-suite parser tree', () => {
             // `from_events` stay faithful, this lives test-side.
 
             // Samples carry no %YAML/%TAG directives — tags are expanded inline.
-            for (const doc of stream) {
+            for (const doc of documents) {
               const tagHandlers = tagHandlersFromDirectives(doc.directives)
 
               visit([doc], (node) => {
@@ -355,7 +355,7 @@ describe('yaml-test-suite parser tree', () => {
 
             // Samples always render collections as block; only empty `{}`/`[]`
             // stay flow (they have no block form).
-            visit(stream, (node) => {
+            visit(documents, (node) => {
               if (node.kind === 'sequence' || node.kind === 'mapping') {
                 node.style.flow = false
               }
@@ -363,7 +363,7 @@ describe('yaml-test-suite parser tree', () => {
 
             // Samples never present scalar values as block/plain, so fall back
             // to the quoting they use.
-            visit(stream, (node) => {
+            visit(documents, (node) => {
               if (node.kind !== 'scalar') return
 
               const { style, value } = node
@@ -384,7 +384,7 @@ describe('yaml-test-suite parser tree', () => {
             })
 
             // Samples double-quote any scalar with non-ASCII chars.
-            visit(stream, (node) => {
+            visit(documents, (node) => {
               if (node.kind === 'scalar' && /[\u0080-\uffff]/.test(node.value)) {
                 node.style.singleQuoted = false
                 node.style.literal = false
@@ -393,7 +393,7 @@ describe('yaml-test-suite parser tree', () => {
               }
             })
 
-            const out = normalizeDumpMarkers(present(stream, opts))
+            const out = normalizeDumpMarkers(present(documents, opts))
 
             const emitOk = hasEmit && out === normalizeFixtureEmit(fixture.emit)
             const dumpOk = hasDump && out === normalizeFixtureDump(fixture.dump)

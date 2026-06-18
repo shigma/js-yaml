@@ -50,9 +50,9 @@ interface AliasNode extends NodeBase {
 
 type Node = ScalarNode | SequenceNode | MappingNode | AliasNode
 
-// The layer above `Node`: a stream is a list of documents, each wrapping one
-// content node plus its own markers/directives. Not a member of `Node` — the
-// fields differ. Document directives are ordered presentation data.
+// The layer above `Node`: each document wraps one content node plus its own
+// markers/directives. Not a member of `Node` — the fields differ. Document
+// directives are ordered presentation data.
 interface Document {
   contents: Node | null            // null = empty document
   explicitStart?: boolean          // print '---'
@@ -60,14 +60,11 @@ interface Document {
   directives: DocumentDirective[]
 }
 
-type Stream = Document[]
-
 export {
   Style,
 
   type Node,
   type Document,
-  type Stream,
   type NodeBase,
   type ScalarNode,
   type SequenceNode,

@@ -4,7 +4,7 @@
 
 import {
   type Node,
-  type Stream
+  type Document
 } from './nodes.ts'
 
 // Returned by a visitor to control the walk; anything else (incl. `undefined`)
@@ -50,9 +50,9 @@ function visitNode (node: Node, visitor: Visitor, ctx: VisitContext): boolean {
   return false
 }
 
-// Walk every node of the stream, calling `visitor` once per node (pre-order).
-function visit (stream: Stream, visitor: Visitor): void {
-  for (const doc of stream) {
+// Walk every node in the documents, calling `visitor` once per node (pre-order).
+function visit (documents: Document[], visitor: Visitor): void {
+  for (const doc of documents) {
     if (doc.contents && visitNode(doc.contents, visitor, { depth: 0, parent: null, isKey: false })) return
   }
 }

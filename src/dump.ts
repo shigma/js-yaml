@@ -56,22 +56,22 @@ function dump (input: any, options: DumpOptions = {}) {
     skipInvalid: opts.skipInvalid
   })
 
-  // Wrap the content node into a single-document stream. With empty document
+  // Wrap the content node into a single-document array. With empty document
   // fields this prints no markers — byte-for-byte the v4 output (and '' when
   // the root didn't resolve, since an empty document renders nothing).
-  const stream = [{ contents, directives: [] }]
+  const documents = [{ contents, directives: [] }]
 
   // flowLevel: every node at this depth switches to flow; the presenter forces
   // everything below into flow too, so the walk stops there.
   if (opts.flowLevel >= 0) {
-    visit(stream, (node, ctx) => {
+    visit(documents, (node, ctx) => {
       if (ctx.depth < opts.flowLevel) return
       node.style.flow = true
       return VISIT_SKIP
     })
   }
 
-  return present(stream, opts)
+  return present(documents, opts)
 }
 
 export {

@@ -29,7 +29,6 @@ import {
   Style,
   type Node,
   type Document,
-  type Stream,
   type ScalarNode,
   type SequenceNode,
   type MappingNode,
@@ -66,7 +65,7 @@ interface FromEventsState {
   eventIndex: number
   position: number
   frames: Frame[]
-  stream: Stream
+  documents: Document[]
 }
 
 function eventPosition (event: Event) {
@@ -162,14 +161,14 @@ function addNode (state: FromEventsState, node: Node) {
   }
 }
 
-function eventsToAst (parserState: ParserState, options: FromEventsOptions): Stream {
+function eventsToAst (parserState: ParserState, options: FromEventsOptions): Document[] {
   const state: FromEventsState = {
     parserState,
     schema: options.schema,
     eventIndex: 0,
     position: 0,
     frames: [],
-    stream: []
+    documents: []
   }
 
   while (state.eventIndex < parserState.events.length) {
@@ -216,7 +215,7 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
       case EVENT_POP: {
         const frame = state.frames.pop()!
         if (frame.kind === 'document') {
-          state.stream.push(frame.doc)
+          state.documents.push(frame.doc)
         } else {
           addNode(state, frame.node)
         }
@@ -225,7 +224,7 @@ function eventsToAst (parserState: ParserState, options: FromEventsOptions): Str
     }
   }
 
-  return state.stream
+  return state.documents
 }
 
 export {

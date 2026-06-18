@@ -925,14 +925,14 @@ function writeDocumentDirectives (doc: Document) {
   return result
 }
 
-// Stream (Document[]) → text, including the trailing newline.
-function present (stream: Document[], options: PresenterOptions): string {
+// Documents → text, including the trailing newline.
+function present (documents: Document[], options: PresenterOptions): string {
   const state = createPresenterState(options)
   let result = ''
   let previousEnded = false
 
-  for (let index = 0; index < stream.length; index += 1) {
-    const doc = stream[index]
+  for (let index = 0; index < documents.length; index += 1) {
+    const doc = documents[index]
     const directives = writeDocumentDirectives(doc)
     const hasDirectives = directives !== ''
     const marker = doc.explicitStart || hasDirectives || (index > 0 && !previousEnded)
