@@ -50,6 +50,12 @@ const options = cli.parse_args()
 
 function readFile (filename, encoding, callback) {
   if (options.file === '-') {
+    // No file and stdin is a terminal => nothing was piped in, show help
+    if (process.stdin.isTTY) {
+      cli.print_help()
+      process.exit(1)
+    }
+
     // read from stdin
 
     const chunks = []
