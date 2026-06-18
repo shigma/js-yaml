@@ -1,5 +1,5 @@
 import { defineMappingTag } from '../../tag.ts'
-import { isPlainObject } from './map.ts'
+import { isPlainObject } from '../../common/object.ts'
 
 type RealMapping = Map<unknown, unknown>
 

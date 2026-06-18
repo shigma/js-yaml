@@ -1,15 +1,7 @@
 import { defineMappingTag } from '../../tag.ts'
+import { isPlainObject } from '../../common/object.ts'
 
 type StringMapping = Record<string, unknown>
-
-// A `{}`-style object: not null, not an array, with a plain or null prototype.
-// Used both to identify the default mapping representation when dumping and to
-// guard the real-`Map` tag's dump side.
-function isPlainObject (data: unknown): boolean {
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) return false
-  const prototype = Object.getPrototypeOf(data)
-  return prototype === null || prototype === Object.prototype
-}
 
 // Coerce a constructed key into the string identity a `{}` representation uses.
 // Returns null for a nested array key (an array element that is itself an
