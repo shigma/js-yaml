@@ -43,6 +43,15 @@ describe('ast presenter', () => {
     assert.deepEqual(load(output, { schema }), map)
   })
 
+  it('drops the indicator space when a block-collection key wraps at indent 1', () => {
+    const map = new Map([[[1, 2], new Map([['a', 1], ['b', 2]])]])
+    const schema = CORE_SCHEMA.withTags(realMapTag)
+    const output = dump(map, { schema, indent: 1 })
+
+    assert.equal(output, '?\n - 1\n - 2\n:\n a: 1\n b: 2\n')
+    assert.deepEqual(load(output, { schema }), map)
+  })
+
   it('keeps equal sortKeys keys in their original order', () => {
     // Two keys that compare equal exercise the comparator's tie branch; a stable
     // sort leaves them as-is.
