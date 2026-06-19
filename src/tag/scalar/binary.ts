@@ -1,13 +1,10 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
-// Canonical base64, padded to a multiple of 4 chars. `atob` itself is
-// forgiving-base64 (accepts unpadded input and stray whitespace), so validate
-// strictly here before handing off the decode.
 const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/
 
 function resolveYamlBinary (source: string) {
-  const input = source.replace(/[\r\n]/g, '')
-
+  // Strip allowed whitespace first, so validation stays a plain base64 check.
+  const input = source.replace(/\s/g, '')
   if (input.length % 4 !== 0 || !BASE64_PATTERN.test(input)) return NOT_RESOLVED
 
   const binary = atob(input)

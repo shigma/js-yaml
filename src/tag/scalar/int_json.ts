@@ -1,8 +1,11 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
+// YAML 1.2 JSON schema implicit resolution:
+// -? ( 0 | [1-9] [0-9]* )
 const YAML_INTEGER_IMPLICIT_PATTERN = new RegExp(
   '^-?(?:0|[1-9][0-9]*)$')
 
+// Explicit `!!int` validation is separate from JSON implicit resolution.
 const YAML_INTEGER_EXPLICIT_PATTERN = new RegExp(
   // 0b1010
   '^(?:[-+]?0b[0-1]+' +

@@ -24,12 +24,23 @@ function resolveYamlTimestamp (source: string) {
   const month = +(match[2]) - 1
   const day = +(match[3])
 
-  if (!match[4]) return new Date(Date.UTC(year, month, day))
+  // Date-only form (`YYYY-MM-DD`) has no time captures.
+  if (!match[4]) {
+    const date = new Date(Date.UTC(year, month, day))
+    // Reject dates that JS would normalize, e.g. 2023-02-29 -> 2023-03-01.
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month || date.getUTCDate() !== day) {
+      return NOT_RESOLVED
+    }
+    return date
+  }
 
   const hour = +(match[4])
   const minute = +(match[5])
   const second = +(match[6])
   let fraction = 0
+
+  // Reject times that JS would normalize into the next minute/hour/day.
+  if (hour > 23 || minute > 59 || second > 59) return NOT_RESOLVED
 
   if (match[7]) {
     let value = match[7].slice(0, 3)
@@ -39,8 +50,18 @@ function resolveYamlTimestamp (source: string) {
 
   const date = new Date(Date.UTC(year, month, day, hour, minute, second, fraction))
 
+  // Reject invalid calendar dates before applying timezone offset.
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month || date.getUTCDate() !== day) {
+    return NOT_RESOLVED
+  }
+
   if (match[9]) {
-    const offset = (+(match[10]) * 60 + +(match[11] || 0)) * 60000
+    const offsetHour = +(match[10])
+    const offsetMinute = +(match[11] || 0)
+    // Reject timezone offsets that JS date arithmetic would otherwise accept.
+    if (offsetHour > 23 || offsetMinute > 59) return NOT_RESOLVED
+
+    const offset = (offsetHour * 60 + offsetMinute) * 60000
     date.setTime(date.getTime() - (match[9] === '-' ? -offset : offset))
   }
 

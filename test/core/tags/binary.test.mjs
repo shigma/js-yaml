@@ -42,6 +42,13 @@ description:
     assert.throws(() => load('!!binary "AAA"', { schema: YAML11_SCHEMA }), /cannot resolve/)
   })
 
+  it('binary allows whitespace inside base64', () => {
+    assert.deepStrictEqual(
+      load('!!binary "S G\tVs\\n bG8="', { schema: YAML11_SCHEMA }),
+      toTyped('Hello', 'utf8')
+    )
+  })
+
   it('Resolving explicit !!binary on empty node', () => {
     assert.throws(() => { load('!!binary') }, YAMLException)
   })

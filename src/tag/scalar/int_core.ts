@@ -1,6 +1,17 @@
 import { defineScalarTag, NOT_RESOLVED } from '../../tag.ts'
 
-const YAML_INTEGER_PATTERN = new RegExp(
+// YAML 1.2 Core schema implicit resolution:
+// [-+]? [0-9]+ | 0o [0-7]+ | 0x [0-9a-fA-F]+
+const YAML_INTEGER_IMPLICIT_PATTERN = new RegExp(
+  // 0o123
+  '^(?:0o[0-7]+' +
+  // 0x1A
+  '|0x[0-9a-fA-F]+' +
+  // 12345
+  '|[-+]?[0-9]+)$')
+
+// Explicit `!!int` validation is separate from Core implicit resolution.
+const YAML_INTEGER_EXPLICIT_PATTERN = new RegExp(
   // 0b1010
   '^(?:[-+]?0b[0-1]+' +
   // 0o123
@@ -26,8 +37,12 @@ function parseYamlInteger (source: string) {
   return sign * parseInt(value, 10)
 }
 
-function resolveYamlInteger (source: string) {
-  if (!YAML_INTEGER_PATTERN.test(source)) return NOT_RESOLVED
+function resolveYamlInteger (source: string, isExplicit: boolean) {
+  if (isExplicit) {
+    if (!YAML_INTEGER_EXPLICIT_PATTERN.test(source)) return NOT_RESOLVED
+  } else if (!YAML_INTEGER_IMPLICIT_PATTERN.test(source)) {
+    return NOT_RESOLVED
+  }
 
   const result = parseYamlInteger(source)
   return Number.isFinite(result) ? result : NOT_RESOLVED

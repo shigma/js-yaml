@@ -18,13 +18,20 @@ describe('tags/float', () => {
 - . # single dot is not a float
 - -1.0
 - 0.
+- 12. # YAML 1.2.2 keeps this valid for compatibility with the published regex
 - -0.0
 - 1e999 # overflows to Infinity, stays a string
+- !!float .inf  # explicit infinity
+- !!float -.Inf # explicit negative infinity
+- !!float .NaN  # explicit NaN
+- !!float +12.3 # explicit plus sign
+- !!float .5    # explicit leading dot
 `
     const expected = [
       685230.15, 685230.15, 685230.15,
 
-      '.', -1.0, 0.0, -0.0, '1e999'
+      '.', -1.0, 0.0, 12.0, -0.0, '1e999',
+      Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, 12.3, 0.5
     ]
 
     for (const [name, schema] of variants) {
@@ -64,19 +71,11 @@ describe('tags/float', () => {
 - .inf  # infinity is not JSON schema float
 - .nan  # NaN is not JSON schema float
 - 01.0  # leading zero is not JSON schema float
-
-- !!float .inf  # explicit infinity
-- !!float -.Inf # explicit negative infinity
-- !!float .NaN  # explicit NaN
-- !!float +12.3 # explicit plus sign
-- !!float .5    # explicit leading dot
 `
     const expected = [
       -200000, 12000,
 
-      '+12.3', '.5', '.inf', '.nan', '01.0',
-
-      Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, 12.3, 0.5
+      '+12.3', '.5', '.inf', '.nan', '01.0'
     ]
     assert.deepStrictEqual(load(src, { schema: JSON_SCHEMA }), expected)
   })

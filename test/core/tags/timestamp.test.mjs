@@ -43,4 +43,21 @@ describe('tags', () => {
   it('Resolving explicit !!timestamp on empty node', () => {
     assert.throws(() => { load('!!timestamp', { schema: YAML11_SCHEMA }) }, YAMLException)
   })
+
+  it('timestamp rejects values normalized by Date', () => {
+    const invalid = [
+      '2023-99-99',
+      '2023-02-29',
+      '2023-01-01 24:00:00',
+      '2023-01-01 00:60:00',
+      '2023-01-01 00:00:60',
+      '2023-01-01 00:00:00 +24',
+      '2023-01-01 00:00:00 +1:60'
+    ]
+
+    for (const value of invalid) {
+      assert.strictEqual(load(value, { schema: YAML11_SCHEMA }), value)
+      assert.throws(() => load(`!!timestamp ${value}`, { schema: YAML11_SCHEMA }), /cannot resolve/)
+    }
+  })
 })
