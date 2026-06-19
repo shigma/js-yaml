@@ -1,4 +1,4 @@
-import util from 'node:util'
+import assert from 'node:assert/strict'
 import {
   CORE_SCHEMA,
   defineMappingTag,
@@ -60,26 +60,20 @@ mapping: !unknown_mapping_tag { foo: 1, bar: 2 }
 
 const loaded = load(source, { schema })
 
-console.log(util.inspect(loaded, { depth: null }))
-// {
-//   scalar: TaggedValue {
-//     tagName: '!unknown_scalar_tag',
-//     nodeKind: 'scalar',
-//     value: 'foo bar'
-//   },
-//   sequence: TaggedValue {
-//     tagName: '!unknown_sequence_tag',
-//     nodeKind: 'sequence',
-//     value: [ 1, 2, 3 ]
-//   },
-//   mapping: TaggedValue {
-//     tagName: '!unknown_mapping_tag',
-//     nodeKind: 'mapping',
-//     value: Map(2) { 'foo' => 1, 'bar' => 2 }
-//   }
-// }
+assert.deepStrictEqual(loaded, {
+  scalar: new TaggedValue('!unknown_scalar_tag', 'scalar', 'foo bar'),
+  sequence: new TaggedValue('!unknown_sequence_tag', 'sequence', [1, 2, 3]),
+  mapping: new TaggedValue('!unknown_mapping_tag', 'mapping', new Map([
+    ['foo', 1],
+    ['bar', 2]
+  ]))
+})
 
-console.log(dump(loaded, { schema, flowLevel: 1 }))
-// scalar: !unknown_scalar_tag foo bar
-// sequence: !unknown_sequence_tag [1, 2, 3]
-// mapping: !unknown_mapping_tag {foo: 1, bar: 2}
+const actual = dump(loaded, { schema, flowLevel: 1 })
+
+const expected = `scalar: !unknown_scalar_tag foo bar
+sequence: !unknown_sequence_tag [1, 2, 3]
+mapping: !unknown_mapping_tag {foo: 1, bar: 2}
+`
+
+assert.strictEqual(actual, expected)

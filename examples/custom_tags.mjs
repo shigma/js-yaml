@@ -1,4 +1,4 @@
-import util from 'node:util'
+import assert from 'node:assert/strict'
 import {
   CORE_SCHEMA,
   defineMappingTag,
@@ -64,38 +64,24 @@ spaces:
     points:
       - !point [10, 43, 23]
       - !point [165, 0, 50]
-  - !space
-    height: 64
-    width: 128
-    points:
-      - !point [12, 43, 0]
 `
 
-const loaded = load(source, { schema })
+assert.deepStrictEqual(load(source, { schema }), {
+  spaces: [
+    new Space(1000, 1000, [
+      new Point(10, 43, 23),
+      new Point(165, 0, 50)
+    ])
+  ]
+})
 
-console.log(util.inspect(loaded, { depth: null }))
-// {
-//   spaces: [
-//     Space {
-//       height: 1000,
-//       width: 1000,
-//       points: [ Point { x: 10, y: 43, z: 23 }, Point { x: 165, y: 0, z: 50 } ]
-//     },
-//     Space {
-//       height: 64,
-//       width: 128,
-//       points: [ Point { x: 12, y: 43, z: 0 } ]
-//     }
-//   ]
-// }
+const actual = dump(load(source, { schema }), { schema, flowLevel: 3 })
 
-console.log(dump(loaded, { schema, flowLevel: 3 }))
-// spaces:
-//   - !space
-//     height: 1000
-//     width: 1000
-//     points: [!point [10, 43, 23], !point [165, 0, 50]]
-//   - !space
-//     height: 64
-//     width: 128
-//     points: [!point [12, 43, 0]]
+const expected = `spaces:
+  - !space
+    height: 1000
+    width: 1000
+    points: [!point [10, 43, 23], !point [165, 0, 50]]
+`
+
+assert.strictEqual(actual, expected)

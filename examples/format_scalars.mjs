@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import {
   CORE_SCHEMA,
   boolCoreTag,
@@ -14,13 +15,17 @@ const schema = CORE_SCHEMA.withTags(
   { ...nullCoreTag, represent: () => '' }
 )
 
-console.log(dump({
+const actual = dump({
   enabled: true,
   archived: false,
   mask: 255,
   parent: null
-}, { schema }))
-// enabled: TRUE
-// archived: FALSE
-// mask: 0xff
-// parent:
+}, { schema })
+
+const expected = `enabled: TRUE
+archived: FALSE
+mask: 0xff
+parent:
+`
+
+assert.strictEqual(actual, expected)
