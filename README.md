@@ -152,7 +152,7 @@ The types below are only available in `YAML11_SCHEMA` (not in the default
 !!timestamp 'YYYY-...'      # date
 !!omap [ ... ]              # array of key-value pairs
 !!pairs [ ... ]             # array or array pairs
-!!set { ... }               # array of objects with given keys and null values
+!!set { ... }               # Set
 ```
 
 **JavaScript-specific tags**
@@ -164,21 +164,23 @@ extra types.
 Caveats
 -------
 
-Note, that you use arrays or objects as key in JS-YAML. JS does not allow objects
-or arrays as keys, and stringifies (by calling `toString()` method) them at the
-moment of adding them.
+By default, `!!map` is loaded as a plain JavaScript object. Scalar keys that are
+not strings, such as `null`, numbers or booleans, are converted to strings
+because object property keys are strings. Complex keys, such as arrays or
+objects, are rejected.
 
 ``` yaml
 ---
-? [ foo, bar ]
-: - baz
-? { foo: bar }
-: - baz
-  - baz
+? null
+: empty
+? 1
+: number
+? true
+: boolean
 ```
 
 ``` javascript
-{ "foo,bar": ["baz"], "[object Object]": ["baz", "baz"] }
+{ "null": "empty", "1": "number", "true": "boolean" }
 ```
 
 
