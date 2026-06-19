@@ -1,11 +1,5 @@
 import assert from 'node:assert/strict'
-import {
-  CORE_SCHEMA,
-  boolCoreTag,
-  dump,
-  intCoreTag,
-  nullCoreTag
-} from 'js-yaml'
+import { CORE_SCHEMA, boolCoreTag, dump, intCoreTag, nullCoreTag } from 'js-yaml'
 
 const schema = CORE_SCHEMA.withTags(
   // Instead of defining a new tag, we override a single method of clone

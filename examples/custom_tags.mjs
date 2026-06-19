@@ -1,11 +1,5 @@
 import assert from 'node:assert/strict'
-import {
-  CORE_SCHEMA,
-  defineMappingTag,
-  defineSequenceTag,
-  dump,
-  load
-} from 'js-yaml'
+import { CORE_SCHEMA, defineMappingTag, defineSequenceTag, dump, load } from 'js-yaml'
 
 class Point {
   constructor (x = 0, y = 0, z = 0) {

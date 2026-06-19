@@ -1,12 +1,5 @@
 import assert from 'node:assert/strict'
-import {
-  CORE_SCHEMA,
-  defineMappingTag,
-  defineScalarTag,
-  defineSequenceTag,
-  dump,
-  load
-} from 'js-yaml'
+import { CORE_SCHEMA, defineMappingTag, defineScalarTag, defineSequenceTag, dump, load } from 'js-yaml'
 
 class TaggedValue {
   constructor (tagName, nodeKind, value) {
