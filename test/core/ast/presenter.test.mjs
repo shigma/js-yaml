@@ -34,14 +34,12 @@ describe('ast presenter', () => {
     assert.deepEqual(load(output, { schema: CORE_SCHEMA }), { [key]: 'value' })
   })
 
-  it('emits a bare `?` when an explicit key starts on its own line', () => {
-    // A block-collection key under indent != 2 drops to its own line, so its
-    // text begins with a newline — the `?` must carry no trailing space.
-    const map = new Map([[[1, 2], 'v']])
+  it('aligns a compact block-collection key with a wide indent', () => {
+    const map = new Map([[[1, 2], new Map([['a', 1], ['b', 2]])]])
     const schema = CORE_SCHEMA.withTags(realMapTag)
     const output = dump(map, { schema, indent: 4 })
 
-    assert.equal(output, '?\n    - 1\n    - 2\n: v\n')
+    assert.equal(output, '?   - 1\n    - 2\n:   a: 1\n    b: 2\n')
     assert.deepEqual(load(output, { schema }), map)
   })
 

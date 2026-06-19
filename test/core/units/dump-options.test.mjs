@@ -34,6 +34,8 @@ describe('dump options', () => {
   it('indent — sets block indentation width', () => {
     assert.equal(dump({ a: { b: 1 } }), 'a:\n  b: 1\n')
     assert.equal(dump({ a: { b: 1 } }, { indent: 4 }), 'a:\n    b: 1\n')
+    assert.equal(dump([{ a: 1 }], { indent: 1 }), '-\n a: 1\n')
+    assert.equal(dump([{ a: 1, b: 2 }], { indent: 4 }), '-   a: 1\n    b: 2\n')
   })
 
   it('seqNoIndent — aligns sequence dashes with the key', () => {
@@ -43,6 +45,7 @@ describe('dump options', () => {
 
   it('seqInlineFirst — keeps a nested sequence on the parent dash line', () => {
     assert.equal(dump([[1, 2]]), '- - 1\n  - 2\n')
+    assert.equal(dump([[1, 2]], { indent: 4 }), '-   - 1\n    - 2\n')
     assert.equal(dump([[1, 2]], { seqInlineFirst: false }), '-\n  - 1\n  - 2\n')
   })
 

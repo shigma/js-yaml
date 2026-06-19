@@ -808,11 +808,11 @@ interface NodeContext {
 
 // A node can't sit compact on its parent's indicator (`-`/`?`/`:`) line when it
 // carries leading props (tag/anchor) that would collide with the indicator, or
-// when `indent != 2` makes the fixed 2-char indicator misalign with the deeper
-// indent step. Such a node drops to its own line; a block collection that does
-// so also collapses its seqNoIndent indentation back to the parent.
+// when the indent step is too narrow for the 2-char indicator. Such a node drops
+// to its own line; a block collection that does so also collapses its seqNoIndent
+// indentation back to the parent.
 function cannotBeCompact (state: PresenterState, node: Node, level: number) {
-  return node.style.tagged || node.anchor !== undefined || (state.indent !== 2 && level > 0)
+  return node.style.tagged || node.anchor !== undefined || (state.indent < 2 && level > 0)
 }
 
 function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeContext): string {
@@ -829,17 +829,18 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
 
   let body: string
   let shouldPrintTag = node.style.tagged
+  const useBlockCollection = block &&
+    (node.kind === 'mapping' || node.kind === 'sequence') &&
+    !node.style.flow && node.items.length !== 0
 
   if (node.kind === 'mapping') {
-    const useBlock = block && !node.style.flow && node.items.length !== 0
-    if (useBlock) {
+    if (useBlockCollection) {
       body = writeBlockMapping(state, level, node, compact)
     } else {
       body = writeFlowMapping(state, level, node)
     }
   } else if (node.kind === 'sequence') {
-    const useBlock = block && !node.style.flow && node.items.length !== 0
-    if (useBlock) {
+    if (useBlockCollection) {
       if (state.seqNoIndent && !isblockseq && level > 0) {
         body = writeBlockSequence(state, level - 1, node, compact)
       } else {
@@ -853,6 +854,13 @@ function writeNode (state: PresenterState, level: number, node: Node, ctx: NodeC
     const style = resolveScalarStyle(state, node, layout, iskey, block)
     body = renderScalarStyle(node.value, style, layout)
     shouldPrintTag = node.style.tagged || (style !== STYLE_PLAIN && node.tag !== state.defaultScalarTagName)
+  }
+
+  // An indicator plus its mandatory separator occupies 2 columns. For wider
+  // indentation, pad a compact block collection so its first item starts at
+  // the same column as the following items.
+  if (useBlockCollection && compact && level > 0 && state.indent > 2) {
+    body = `${' '.repeat(state.indent - 2)}${body}`
   }
 
   if (shouldPrintTag || hasAnchor) {
