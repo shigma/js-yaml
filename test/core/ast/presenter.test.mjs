@@ -22,12 +22,13 @@ function presentParsed (input) {
 describe('ast presenter', () => {
   it('keeps quoteFlowKeys outside an explicit long flow key', () => {
     const key = `${'a'.repeat(1024)}\nb`
-    const node = jsToAst({ [key]: 'value' }, CORE_SCHEMA)
+    const documents = jsToAst({ [key]: 'value' }, CORE_SCHEMA)
+    const node = documents[0].contents
 
     assert.equal(node?.kind, 'mapping')
     node.style.flow = true
 
-    const output = present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, quoteFlowKeys: true })
+    const output = present(documents, { schema: CORE_SCHEMA, quoteFlowKeys: true })
 
     assert.equal(output, `{? "${'a'.repeat(1024)}\\nb": value}\n`)
     assert.deepEqual(load(output, { schema: CORE_SCHEMA }), { [key]: 'value' })
@@ -47,10 +48,11 @@ describe('ast presenter', () => {
   it('keeps equal sortKeys keys in their original order', () => {
     // Two keys that compare equal exercise the comparator's tie branch; a stable
     // sort leaves them as-is.
-    const node = jsToAst({ a: 1, b: 2 }, CORE_SCHEMA)
+    const documents = jsToAst({ a: 1, b: 2 }, CORE_SCHEMA)
+    const node = documents[0].contents
     node.items[1].key.value = 'a'
 
-    const output = present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, sortKeys: true })
+    const output = present(documents, { schema: CORE_SCHEMA, sortKeys: true })
 
     assert.equal(output, 'a: 1\na: 2\n')
   })
@@ -62,14 +64,12 @@ describe('ast presenter', () => {
   })
 
   it('prints document directives before the document marker', () => {
-    const contents = jsToAst('bar', CORE_SCHEMA)
-    const output = present([{
-      directives: [
-        { kind: 'yaml', version: '1.2' },
-        { kind: 'tag', handle: '!e!', prefix: 'tag:example.com,2024:' }
-      ],
-      contents
-    }], { schema: CORE_SCHEMA })
+    const documents = jsToAst('bar', CORE_SCHEMA)
+    documents[0].directives = [
+      { kind: 'yaml', version: '1.2' },
+      { kind: 'tag', handle: '!e!', prefix: 'tag:example.com,2024:' }
+    ]
+    const output = present(documents, { schema: CORE_SCHEMA })
 
     assert.equal(output, '%YAML 1.2\n%TAG !e! tag:example.com,2024:\n---\nbar\n')
   })
@@ -112,20 +112,21 @@ describe('ast presenter', () => {
   })
 
   it('applies flow recursively to descendants', () => {
-    const node = jsToAst([{ a: [1, 2], b: 'x\ny' }], CORE_SCHEMA)
+    const documents = jsToAst([{ a: [1, 2], b: 'x\ny' }], CORE_SCHEMA)
+    const node = documents[0].contents
     node.style.flow = true // only the outer sequence
 
     // Nested collections render flow despite their own block style, and a
     // multiline scalar can't stay block inside flow — it falls back to quoting.
-    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA }), '[{a: [1, 2], b: "x\\ny"}]\n')
+    assert.equal(present(documents, { schema: CORE_SCHEMA }), '[{a: [1, 2], b: "x\\ny"}]\n')
   })
 
   it('propagates seqNoIndent to nested sequences', () => {
-    const node = jsToAst([{ items: [{ a: 1 }] }], CORE_SCHEMA)
+    const documents = jsToAst([{ items: [{ a: 1 }] }], CORE_SCHEMA)
 
     // The deeper `items` sequence keeps its dashes aligned with the key too,
     // not just the top-level one.
-    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA }), '- items:\n    - a: 1\n')
-    assert.equal(present([{ contents: node, directives: [] }], { schema: CORE_SCHEMA, seqNoIndent: true }), '- items:\n  - a: 1\n')
+    assert.equal(present(documents, { schema: CORE_SCHEMA }), '- items:\n    - a: 1\n')
+    assert.equal(present(documents, { schema: CORE_SCHEMA, seqNoIndent: true }), '- items:\n  - a: 1\n')
   })
 })

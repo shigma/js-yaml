@@ -8,6 +8,7 @@ import { type TagDefinition } from '../tag.ts'
 import { tagNameShort } from './tagname_tools.ts'
 import {
   Style,
+  type Document,
   type Node,
   type ScalarNode,
   type SequenceNode,
@@ -148,8 +149,9 @@ function build (state: FromJsState, object: unknown): Node | typeof INVALID {
   return node
 }
 
-// Returns null when the input itself can't be represented (caller emits '').
-function jsToAst (input: unknown, schema: Schema, options: FromJsOptions = {}): Node | null {
+// A JS value is one YAML document. An unrepresentable root becomes an empty
+// document, which the presenter renders as an empty string.
+function jsToAst (input: unknown, schema: Schema, options: FromJsOptions = {}): Document[] {
   const state: FromJsState = {
     representTypes: buildRepresentTypes(schema),
     noRefs: options.noRefs ?? false,
@@ -159,7 +161,7 @@ function jsToAst (input: unknown, schema: Schema, options: FromJsOptions = {}): 
   }
 
   const root = build(state, input)
-  return root === INVALID ? null : root
+  return [{ contents: root === INVALID ? null : root, directives: [] }]
 }
 
 export {

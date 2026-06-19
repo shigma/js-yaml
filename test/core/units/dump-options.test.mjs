@@ -80,6 +80,25 @@ describe('dump options', () => {
     assert.equal(dump({ a: [1, 2] }, { flowLevel: 1 }), 'a: [1, 2]\n')
   })
 
+  it('transform — mutates the generated documents before presentation', () => {
+    const output = dump({ values: [1, 2] }, {
+      flowLevel: 1,
+      transform: documents => {
+        assert.equal(documents.length, 1)
+        documents[0].explicitStart = true
+
+        const root = documents[0].contents
+        assert.equal(root.kind, 'mapping')
+        const values = root.items[0].value
+        assert.equal(values.kind, 'sequence')
+        assert.equal(values.style.flow, true) // transform runs after flowLevel
+        values.items[1].value = '3'
+      }
+    })
+
+    assert.equal(output, '---\nvalues: [1, 3]\n')
+  })
+
   it('flowBracketPadding — pads inside flow brackets', () => {
     assert.equal(dump([1, 2], { flowLevel: 0 }), '[1, 2]\n')
     assert.equal(dump([1, 2], { flowLevel: 0, flowBracketPadding: true }), '[ 1, 2 ]\n')

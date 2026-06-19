@@ -116,16 +116,11 @@ options:
 - `flowSkipColonSpace` _(default: `false`)_ - omit the space after `:` in flow mappings.
 - `quoteFlowKeys` _(default: `false`)_ - quote flow mapping keys.
 - `tagBeforeAnchor` _(default: `false`)_ - print an explicit tag before an anchor.
+- `transform` - a function `(documents: Document[]) => void` that can mutate the
+  generated AST before it is rendered.
 
-To customize how a type is rendered (e.g. dump null as `~`, or integers as
-hex), clone the built-in tag and override its `represent`, then plug it in via
-`schema.withTags(...)`. See [examples/format_scalars.mjs](examples/format_scalars.mjs).
+See [examples](examples) for advanced customization approaches.
 
-To map your own tags to JavaScript types, define them with `defineScalarTag`,
-`defineSequenceTag` or `defineMappingTag` and add them to a schema the same way.
-See [examples/custom_tags.mjs](examples/custom_tags.mjs) for explicit tags and
-[examples/unknown_tags.mjs](examples/unknown_tags.mjs) for catching arbitrary
-tags by prefix.
 
 Supported YAML types
 --------------------
@@ -141,7 +136,7 @@ The list of standard YAML tags and corresponding JavaScript types. See also
 !!float '3.14...'           # number
 !!str '...'                 # string
 !!seq [ ... ]               # array
-!!map { ... }               # object
+!!map { ... }               # object (or Map)
 ```
 
 The types below are only available in `YAML11_SCHEMA` (not in the default

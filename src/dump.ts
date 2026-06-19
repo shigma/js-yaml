@@ -1,6 +1,7 @@
 import { YAML11_SCHEMA, type Schema } from './schema.ts'
 import { jsToAst } from './ast/from_js.ts'
 import { visit, VISIT_SKIP } from './ast/visit.ts'
+import { type Document } from './ast/nodes.ts'
 import {
   DEFAULT_PRESENTER_OPTIONS,
   present,
@@ -18,6 +19,7 @@ interface DumpOptions extends Omit<PresenterOptions, 'schema'> {
   skipInvalid?: boolean
   noRefs?: boolean
   flowLevel?: number
+  transform?: (documents: Document[]) => void
 }
 
 // YAML 1.1 misses YAML 1.2 `0o...` ints and exponent-only floats.
@@ -44,7 +46,8 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
   schema: DEFAULT_DUMP_SCHEMA,
   skipInvalid: false,
   noRefs: false,
-  flowLevel: -1
+  flowLevel: -1,
+  transform: () => {}
 }
 
 // Options that need the JS value (tags, format, dedup) go to `jsToAst`; purely
@@ -52,15 +55,10 @@ const DEFAULT_DUMP_OPTIONS: Required<DumpOptions> = {
 function dump (input: any, options: DumpOptions = {}) {
   const opts = { ...DEFAULT_DUMP_OPTIONS, ...options }
 
-  const contents = jsToAst(input, opts.schema, {
+  const documents = jsToAst(input, opts.schema, {
     noRefs: opts.noRefs,
     skipInvalid: opts.skipInvalid
   })
-
-  // Wrap the content node into a single-document array. With empty document
-  // fields this prints no markers — byte-for-byte the v4 output (and '' when
-  // the root didn't resolve, since an empty document renders nothing).
-  const documents = [{ contents, directives: [] }]
 
   // flowLevel: every node at this depth switches to flow; the presenter forces
   // everything below into flow too, so the walk stops there.
@@ -71,6 +69,8 @@ function dump (input: any, options: DumpOptions = {}) {
       return VISIT_SKIP
     })
   }
+
+  opts.transform(documents)
 
   const PRESENTER_OPT_KEYS = Object.keys(DEFAULT_PRESENTER_OPTIONS) as
     (keyof typeof DEFAULT_PRESENTER_OPTIONS)[]
