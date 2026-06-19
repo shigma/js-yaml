@@ -3,34 +3,6 @@ import { isPlainObject } from '../../common/object.ts'
 
 type StringMapping = Record<string, unknown>
 
-// Coerce a constructed key into the string identity a `{}` representation uses.
-// Returns null for a nested array key (an array element that is itself an
-// array), which would otherwise blow up exponentially when stringified via
-// aliases.
-function normalizeKey (key: unknown): string | null {
-  if (Array.isArray(key)) {
-    const array = Array.prototype.slice.call(key) as unknown[]
-
-    for (let index = 0; index < array.length; index++) {
-      if (Array.isArray(array[index])) return null
-
-      if (typeof array[index] === 'object' &&
-          Object.prototype.toString.call(array[index]) === '[object Object]') {
-        array[index] = '[object Object]'
-      }
-    }
-
-    return String(array)
-  }
-
-  if (typeof key === 'object' &&
-      Object.prototype.toString.call(key) === '[object Object]') {
-    return '[object Object]'
-  }
-
-  return String(key)
-}
-
 const mapTag = defineMappingTag('tag:yaml.org,2002:map', {
   create: (): StringMapping => ({}),
   identify: isPlainObject,
@@ -42,8 +14,10 @@ const mapTag = defineMappingTag('tag:yaml.org,2002:map', {
     return map
   },
   addPair: (container, key, value) => {
-    const normalizedKey = normalizeKey(key)
-    if (normalizedKey === null) return 'nested arrays are not supported inside keys'
+    if (key !== null && typeof key === 'object') {
+      return 'object-based map does not support complex keys'
+    }
+    const normalizedKey = String(key)
     if (normalizedKey === '__proto__') {
       // Define as an own data property so a literal `__proto__` key stays data
       // and never invokes the prototype setter.
@@ -57,8 +31,8 @@ const mapTag = defineMappingTag('tag:yaml.org,2002:map', {
   },
   // hasOwn, not `in`: a plain object inherits `toString` and friends.
   has: (container, key) => {
-    const normalizedKey = normalizeKey(key)
-    return normalizedKey !== null && Object.prototype.hasOwnProperty.call(container, normalizedKey)
+    if (key !== null && typeof key === 'object') return false
+    return Object.prototype.hasOwnProperty.call(container, String(key))
   },
   keys: (container) => Object.keys(container),
   get: (container, key) => container[String(key)]

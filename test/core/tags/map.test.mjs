@@ -1,12 +1,13 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, dump, CORE_SCHEMA, realMapTag, mergeTag } from 'js-yaml'
+import { load, dump, CORE_SCHEMA, legacyMapTag, realMapTag, mergeTag } from 'js-yaml'
 
-// Two mappings sharing the `!!map` tag name: the default `{}`-style map
-// (keys stringified) and the real-`Map` variant (keys keep their type).
+// Mappings sharing the `!!map` tag name: the default `{}`-style map, the
+// legacy `{}` map (complex keys stringified), and the real-`Map` variant.
 const variants = [
   ['PLAIN_OBJ_MAP', CORE_SCHEMA.withTags(mergeTag), (entries) => Object.fromEntries(entries)],
-  ['REAL_MAP', CORE_SCHEMA.withTags(realMapTag, mergeTag), (entries) => new Map(entries)]
+  ['REAL_MAP', CORE_SCHEMA.withTags(realMapTag, mergeTag), (entries) => new Map(entries)],
+  ['LEGACY_OBJ_MAP', CORE_SCHEMA.withTags(legacyMapTag, mergeTag), (entries) => Object.fromEntries(entries)]
 ]
 
 describe('tags/map', () => {
@@ -45,17 +46,19 @@ z: 3
     }
   })
 
-  describe('tags/map/string keys', () => {
-    it('stringifies a sequence key', () => {
-      assert.deepStrictEqual(load('? - foo\n  - bar\n: baz\n'), { 'foo,bar': 'baz' })
+  describe('tags/map/plain object map', () => {
+    it('rejects a sequence key', () => {
+      assert.throws(
+        () => load('? - foo\n  - bar\n: baz\n'),
+        /object-based map does not support complex keys/
+      )
     })
 
-    it('stringifies an object element inside a sequence key', () => {
-      assert.deepStrictEqual(load('? - foo\n  - bar: baz\n: value\n'), { 'foo,[object Object]': 'value' })
-    })
-
-    it('stringifies an object used directly as a key', () => {
-      assert.deepStrictEqual(load('? { a: 1 }\n: value\n'), { '[object Object]': 'value' })
+    it('rejects an object used directly as a key', () => {
+      assert.throws(
+        () => load('? { a: 1 }\n: value\n'),
+        /object-based map does not support complex keys/
+      )
     })
   })
 
@@ -88,6 +91,45 @@ z: 3
 
       assert.ok(result instanceof Map)
       assert.deepStrictEqual([...result], [['a', 1], ['b', 2]])
+    })
+  })
+
+  describe('tags/map/legacy stringified keys', () => {
+    const schema = CORE_SCHEMA.withTags(legacyMapTag)
+
+    it('stringifies a sequence key', () => {
+      assert.deepStrictEqual(load('? - foo\n  - bar\n: baz\n', { schema }), { 'foo,bar': 'baz' })
+    })
+
+    it('stringifies an object element inside a sequence key', () => {
+      assert.deepStrictEqual(load('? - foo\n  - bar: baz\n: value\n', { schema }), { 'foo,[object Object]': 'value' })
+    })
+
+    it('stringifies an object used directly as a key', () => {
+      assert.deepStrictEqual(load('? { a: 1 }\n: value\n', { schema }), { '[object Object]': 'value' })
+    })
+
+    it('defines __proto__ as an own data property', () => {
+      const result = load('"__proto__": value\n', { schema })
+      const descriptor = Object.getOwnPropertyDescriptor(result, '__proto__')
+
+      assert.equal(Object.prototype.hasOwnProperty.call(result, '__proto__'), true)
+      assert.equal(descriptor.value, 'value')
+      assert.equal(Object.getPrototypeOf(result), Object.prototype)
+    })
+
+    it('rejects a nested array in an explicit key', () => {
+      assert.throws(
+        () => load('? - - nested\n: value\n', { schema }),
+        /nested arrays are not supported inside keys/
+      )
+    })
+
+    it('rejects a nested array in an implicit key', () => {
+      assert.throws(
+        () => load('- &a\n  - - nested\n- *a : value\n', { schema }),
+        /nested arrays are not supported inside keys/
+      )
     })
   })
 })

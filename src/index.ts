@@ -49,6 +49,7 @@ export { pairsTag } from './tag/sequence/pairs.ts'
 
 export { mapTag } from './tag/mapping/map.ts'
 export { realMapTag } from './tag/mapping/real_map.ts'
+export { legacyMapTag } from './tag/mapping/legacy_map.ts'
 export { setTag } from './tag/mapping/set.ts'
 
 export { load, loadAll, type LoadOptions } from './load.ts'
