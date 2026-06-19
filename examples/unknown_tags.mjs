@@ -19,7 +19,7 @@ class TaggedValue {
 const schema = CORE_SCHEMA.withTags(
   defineScalarTag('!', {
     matchByTagPrefix: true,
-    resolve: (source, tagName) => new TaggedValue(tagName, 'scalar', source),
+    resolve: (source, _isExplicit, tagName) => new TaggedValue(tagName, 'scalar', source),
     identify: value => value instanceof TaggedValue && value.nodeKind === 'scalar',
     representTagName: value => value.tagName,
     represent: value => value.value

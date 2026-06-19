@@ -96,7 +96,7 @@ function implicitScalarTagName (state: FromEventsState, source: string) {
   const candidates = schema.implicitScalarByFirstChar.get(source.charAt(0)) ??
     schema.implicitScalarAnyFirstChar
   for (const tag of candidates) {
-    if (tag.resolve(source, tag.tagName, false) !== NOT_RESOLVED) return tag.tagName
+    if (tag.resolve(source, false, tag.tagName) !== NOT_RESOLVED) return tag.tagName
   }
   return schema.defaultScalarTag.tagName
 }

@@ -14,7 +14,7 @@ const YAML_FLOAT_EXPLICIT_PATTERN = new RegExp(
   // .nan
   '|\\.(?:nan|NaN|NAN))$')
 
-function resolveYamlFloat (source: string, _tagName: string, isExplicit: boolean) {
+function resolveYamlFloat (source: string, isExplicit: boolean) {
   if (isExplicit) {
     if (!YAML_FLOAT_EXPLICIT_PATTERN.test(source)) return NOT_RESOLVED
 

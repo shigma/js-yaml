@@ -20,7 +20,7 @@ interface ScalarTagDefinition<Result = unknown> {
   implicitFirstChars: readonly string[] | null
   // `isExplicit` is true for an explicit tag (`!!tag`), false for implicit plain
   // scalar resolution.
-  resolve: (source: string, tagName: string, isExplicit: boolean) => Result | typeof NOT_RESOLVED
+  resolve: (source: string, isExplicit: boolean, tagName: string) => Result | typeof NOT_RESOLVED
   identify: IdentifyFn | null
   // A scalar's printed form is text, so `represent` always yields a string. The
   // factory supplies a `String(data)` default when a tag omits it.

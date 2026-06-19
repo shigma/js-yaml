@@ -4,7 +4,7 @@ const nullJsonTag = defineScalarTag('tag:yaml.org,2002:null', {
   implicit: true,
   // Superset of source.charAt(0) over all matched inputs: null.
   implicitFirstChars: ['n'],
-  resolve: (source, _tagName, isExplicit) => {
+  resolve: (source, isExplicit) => {
     if (source === 'null' || (isExplicit && source === '')) return null
 
     return NOT_RESOLVED

@@ -25,16 +25,16 @@ interface DumpOptions extends Omit<PresenterOptions, 'schema'> {
 const DEFAULT_DUMP_SCHEMA = YAML11_SCHEMA.withTags(
   {
     ...intYaml11Tag,
-    resolve: (source, tagName, isExplicit) => {
-      const result = intYaml11Tag.resolve(source, tagName, isExplicit)
-      return result === NOT_RESOLVED ? intCoreTag.resolve(source, tagName, isExplicit) : result
+    resolve: (source, isExplicit, tagName) => {
+      const result = intYaml11Tag.resolve(source, isExplicit, tagName)
+      return result === NOT_RESOLVED ? intCoreTag.resolve(source, isExplicit, tagName) : result
     }
   },
   {
     ...floatYaml11Tag,
-    resolve: (source, tagName, isExplicit) => {
-      const result = floatYaml11Tag.resolve(source, tagName, isExplicit)
-      return result === NOT_RESOLVED ? floatCoreTag.resolve(source, tagName, isExplicit) : result
+    resolve: (source, isExplicit, tagName) => {
+      const result = floatYaml11Tag.resolve(source, isExplicit, tagName)
+      return result === NOT_RESOLVED ? floatCoreTag.resolve(source, isExplicit, tagName) : result
     }
   }
 )

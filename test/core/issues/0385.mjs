@@ -8,7 +8,7 @@ describe('Tag prefix matching', () => {
     const tags = [
       defineScalarTag('!', {
         matchByTagPrefix: true,
-        resolve: (value, tag) => {
+        resolve: (value, _isExplicit, tag) => {
           return { nodeKind: 'scalar', tag, value }
         }
       }),
@@ -68,7 +68,7 @@ describe('Tag prefix matching', () => {
     const tags = ['!foo', '!bar', '!'].map(prefix =>
       defineScalarTag(prefix, {
         matchByTagPrefix: true,
-        resolve: (value, tag) => {
+        resolve: (value, _isExplicit, tag) => {
           return { prefix, tag, value }
         }
       })

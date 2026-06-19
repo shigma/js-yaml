@@ -29,7 +29,7 @@ function parseYamlInteger (source: string) {
   return sign * parseInt(value, 10)
 }
 
-function resolveYamlInteger (source: string, _tagName: string, isExplicit: boolean) {
+function resolveYamlInteger (source: string, isExplicit: boolean) {
   if (isExplicit) {
     if (!YAML_INTEGER_EXPLICIT_PATTERN.test(source)) return NOT_RESOLVED
   } else if (!YAML_INTEGER_IMPLICIT_PATTERN.test(source)) {
