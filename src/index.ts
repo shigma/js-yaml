@@ -3,9 +3,7 @@ export {
   FAILSAFE_SCHEMA,
   JSON_SCHEMA,
   CORE_SCHEMA,
-  YAML11_SCHEMA,
-  type TagDefinitionMap,
-  type TagDefinitionListMap
+  YAML11_SCHEMA
 } from './schema.ts'
 
 export {
@@ -20,10 +18,7 @@ export {
   type TagDefinition,
   type ScalarTagOptions,
   type SequenceTagOptions,
-  type MappingTagOptions,
-  type ScalarRepresent,
-  type SequenceRepresent,
-  type MappingRepresent
+  type MappingTagOptions
 } from './tag.ts'
 
 export { strTag } from './tag/scalar/str.ts'
@@ -73,12 +68,7 @@ export {
   CHOMPING_CLIP,
   CHOMPING_STRIP,
   CHOMPING_KEEP,
-  type EventType,
-  type ScalarStyle,
-  type CollectionStyle,
-  type Chomping,
   type DocumentDirective,
-  type TagHandlers,
   type DocumentEvent,
   type SequenceEvent,
   type MappingEvent,
