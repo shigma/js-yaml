@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, YAML11_SCHEMA } from 'js-yaml'
+import { load, realMapTag, YAML11_SCHEMA } from 'js-yaml'
 
 describe('tags/pair', () => {
   it('common', () => {
@@ -54,6 +54,27 @@ baz: bat
   bar: bar
 `
     assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve a pairs item/)
+  })
+
+  it('supports scalar keys with realMapTag', () => {
+    const schema = YAML11_SCHEMA.withTags(realMapTag)
+    const result = load('!!pairs [ foo: bar ]', { schema })
+
+    assert.deepStrictEqual(result, [['foo', 'bar']])
+  })
+
+  it('rejects complex keys without realMapTag', () => {
+    assert.throws(
+      () => load('!!pairs [ ? [ foo, bar ] : baz ]', { schema: YAML11_SCHEMA }),
+      /object-based map does not support complex keys/
+    )
+  })
+
+  it('preserves complex keys with realMapTag', () => {
+    const schema = YAML11_SCHEMA.withTags(realMapTag)
+    const result = load('!!pairs [ ? [ foo, bar ] : baz ]', { schema })
+
+    assert.deepStrictEqual(result, [[['foo', 'bar'], 'baz']])
   })
 
   it('Resolving explicit !!pairs on empty node', () => {

@@ -184,6 +184,9 @@ The types below are only available in `YAML11_SCHEMA` (not in the default
 !!pairs [ ... ]             # array of array pairs
 ```
 
+To preserve complex keys in the first position of a `!!pairs` item, replace
+the default object-based map with `realMapTag` in the schema.
+
 **JavaScript-specific tags**
 
 See [js-yaml-js-types](https://github.com/nodeca/js-yaml-js-types) for
