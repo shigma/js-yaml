@@ -7,9 +7,9 @@ JS-YAML - YAML 1.2 parser / writer for JavaScript
 __[Online Demo](https://nodeca.github.io/js-yaml/)__
 
 
-This is an implementation of [YAML](https://yaml.org/), a human-friendly data
-serialization language. Started as [PyYAML](https://pyyaml.org/) port, it was
-completely rewritten from scratch. Now it's very fast, and supports 1.2 spec.
+A fast and complete [YAML](https://yaml.org/) parser and writer for JavaScript.
+Supports both the 1.2 and 1.1 specs, and passes the entire
+[YAML Test Suite](https://github.com/yaml/yaml-test-suite).
 
 
 Installation
@@ -19,13 +19,14 @@ Installation
 npm install js-yaml
 ```
 
+Upgrading from v4? See the [v5 migration guide](docs/migrate_v4_to_v5.md).
+
 
 API
 ---
 
-Here we cover the most 'useful' methods. If you need advanced details (creating
-your own tags), see [examples](https://github.com/nodeca/js-yaml/tree/master/examples)
-for more info.
+Here we cover the most useful methods. If you need advanced details (such as
+creating your own tags), see the [examples](examples/) for more info.
 
 ``` javascript
 import { load } from 'js-yaml'
@@ -43,38 +44,57 @@ try {
 
 ### load (string [ , options ])
 
-Parses `string` as single YAML document. Throws `YAMLException` on error.
-This function **does not** understand multi-document and empty sources,
-it throws exception on those.
+Parses `string` as a single YAML document. Throws `YAMLException` on error.
+This function **does not** understand multi-document or empty sources; it throws
+an exception on those.
+
+> [!WARNING]
+> When processing untrusted input, see the
+> [security considerations](docs/safety.md).
 
 options:
 
 - `filename` _(default: null)_ - string to be used as a file path in
   error/warning messages.
 - `schema` _(default: `CORE_SCHEMA`)_ - specifies a schema to use.
-  - `FAILSAFE_SCHEMA` - only strings, arrays and plain objects:
-  - `JSON_SCHEMA` - all JSON-supported types:
-  - `CORE_SCHEMA` - superset of `JSON_SCHEMA`, accepting more notations for the
-    same types
+  - `FAILSAFE_SCHEMA` - only strings, arrays and plain objects.
+  - `JSON_SCHEMA` - all JSON-supported types.
+  - `CORE_SCHEMA` - a superset of `JSON_SCHEMA`, accepting more notations for
+    the same types.
   - `YAML11_SCHEMA` - adds the legacy YAML 1.1 types (`!!binary`, `!!timestamp`,
     `!!omap`, `!!pairs`, `!!set`, merge keys `<<`, and the broader 1.1 scalar
     notations).
-- `json` _(default: false)_ - compatibility with JSON.parse behaviour. If true,
-  then duplicate keys in a mapping will override values rather than throwing an
+- `json` _(default: false)_ - compatibility with `JSON.parse` behaviour. If
+  `true`, duplicate keys in a mapping override values rather than throwing an
   error.
-- `maxDepth` _(default: 100)_ - limits nesting depth for collections (does not
-  take aliasees into account).
+- `maxDepth` _(default: 100)_ - limits the nesting depth for collections (does
+  not take aliases into account).
 - `maxMergeSeqLength` _(default: 20)_ - limits the number of items in merge
   (`<<`) sequences.
 
-NOTE: The default `CORE_SCHEMA` goes without `!!merge` tag. You can easily
-enable it if needed:
+> [!NOTE]
+>
+> The default `CORE_SCHEMA` comes without the `!!merge` tag. You can easily
+> enable it if needed:
+>
+> ``` javascript
+> import { load, CORE_SCHEMA, mergeTag } from 'js-yaml'
+>
+> load(data, { schema: CORE_SCHEMA.withTags(mergeTag) })
+> ```
 
-``` javascript
-import { load, CORE_SCHEMA, mergeTag } from 'js-yaml'
+> [!WARNING]
+>
+> The default `mapTag` is `{}`-object based and does not allow complex keys
+> (objects, arrays and so on). That's an intentional choice for convenience.
+> Also, non-string scalar keys, such as `null`, numbers or booleans, are
+> converted to strings.
+>
+> In the rare cases where you really need complex keys, use `realMapTag` in the
+> schema instead. It stores any key exactly as provided, at the cost of less
+> convenient access.
 
-load(data, { schema: CORE_SCHEMA.withTags(mergeTag) })
-```
+See [examples](examples/) for advanced customization approaches.
 
 
 ### loadAll (string [, options ])
@@ -92,34 +112,46 @@ console.log(loadAll(data))
 ### dump (object [ , options ])
 
 Serializes `object` as a YAML document. By default it can dump every supported
-YAML type, so it will throw an exception if you try to dump regexps or
-functions. However, you can disable exceptions by setting the `skipInvalid`
-option to `true`.
+YAML type, so it throws an exception if you try to dump regexps or functions.
+However, you can disable exceptions by setting the `skipInvalid` option to
+`true`.
 
 options:
 
 - `indent` _(default: 2)_ - indentation width to use (in spaces).
 - `flowLevel` _(default: -1)_ - nesting level at which collections switch from
   block to flow style (`-1` means never).
-- `seqNoIndent` _(default: false)_ - when true, will not add an indentation level to array elements.
-- `seqInlineFirst` _(default: true)_ - when true, allows a nested collection to start on the same line after `-`.
-- `skipInvalid` _(default: false)_ - do not throw on invalid types (like function
-  in the safe schema) and skip pairs and single values with such types.
-- `schema` _(default: a `YAML11_SCHEMA`-based schema)_ specifies a schema to use.
+- `seqNoIndent` _(default: false)_ - when `true`, does not add an indentation
+  level to array elements, `␣␣- 1` => `- 1`.
+- `seqInlineFirst` _(default: true)_ - when `true`, allows a nested collection
+  to start on the same line after `-`, `-\n  - 1` => `- - 1`.
+- `skipInvalid` _(default: false)_ - do not throw on invalid types (such as a
+  function in the schema). Invalid mapping pairs and sequence items are skipped;
+  `undefined` sequence items are serialized as `null`.
+- `schema` _(default: a `YAML11_SCHEMA`-based schema)_ - specifies a schema to
+  use.
 - `sortKeys` _(default: `false`)_ - if `true`, sort keys when dumping YAML. If a
   function, use the function to sort the keys.
-- `lineWidth` _(default: `80`)_ - set max line width. Set `-1` for unlimited width.
-- `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into references
-- `quoteStyle` _(`auto`, `single`, or `double`, default: `auto`)_ - preferred quote style when a scalar needs quotes.
-- `flowBracketPadding` _(default: `false`)_ - add spaces inside flow collection brackets.
-- `flowSkipCommaSpace` _(default: `false`)_ - omit the space after commas in flow collections.
-- `flowSkipColonSpace` _(default: `false`)_ - omit the space after `:` in flow mappings.
-- `quoteFlowKeys` _(default: `false`)_ - quote flow mapping keys.
-- `tagBeforeAnchor` _(default: `false`)_ - print an explicit tag before an anchor.
+- `lineWidth` _(default: `80`)_ - sets the max line width. Set `-1` for unlimited
+  width.
+- `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into
+  references; inline them instead.
+- `quoteStyle` _(`auto`, `single`, or `double`, default: `auto`)_ - force quotes
+  to single/double, or select the most suitable.
+- `flowBracketPadding` _(default: `false`)_ - add spaces inside flow collection
+  brackets, `{a: 1}` => `{ a: 1 }`.
+- `flowSkipCommaSpace` _(default: `false`)_ - omit the space after commas in
+  flow collections, `[1, 2]` => `[1,2]`.
+- `flowSkipColonSpace` _(default: `false`)_ - omit the space after `:` in flow
+  mappings, `{a: 1}` => `{a:1}`.
+- `quoteFlowKeys` _(default: `false`)_ - quote flow mapping keys, `{a: 1}` =>
+  `{"a": 1}`.
+- `tagBeforeAnchor` _(default: `false`)_ - print an explicit tag before an
+  anchor, `&ref_0 !!set` => `!!set &ref_0`.
 - `transform` - a function `(documents: Document[]) => void` that can mutate the
   generated AST before it is rendered.
 
-See [examples](examples) for advanced customization approaches.
+See [examples](examples/) for advanced customization approaches.
 
 
 Supported YAML types
@@ -146,7 +178,7 @@ The types below are only available in `YAML11_SCHEMA` (not in the default
 !!binary '...base64...'     # Uint8Array
 !!timestamp 'YYYY-...'      # date
 !!omap [ ... ]              # array of key-value pairs
-!!pairs [ ... ]             # array or array pairs
+!!pairs [ ... ]             # array of array pairs
 !!set { ... }               # Set
 ```
 
@@ -156,36 +188,14 @@ See [js-yaml-js-types](https://github.com/nodeca/js-yaml-js-types) for
 extra types.
 
 
-Caveats
--------
-
-By default, `!!map` is loaded as a plain JavaScript object. Scalar keys that are
-not strings, such as `null`, numbers or booleans, are converted to strings
-because object property keys are strings. Complex keys, such as arrays or
-objects, are rejected.
-
-``` yaml
----
-? null
-: empty
-? 1
-: number
-? true
-: boolean
-```
-
-``` javascript
-{ "null": "empty", "1": "number", "true": "boolean" }
-```
-
-
 CLI
 ---
 
-This can be useful sometimes for quick-check.
+This can be useful sometimes for a quick check.
 
 ```
 npx js-yaml -h
 ```
 
-Note, CLI script goes with minimalistic options and without big plans to extend.
+Note: the CLI script comes with minimal options, and there are no big plans to
+extend it.

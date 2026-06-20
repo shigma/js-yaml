@@ -34,6 +34,7 @@ function loadDocuments (input: string, options: LoadOptions = {}) {
   return constructFromEvents(events, { ...pick(opts, CONSTRUCTOR_OPT_KEYS), source })
 }
 
+// Signatures with iterator are deprecated. Will be removed in the next versions.
 function loadAll (input: string, options?: LoadOptions): unknown[]
 function loadAll (input: string, iterator: null, options?: LoadOptions): unknown[]
 function loadAll (input: string, iterator: LoadAllIterator, options?: LoadOptions): void

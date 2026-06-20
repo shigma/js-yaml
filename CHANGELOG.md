@@ -6,6 +6,60 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+### Added
+- Added named exports for schemas, tags, parser events and AST utilities.
+- Reworked `JSON_SCHEMA` and `CORE_SCHEMA` with spec-compliant scalar resolution
+  rules, and added `YAML11_SCHEMA`.
+- Added `realMapTag` for lossless mappings with non-string and complex keys.
+  Object-based mappings now reject complex keys instead of stringifying them.
+- Added `dump()` `transform` option for changing the generated AST before
+  rendering.
+- Added `dump()` options `seqInlineFirst`, `flowBracketPadding`,
+  `flowSkipCommaSpace`, `flowSkipColonSpace`, `quoteFlowKeys`, `quoteStyle` and
+  `tagBeforeAnchor`.
+- Added formal data layers (events and AST) for modular data pipelines.
+  - Added low-level parser (to events), presenter and visitor APIs.
+- Added the [YAML Test Suite](https://github.com/yaml/yaml-test-suite) to the
+  test set.
+
+### Changed
+- See the [migration guide](docs/migrate_v4_to_v5.md) for upgrade notes.
+- Rewritten in TypeScript and reorganized the public API around flat named
+  exports.
+- Reduced the set of exported schemas:
+  - YAML 1.2 schemas: `CORE_SCHEMA` (loader default), `JSON_SCHEMA`,
+    `FAILSAFE_SCHEMA`.
+  - `YAML11_SCHEMA`, a combination of all YAML 1.1 tags (YAML 1.1 does not
+    specify a schema, only "types").
+- `load`/`dump` default behaviour is now specified exactly via schemas:
+  - `load` uses `CORE_SCHEMA`, without `!!merge` by default.
+  - `dump` uses `YAML11_SCHEMA` + `CORE_SCHEMA` for the quoting check, to
+    guarantee backward compatibility by default.
+- `!!set` is now loaded as a JavaScript `Set`.
+- Replaced the `Type` API with a tags API. Similar, but more precise and
+  simpler. See examples for details. Tags can be defined via
+  `defineScalarTag()`, `defineSequenceTag()` and `defineMappingTag()`, or as a
+  spread + override of an existing tag.
+- Renamed `Schema.extend()` to `Schema.withTags()`.
+- Expanded YAML 1.2 conformance and improved handling of directives, document
+  markers, block keys, multiline scalars, tag syntax and other things.
+- `load()` now throws on empty input instead of returning `undefined`.
+- Moved browser builds to the `js-yaml/browser` export.
+- Deprecated the `loadAll` signature with an iterator (still works, but is a
+  candidate for removal).
+
+### Removed
+- Removed deprecated `safeLoad()`, `safeLoadAll()` and `safeDump()` exports.
+- Removed `DEFAULT_SCHEMA` and the nested `types` export.
+- Removed loader options `onWarning`, `legacy` and `listener`.
+- Removed dumper options `styles`, `replacer`, `noCompatMode`, `condenseFlow`,
+  `quotingType` and `forceQuotes`. Renamed `noArrayIndent` to `seqNoIndent`.
+  Formatting and representation are now configured through presenter options,
+  schemas and tag definitions. See migration guide on how to replace.
+- Removed support for importing internal files from `lib/`.
+
+
 ## [4.2.0] - 2026-06-01
 ### Added
 - Added `docs/safety.md` with notes about processing untrusted YAML.
@@ -77,7 +131,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code snippet created in exceptions now contains multiple lines with line numbers.
 - `dump()` now serializes `undefined` as `null` in collections and removes keys with
   `undefined` in mappings, #571.
-- `dump()` with `skipInvalid=true` now serializes invalid items in collections as null.
 - Custom tags starting with `!` are now dumped as `!tag` instead of `!<!tag>`, #576.
 - Custom tags starting with `tag:yaml.org,2002:` are now shorthanded using `!!`, #258.
 
