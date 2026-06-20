@@ -286,7 +286,13 @@ function isPlainSafeAtStart (string: string, inblock: boolean) {
     string.length > 1 &&
     (first === CHAR_MINUS || first === CHAR_QUESTION || first === CHAR_COLON)
   ) {
-    return isPlainSafe(codePointAt(string, 1), first, inblock)
+    const second = codePointAt(string, 1)
+
+    // The relaxed isPlainSafe() accepts whitespace inside a scalar, but the
+    // indicator exception in ns-plain-first requires an ns-plain-safe
+    // *non-space* character. Otherwise `- value` and `? value` start block
+    // collections instead of plain scalars.
+    return !isWhitespace(second) && isPlainSafe(second, first, inblock)
   }
 
   return false
@@ -350,7 +356,10 @@ function chooseScalarStyle (state: PresenterState, string: string, layout: Retur
   let hasFoldableLine = false // only checked if shouldTrackWidth
   const shouldTrackWidth = lineWidth !== -1
   let previousLineBreak = -1 // count the first line correctly
-  let plain = isPlainSafeAtStart(string, inblock) &&
+  // Document markers are recognized as whole tokens at the start of a line,
+  // so character-level plain-scalar checks alone cannot reject them.
+  let plain = string !== '---' && string !== '...' &&
+    isPlainSafeAtStart(string, inblock) &&
     isPlainSafeLast(codePointAt(string, string.length - 1))
 
   if (singleLineOnly || forceQuote) {

@@ -38,6 +38,22 @@ describe('Scalar style dump:', () => {
   })
 
   describe('Single- and double-quoted styles', () => {
+    it('quotes strings that collide with YAML structural tokens', () => {
+      const cases = [
+        // Document boundary markers.
+        ['---', "'---'\n"],
+        ['...', "'...'\n"],
+        // Block sequence/mapping indicators followed by separation whitespace.
+        ['- value', "'- value'\n"],
+        ['? value', "'? value'\n"]
+      ]
+
+      for (const [string, expected] of cases) {
+        assert.strictEqual(dump(string), expected)
+        assert.strictEqual(load(expected), string)
+      }
+    })
+
     it('quote strings of ambiguous type', () => {
       assert.strictEqual(dump('Yes'), '\'Yes\'\n')
       assert.strictEqual(dump('true'), '\'true\'\n')
