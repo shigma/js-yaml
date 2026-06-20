@@ -183,6 +183,21 @@ function isWhitespace (c: number) {
   return c === CHAR_SPACE || c === CHAR_TAB
 }
 
+// Mirrors parser.testDocumentSeparator(): `---` and `...` are document
+// markers when followed by separation whitespace, a line break, or EOF.
+function startsWithDocumentSeparator (string: string) {
+  const marker = string.charCodeAt(0)
+
+  if ((marker !== CHAR_MINUS && marker !== 0x2E/* . */) ||
+      string.charCodeAt(1) !== marker || string.charCodeAt(2) !== marker) return false
+
+  if (string.length === 3) return true
+
+  const following = string.charCodeAt(3)
+  return isWhitespace(following) ||
+    following === CHAR_CARRIAGE_RETURN || following === CHAR_LINE_FEED
+}
+
 // Returns true if the character can be printed without escaping.
 // From YAML 1.2: "any allowed characters known to be non-printable
 // should also be escaped. [However,] This isn’t mandatory"
@@ -358,7 +373,7 @@ function chooseScalarStyle (state: PresenterState, string: string, layout: Retur
   let previousLineBreak = -1 // count the first line correctly
   // Document markers are recognized as whole tokens at the start of a line,
   // so character-level plain-scalar checks alone cannot reject them.
-  let plain = string !== '---' && string !== '...' &&
+  let plain = !startsWithDocumentSeparator(string) &&
     isPlainSafeAtStart(string, inblock) &&
     isPlainSafeLast(codePointAt(string, string.length - 1))
 

@@ -38,11 +38,18 @@ describe('Scalar style dump:', () => {
   })
 
   describe('Single- and double-quoted styles', () => {
-    it('quotes strings that collide with YAML structural tokens', () => {
+    it('handles strings resembling YAML structural tokens', () => {
       const cases = [
-        // Document boundary markers.
+        // Document boundary markers, including a following plain scalar.
         ['---', "'---'\n"],
         ['...', "'...'\n"],
+        ['--- x', "'--- x'\n"],
+        ['... x', "'... x'\n"],
+        // Similar strings that are not document markers stay plain.
+        ['---x', '---x\n'],
+        ['...x', '...x\n'],
+        ['....', '....\n'],
+        ['x...', 'x...\n'],
         // Block sequence/mapping indicators followed by separation whitespace.
         ['- value', "'- value'\n"],
         ['? value', "'? value'\n"]
