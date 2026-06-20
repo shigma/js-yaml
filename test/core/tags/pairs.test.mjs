@@ -56,6 +56,14 @@ baz: bat
     assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve a pairs item/)
   })
 
+  it('throws on a Map item with multiple keys (realMapTag)', () => {
+    const schema = YAML11_SCHEMA.withTags(realMapTag)
+    assert.throws(
+      () => load('!!pairs [ { foo: bar, baz: bat } ]', { schema }),
+      /cannot resolve a pairs item/
+    )
+  })
+
   it('supports scalar keys with realMapTag', () => {
     const schema = YAML11_SCHEMA.withTags(realMapTag)
     const result = load('!!pairs [ foo: bar ]', { schema })
