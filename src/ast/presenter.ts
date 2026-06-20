@@ -2,6 +2,7 @@
 // quoting, folding) is driven by node text, not by sniffing a JS value.
 
 import { YAMLException } from '../common/exception.ts'
+import { tagNameShort } from '../common/tagname.ts'
 import { type Schema } from '../schema.ts'
 import { NOT_RESOLVED, type ScalarTagDefinition } from '../tag.ts'
 import {
@@ -11,7 +12,6 @@ import {
   type SequenceNode,
   type MappingNode
 } from './nodes.ts'
-import { nodeTagShort } from './tagname_tools.ts'
 
 const CHAR_BOM = 0xFEFF
 const CHAR_TAB = 0x09 /* Tab */
@@ -89,6 +89,10 @@ const DEFAULT_PRESENTER_OPTIONS: Required<Omit<PresenterOptions, 'schema'>> = {
 interface PresenterState extends Required<PresenterOptions> {
   defaultScalarTagName: string
   implicitResolvers: readonly ScalarTagDefinition[]
+}
+
+function nodeTagShort (node: Node) {
+  return node.style.tagged ? node.tag : tagNameShort(node.tag)
 }
 
 function createPresenterState (options: PresenterOptions): PresenterState {

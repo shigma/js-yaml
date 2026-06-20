@@ -1,20 +1,13 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  tagPercentEncode,
-  tagPercentDecode,
   tagNameFull,
-  tagNameShort,
-  nodeTagShort
-} from '../../../src/ast/tagname_tools.ts'
+  tagNameShort
+} from '../../../src/common/tagname.ts'
 
 const YAML_PREFIX = 'tag:yaml.org,2002:'
 
-// Minimal Node stand-in: the node helpers only read `tag` and `style.tagged`.
-const tagged = tag => ({ tag, style: { tagged: true } })
-const untagged = tag => ({ tag, style: { tagged: false } })
-
-describe('tagname_tools', () => {
+describe('tagname', () => {
   describe('tagNameFull', () => {
     it('expands the default handles to their prefixes', () => {
       assert.equal(tagNameFull('!!str'), `${YAML_PREFIX}str`)
@@ -61,39 +54,11 @@ describe('tagname_tools', () => {
     it('keeps a local "!" tag, re-encoding its body', () => {
       assert.equal(tagNameShort('!local'), '!local')
       assert.equal(tagNameShort('!foo bar'), '!foo%20bar')
+      assert.equal(tagNameShort('!a!b'), '!a%21b')
     })
 
     it('wraps any other tag as verbatim', () => {
       assert.equal(tagNameShort('tag:example.com,2024:foo'), '!<tag:example.com,2024:foo>')
-    })
-  })
-
-  describe('tagPercentEncode / tagPercentDecode', () => {
-    it('escapes spaces and "!"', () => {
-      assert.equal(tagPercentEncode('foo bar'), 'foo%20bar')
-      assert.equal(tagPercentEncode('a!b'), 'a%21b')
-    })
-
-    it('leaves URI-safe characters alone', () => {
-      assert.equal(tagPercentEncode("a-b_c.d~e*'()"), "a-b_c.d~e*'()")
-    })
-
-    it('round-trips arbitrary text', () => {
-      for (const s of ['foo bar', 'a!b', 'tag:yaml.org,2002:str', '✓ é']) {
-        assert.equal(tagPercentDecode(tagPercentEncode(s)), s)
-      }
-    })
-  })
-
-  describe('nodeTagShort', () => {
-    it('returns the raw spelling of a tagged node unchanged', () => {
-      assert.equal(nodeTagShort(tagged('!!str')), '!!str')
-      assert.equal(nodeTagShort(tagged('!local')), '!local')
-    })
-
-    it('shortens the resolved tag of an untagged node', () => {
-      assert.equal(nodeTagShort(untagged(`${YAML_PREFIX}str`)), '!!str')
-      assert.equal(nodeTagShort(untagged('tag:example.com,2024:foo')), '!<tag:example.com,2024:foo>')
     })
   })
 
@@ -105,7 +70,7 @@ describe('tagname_tools', () => {
     })
 
     it('tagNameFull(tagNameShort(x)) recovers the resolved name', () => {
-      for (const full of [`${YAML_PREFIX}str`, '!local', 'tag:example.com,2024:foo']) {
+      for (const full of [`${YAML_PREFIX}str`, '!local', '!a!b', 'tag:example.com,2024:✓ é']) {
         assert.equal(tagNameFull(tagNameShort(full)), full)
       }
     })

@@ -5,7 +5,7 @@
 import { YAMLException } from '../common/exception.ts'
 import { type Schema } from '../schema.ts'
 import { type TagDefinition } from '../tag.ts'
-import { tagNameShort } from './tagname_tools.ts'
+import { tagNameShort } from '../common/tagname.ts'
 import {
   Style,
   type Document,

@@ -6,7 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { JSONParser } from '@streamparser/json'
 
-import { tagNameFull, tagNameShort } from '../../src/ast/tagname_tools.ts'
+import { tagNameFull, tagNameShort } from '../../src/common/tagname.ts'
 import {
   load,
   loadAll,

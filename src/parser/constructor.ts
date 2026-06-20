@@ -22,7 +22,7 @@ import {
   type SequenceTagDefinition
 } from '../tag.ts'
 import { throwErrorAt } from '../common/exception.ts'
-import { tagNameFull } from '../ast/tagname_tools.ts'
+import { tagNameFull } from '../common/tagname.ts'
 
 const NO_RANGE = -1
 
