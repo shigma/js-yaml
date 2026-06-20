@@ -1,5 +1,7 @@
 import { rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
+import { rollup } from 'rollup'
+import dts from 'rollup-plugin-dts'
 import { build } from 'vite'
 
 const require = createRequire(import.meta.url)
@@ -14,6 +16,19 @@ const common = {
     outDir: 'dist',
     emptyOutDir: false,
     sourcemap: true
+  }
+}
+
+async function buildDeclarations () {
+  const bundle = await rollup({
+    input: 'src/index.ts',
+    plugins: [dts({ tsconfig: './tsconfig.json' })]
+  })
+
+  try {
+    await bundle.write({ file: 'dist/js-yaml.d.ts', format: 'es' })
+  } finally {
+    await bundle.close()
   }
 }
 
@@ -103,3 +118,5 @@ await build({
     }
   }
 })
+
+await buildDeclarations()

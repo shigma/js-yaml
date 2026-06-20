@@ -35,12 +35,15 @@
   },
   "main": "./dist/js-yaml.cjs.js",
   "module": "./dist/js-yaml.mjs",
+  "types": "./dist/js-yaml.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/js-yaml.d.ts",
       "import": "./dist/js-yaml.mjs",
       "require": "./dist/js-yaml.cjs.js"
     },
     "./browser": {
+      "types": "./dist/js-yaml.d.ts",
       "import": "./dist/browser/js-yaml.esm.min.mjs",
       "require": "./dist/browser/js-yaml.umd.min.js",
       "default": "./dist/browser/js-yaml.umd.min.js"
@@ -68,6 +71,8 @@
     "argparse": "^2.0.1"
   },
   "devDependencies": {
+    "@streamparser/json": "^0.0.22",
+    "@types/node": "^24.12.2",
     "c8": "^11.0.0",
     "codemirror": "^5.65.21",
     "eslint": "^9.39.4",
@@ -75,9 +80,9 @@
     "gh-pages": "^6.3.0",
     "mitata": "^1.0.34",
     "neostandard": "^0.13.0",
+    "rollup": "^4.62.2",
+    "rollup-plugin-dts": "^6.4.1",
     "typescript": "^6.0.3",
-    "@streamparser/json": "^0.0.22",
-    "@types/node": "^24.12.2",
     "vite": "^8.0.14",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vite-plugin-singlefile": "^2.3.3",
