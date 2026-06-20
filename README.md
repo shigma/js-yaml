@@ -177,9 +177,11 @@ The types below are only available in `YAML11_SCHEMA` (not in the default
 ```
 !!binary '...base64...'     # Uint8Array
 !!timestamp 'YYYY-...'      # date
+!!set { ... }               # Set
+
+# Legacy YAML 1.1 compatibility only; these types cannot be dumped.
 !!omap [ ... ]              # array of key-value pairs
 !!pairs [ ... ]             # array of array pairs
-!!set { ... }               # Set
 ```
 
 **JavaScript-specific tags**
