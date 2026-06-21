@@ -27,4 +27,11 @@ describe('core/units/load-other', () => {
   it('reads 8-digit unicode escapes in double quoted scalars', () => {
     assert.equal(load(String.raw`"\U0001F600"`), '\u{1F600}')
   })
+
+  it('allows digits in named tag handles', () => {
+    assert.equal(load(`
+%TAG !a1! tag:yaml.org,2002:
+--- !a1!str 123
+`), '123')
+  })
 })

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import util from 'node:util'
-import { load, CORE_SCHEMA, defineMappingTag, defineScalarTag } from 'js-yaml'
+import { dump, load, CORE_SCHEMA, defineMappingTag, defineScalarTag } from 'js-yaml'
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -131,5 +131,40 @@ describe('tags', () => {
 
     assert.deepStrictEqual(load('!Include foobar', { schema: multiSchema }), 'foobar')
     assert.deepStrictEqual(load('!Include\n  location: foobar', { schema: multiSchema }), { location: 'foobar' })
+  })
+
+  it('matches exact tags before tag prefixes', () => {
+    const prefixTag = prefix => defineScalarTag(prefix, {
+      matchByTagPrefix: true,
+      resolve: (value, _isExplicit, tag) => ({ prefix, tag, value })
+    })
+    const prefixSchema = CORE_SCHEMA.withTags([
+      prefixTag('!foo'),
+      prefixTag('!'),
+      defineScalarTag('!foo', { resolve: value => ({ exact: true, value }) })
+    ])
+
+    assert.deepEqual(
+      load('- !foo 1\n- !foo2 2\n- !bar 3\n', { schema: prefixSchema }),
+      [
+        { exact: true, value: '1' },
+        { prefix: '!foo', tag: '!foo2', value: '2' },
+        { prefix: '!', tag: '!bar', value: '3' }
+      ]
+    )
+  })
+
+  it('dumps a prefix-matched tag with a dynamic name', () => {
+    const dynamicSchema = CORE_SCHEMA.withTags(defineScalarTag('!', {
+      matchByTagPrefix: true,
+      identify: object => object?.tag !== undefined,
+      representTagName: object => object.tag,
+      represent: object => object.value
+    }))
+
+    assert.equal(
+      dump({ test: { tag: 'foo', value: 'bar' } }, { schema: dynamicSchema }),
+      'test: !<foo> bar\n'
+    )
   })
 })

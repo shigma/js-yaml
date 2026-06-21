@@ -16,6 +16,10 @@ const samples = [
     source: '@@@@@@@@@@@@@@@@@@@\n'
   },
   {
+    name: 'null byte in input',
+    source: 'foo\0bar'
+  },
+  {
     name: 'expected scalar',
     source: '--- !!str [not a scalar]\n'
   },
@@ -47,6 +51,10 @@ const samples = [
   {
     name: 'empty anchor name',
     source: '& [x]'
+  },
+  {
+    name: 'empty alias name',
+    source: '*'
   },
   {
     name: 'invalid tag directive handle',
@@ -140,6 +148,10 @@ x
   {
     name: 'no whitespace after key-value separator',
     source: '"foo":bar\n'
+  },
+  {
+    name: 'tab indentation in a later block sequence entry',
+    source: ' - foo\n \t- bar\n'
   }
 ]
 

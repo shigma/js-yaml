@@ -47,6 +47,16 @@ z: 3
   })
 
   describe('tags/map/plain object map', () => {
+    it('defines __proto__ as an own data property', () => {
+      const result = load('{ __proto__: { polluted: true } }', { schema: CORE_SCHEMA })
+      const descriptor = Object.getOwnPropertyDescriptor(result, '__proto__')
+
+      assert.equal(Object.prototype.hasOwnProperty.call(result, '__proto__'), true)
+      assert.deepEqual(descriptor.value, { polluted: true })
+      assert.equal(Object.getPrototypeOf(result), Object.prototype)
+      assert.equal(result.polluted, undefined)
+    })
+
     it('rejects a sequence key', () => {
       assert.throws(
         () => load('? - foo\n  - bar\n: baz\n'),

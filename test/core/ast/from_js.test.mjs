@@ -17,6 +17,10 @@ describe('ast from_js', () => {
     assert.deepEqual(jsToAst(undefined, CORE_SCHEMA), [{ contents: null, directives: [] }])
   })
 
+  it('replaces undefined sequence items with null', () => {
+    assert.equal(dump([undefined]), '- null\n')
+  })
+
   it('dedups a cycle through a Map', () => {
     const source = new Map()
     source.set('self', source)

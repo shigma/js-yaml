@@ -30,7 +30,9 @@ describe('Scalar style dump:', () => {
         'here\'s to "quotes"',
         // additional allowed characters
         '100% safe non-first characters? Of course!',
-        'Jack & Jill <well@example.com>'
+        'Jack & Jill <well@example.com>',
+        // astral code points advance as one character in the plain-style loop
+        '😃😊'
       ].forEach((string) => {
         assert.strictEqual(dump(string), `${string}\n`)
       })
@@ -52,7 +54,15 @@ describe('Scalar style dump:', () => {
         ['x...', 'x...\n'],
         // Block sequence/mapping indicators followed by separation whitespace.
         ['- value', "'- value'\n"],
-        ['? value', "'? value'\n"]
+        ['? value', "'? value'\n"],
+        ['=', "'='\n"],
+        // A colon is plain-safe unless followed by whitespace or at the end.
+        ['http://example.com', 'http://example.com\n'],
+        ['foo: bar', "'foo: bar'\n"],
+        ['foo:', "'foo:'\n"],
+        // A hash starts a comment only after separation whitespace.
+        ['foo#bar', 'foo#bar\n'],
+        ['foo #bar', "'foo #bar'\n"]
       ]
 
       for (const [string, expected] of cases) {

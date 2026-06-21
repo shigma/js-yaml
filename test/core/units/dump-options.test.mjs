@@ -13,6 +13,7 @@ describe('dump options', () => {
   it('skipInvalid — drops unrepresentable values instead of throwing', () => {
     assert.throws(() => dump({ a: () => 1 }), YAMLException)
     assert.equal(dump({ a: () => 1, b: 2 }, { skipInvalid: true }), 'b: 2\n')
+    assert.equal(dump([() => 1, 'a'], { skipInvalid: true }), '- a\n')
   })
 
   it('skipInvalid — drops pairs with an unrepresentable key too', () => {
