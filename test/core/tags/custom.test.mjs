@@ -259,6 +259,34 @@ describe('tags', () => {
     )
   })
 
+  it('preserves YAMLException thrown by finalize', () => {
+    const expected = new YAMLException('cannot create immutable value')
+    const immutableSchema = CORE_SCHEMA.withTags(defineSequenceTag('!immutable', {
+      create: () => [],
+      addItem: () => {},
+      finalize: () => { throw expected },
+      identify: Array.isArray,
+      represent: value => value
+    }))
+
+    assert.throws(() => load('!immutable []', { schema: immutableSchema }), error => error === expected)
+  })
+
+  it('reports non-Error values thrown by finalize', () => {
+    const immutableSchema = CORE_SCHEMA.withTags(defineSequenceTag('!immutable', {
+      create: () => [],
+      addItem: () => {},
+      finalize: () => { throw 'cannot create immutable value' }, // eslint-disable-line no-throw-literal
+      identify: Array.isArray,
+      represent: value => value
+    }))
+
+    assert.throws(
+      () => load('!immutable []', { schema: immutableSchema }),
+      error => error instanceof YAMLException && error.reason === 'cannot create immutable value'
+    )
+  })
+
   it('keeps recursive aliases for tags whose carrier is the result', () => {
     const value = load('&a [*a]')
 
