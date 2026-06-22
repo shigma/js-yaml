@@ -72,10 +72,22 @@ describe('dump options', () => {
     assert(!dump(value).includes('\n  '))
   })
 
-  it('quoteStyle — forces a scalar quoting style', () => {
+  it('quoteStyle — selects the style when quotes are needed', () => {
     assert.equal(dump('hello'), 'hello\n')
-    assert.equal(dump('hello', { quoteStyle: 'single' }), "'hello'\n")
-    assert.equal(dump('hello', { quoteStyle: 'double' }), '"hello"\n')
+    assert.equal(dump('null', { quoteStyle: 'single' }), "'null'\n")
+    assert.equal(dump('null', { quoteStyle: 'double' }), '"null"\n')
+  })
+
+  it('forceQuotes — quotes non-key strings using quoteStyle', () => {
+    assert.equal(dump({ hello: 'world' }, { forceQuotes: true }), "hello: 'world'\n")
+    assert.equal(
+      dump({ hello: 'world' }, { forceQuotes: true, quoteStyle: 'double' }),
+      'hello: "world"\n'
+    )
+    assert.equal(
+      dump({ hello: 'world' }, { flowLevel: 0, forceQuotes: true }),
+      "{hello: 'world'}\n"
+    )
   })
 
   it('flowLevel — switches to flow style from the given depth', () => {

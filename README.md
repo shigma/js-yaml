@@ -136,8 +136,10 @@ options:
   width.
 - `noRefs` _(default: `false`)_ - if `true`, don't convert duplicate objects into
   references; inline them instead.
-- `quoteStyle` _(`auto`, `single`, or `double`, default: `auto`)_ - force quotes
-  to single/double, or select the most suitable.
+- `quoteStyle` _(`single` or `double`, default: `single`)_ - quoting style to use
+  when a string needs quotes.
+- `forceQuotes` _(default: `false`)_ - if `true`, quote all non-key strings,
+  using `quoteStyle`.
 - `flowBracketPadding` _(default: `false`)_ - add spaces inside flow collection
   brackets, `{a: 1}` => `{ a: 1 }`.
 - `flowSkipCommaSpace` _(default: `false`)_ - omit the space after commas in

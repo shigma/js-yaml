@@ -103,7 +103,10 @@ describe('Scalar style dump:', () => {
     it('emits astral (surrogate-pair) characters as a single code point', () => {
       // Printable, so kept verbatim — but the pair must advance as one code
       // point both when choosing the style and when escaping.
-      assert.strictEqual(dump('\u{1F600}', { quoteStyle: 'double' }), '"\u{1F600}"\n')
+      assert.strictEqual(
+        dump('\u{1F600}', { quoteStyle: 'double', forceQuotes: true }),
+        '"\u{1F600}"\n'
+      )
     })
 
     it('quotes an empty scalar with double quotes under quoteStyle: double', () => {

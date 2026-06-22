@@ -131,7 +131,7 @@ options.
 | `replacer`                   | removed — patch the data before `dump()`                    |
 | `noCompatMode`               | select the schema whose scalar rules apply                  |
 | `condenseFlow`               | `flowSkipCommaSpace`, `flowSkipColonSpace`, `quoteFlowKeys` |
-| `quotingType`, `forceQuotes` | `quoteStyle: 'single'` or `quoteStyle: 'double'`            |
+| `quotingType`                | `quoteStyle: 'single'` or `quoteStyle: 'double'`            |
 | `noArrayIndent`              | `seqNoIndent`                                               |
 
 ### Replacing `styles`

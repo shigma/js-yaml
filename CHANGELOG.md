@@ -6,10 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [5.1.0] - 2026-06-23
 ### Added
 - Collection tags can finalize an incrementally populated carrier into a
   different result value.
+
+### Changed
+- [breaking] `quoteStyle` now selects the preferred quote style; use the
+  restored `forceQuotes` option to force quoting non-key strings.
 
 
 ## [5.0.0] - 2026-06-20
@@ -641,6 +645,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First public release
 
 
+[5.1.0]: https://github.com/nodeca/js-yaml/compare/5.0.0...5.1.0
 [5.0.0]: https://github.com/nodeca/js-yaml/compare/4.2.0...5.0.0
 [4.2.0]: https://github.com/nodeca/js-yaml/compare/4.1.1...4.2.0
 [4.1.1]: https://github.com/nodeca/js-yaml/compare/4.1.0...4.1.1

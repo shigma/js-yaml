@@ -68,7 +68,8 @@ interface PresenterOptions {
   flowSkipCommaSpace?: boolean
   flowSkipColonSpace?: boolean
   quoteFlowKeys?: boolean
-  quoteStyle?: 'auto' | 'single' | 'double'
+  quoteStyle?: 'single' | 'double'
+  forceQuotes?: boolean
   tagBeforeAnchor?: boolean
 }
 
@@ -82,7 +83,8 @@ const DEFAULT_PRESENTER_OPTIONS: Required<Omit<PresenterOptions, 'schema'>> = {
   flowSkipCommaSpace: false,
   flowSkipColonSpace: false,
   quoteFlowKeys: false,
-  quoteStyle: 'auto',
+  quoteStyle: 'single',
+  forceQuotes: false,
   tagBeforeAnchor: false
 }
 
@@ -360,10 +362,8 @@ type ScalarStyleId =
 //    STYLE_LITERAL => no lines are suitable for folding (or lineWidth is -1).
 //    STYLE_FOLDED => a line > lineWidth and can be folded (and lineWidth != -1).
 function chooseScalarStyle (state: PresenterState, string: string, layout: ReturnType<typeof scalarLayout>,
-  singleLineOnly: boolean, inblock: boolean): ScalarStyleId {
+  singleLineOnly: boolean, forceQuote: boolean, inblock: boolean): ScalarStyleId {
   const { blockIndent, lineWidth } = layout
-  // quoteStyle !== 'auto' forces quoting: suppress plain and block styles.
-  const forceQuote = state.quoteStyle !== 'auto'
   let i
   let char = 0
   let prevChar = -1 // -1 = no previous character yet (see isPlainSafe)
@@ -477,23 +477,23 @@ function resolveScalarStyle (state: PresenterState, node: ScalarNode,
   const string = node.value
 
   if (string.length === 0) {
-    // An empty scalar carries no text to resolve, so a bare plain one reads
-    // back as the implicit tag. That round-trips only if an explicit tag is
-    // printed (disambiguating it) or the implicit tag already matches; else
-    // quote it. Without a property a plain empty would vanish entirely.
-    if (state.quoteStyle === 'auto' &&
-      (node.style.tagged || resolveImplicitTag(state, string) === node.tag)) return STYLE_PLAIN
+    // An empty scalar is safe when its tag is explicit or resolves back to the
+    // node tag (notably, the default null representation). A real empty string
+    // does neither and therefore remains quoted.
+    if (node.style.tagged || resolveImplicitTag(state, string) === node.tag) return STYLE_PLAIN
     return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
 
-  const style = chooseScalarStyle(state, string, layout, singleLineOnly, inblock)
+  // v4's forceQuotes deliberately excluded keys. Keys are still quoted when
+  // syntax or tag resolution requires it, using quoteStyle as the preference.
+  const style = chooseScalarStyle(
+    state, string, layout, singleLineOnly, state.forceQuotes && !iskey, inblock)
 
   // Plain writes no tag, so it round-trips only if the bare text resolves back
   // to the node's tag (or the tag gets printed explicitly). Else downgrade.
-  // `chooseScalarStyle` can return plain only in auto mode, so downgrade to
-  // the default quote style here.
+  // Downgrade to the preferred quote style here.
   if (style === STYLE_PLAIN && !node.style.tagged && resolveImplicitTag(state, string) !== node.tag) {
-    return STYLE_SINGLE
+    return state.quoteStyle === 'double' ? STYLE_DOUBLE : STYLE_SINGLE
   }
   return style
 }
@@ -695,7 +695,7 @@ function writeFlowMapping (state: PresenterState, level: number, node: MappingNo
     let pairBuffer = ''
     if (result !== '') pairBuffer += `,${!state.flowSkipCommaSpace ? ' ' : ''}`
 
-    const keyText = writeNode(state, level, key, {})
+    const keyText = writeNode(state, level, key, { iskey: true })
     const explicitPair = keyText.length > 1024
 
     if (explicitPair) {
