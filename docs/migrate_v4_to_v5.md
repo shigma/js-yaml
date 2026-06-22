@@ -195,5 +195,23 @@ const pointTag = defineSequenceTag('!point', {
 })
 ```
 
-This only sketches the shape. For the full method set (mapping `addPair`, scalar
-`resolve`, styling, etc.) see [examples/custom_tags.mjs](../examples/custom_tags.mjs).
+If the result cannot be populated incrementally, collect its contents in a
+temporary carrier and add `finalize`:
+
+```js
+const pointTag = defineSequenceTag('!point', {
+  create: () => [],
+  addItem: (items, value) => { items.push(value) },
+  finalize: items => new ImmutablePoint(...items),
+  identify: value => value instanceof ImmutablePoint,
+  represent: point => [point.x, point.y]
+})
+```
+
+An anchored tag with a temporary carrier cannot recursively alias itself,
+because its result does not exist until `finalize` returns. Such input throws.
+
+This only sketches the shape. See
+[examples/custom_tags.mjs](../examples/custom_tags.mjs) for the full method set
+and [examples/custom_tags_immutable.mjs](../examples/custom_tags_immutable.mjs)
+for carrier finalization and its recursive-alias limitation.

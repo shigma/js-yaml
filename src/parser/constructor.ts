@@ -21,7 +21,7 @@ import {
   type ScalarTagDefinition,
   type SequenceTagDefinition
 } from '../tag.ts'
-import { throwErrorAt } from '../common/exception.ts'
+import { YAMLException, throwErrorAt } from '../common/exception.ts'
 import { tagNameFull } from '../common/tagname.ts'
 
 const NO_RANGE = -1
@@ -37,7 +37,8 @@ interface SequenceFrame {
   kind: 'sequence'
   position: number
   value: any
-  tag: SequenceTagDefinition<any>
+  tag: SequenceTagDefinition<any, any>
+  anchor: Anchor | null
   index: number
   // True when this sequence is the source list of a `<<` merge (`<<: [...]`).
   // Each element is validated as a mapping on arrival; the materialized list is
@@ -49,7 +50,8 @@ interface MappingFrame {
   kind: 'mapping'
   position: number
   value: any
-  tag: MappingTagDefinition<any>
+  tag: MappingTagDefinition<any, any>
+  anchor: Anchor | null
   key: unknown
   keyPosition: number
   hasKey: boolean
@@ -60,11 +62,17 @@ interface MappingFrame {
 
 type Frame = DocumentFrame | SequenceFrame | MappingFrame
 
-type AnyTag = ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition
+type AnyTag = ScalarTagDefinition | SequenceTagDefinition<any, any> | MappingTagDefinition<any, any>
+
+interface ValueAndTag {
+  value: unknown
+  tag: AnyTag
+}
 
 interface Anchor {
   value: unknown
   tag: AnyTag
+  isValueFinal: boolean
 }
 
 interface ConstructorOptions {
@@ -105,6 +113,25 @@ function throwError (state: ConstructorState, message: string): never {
   throwErrorAt(state.source, state.position, message, state.filename)
 }
 
+function finalizeCollection (
+  state: ConstructorState,
+  position: number,
+  tag: SequenceTagDefinition<any, any> | MappingTagDefinition<any, any>,
+  carrier: unknown
+) {
+  try {
+    return tag.finalize(carrier)
+  } catch (error) {
+    if (error instanceof YAMLException) throw error
+    throwErrorAt(
+      state.source,
+      position,
+      error instanceof Error ? error.message : String(error),
+      state.filename
+    )
+  }
+}
+
 function lookupTag<T extends ScalarTagDefinition | SequenceTagDefinition | MappingTagDefinition> (
   exact: Record<string, T>,
   prefix: readonly T[],
@@ -136,7 +163,7 @@ function findExplicitTag<T extends ScalarTagDefinition | SequenceTagDefinition |
 function constructScalar (
   state: ConstructorState,
   event: ScalarEvent
-): Anchor {
+): ValueAndTag {
   const source = getScalarValue(state.source, event)
   const rawTag = event.tagStart === NO_RANGE
     ? ''
@@ -171,7 +198,11 @@ function constructScalar (
         throwError(state, `cannot resolve a node with !<${tagName}> explicit tag`)
       }
 
-      return { value: collectionTagDef.create(tagName), tag: collectionTagDef }
+      const carrier = collectionTagDef.create(tagName)
+      const value = collectionTagDef.carrierIsResult
+        ? carrier
+        : finalizeCollection(state, state.position, collectionTagDef, carrier)
+      return { value, tag: collectionTagDef }
     }
 
     throwError(state, `unknown scalar tag !<${tagName}>`)
@@ -213,13 +244,13 @@ function collectionTag<Tag extends SequenceTagDefinition | MappingTagDefinition>
 }
 
 // A merge source must be a mapping; every mapping tag exposes the read side.
-function isMappingTag (tag: AnyTag): tag is MappingTagDefinition<any> {
+function isMappingTag (tag: AnyTag): tag is MappingTagDefinition<any, any> {
   return tag.nodeKind === 'mapping'
 }
 
 // Fold the keys of one mapping source into the target frame, honoring merge
 // precedence: an already-present key (explicit or from an earlier source) wins.
-function mergeKeys (state: ConstructorState, frame: MappingFrame, source: unknown, sourceTag: MappingTagDefinition<any>) {
+function mergeKeys (state: ConstructorState, frame: MappingFrame, source: unknown, sourceTag: MappingTagDefinition<any, any>) {
   for (const sourceKey of sourceTag.keys(source)) {
     if (frame.tag.has(frame.value, sourceKey)) continue
 
@@ -300,10 +331,24 @@ function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
   }
 }
 
-function storeAnchor (state: ConstructorState, event: ScalarEvent | SequenceEvent | MappingEvent, value: unknown, tag: AnyTag) {
+function storeAnchor (
+  state: ConstructorState,
+  event: ScalarEvent | SequenceEvent | MappingEvent,
+  value: unknown,
+  tag: AnyTag,
+  isValueFinal: boolean
+): Anchor | null {
   if (event.anchorStart !== NO_RANGE) {
-    state.anchors.set(state.source.slice(event.anchorStart, event.anchorEnd), { value, tag })
+    const anchor = {
+      value,
+      tag,
+      isValueFinal
+    }
+    state.anchors.set(state.source.slice(event.anchorStart, event.anchorEnd), anchor)
+    return anchor
   }
+
+  return null
 }
 
 function constructFromEvents (events: Event[], options: ConstructorOptions): unknown[] {
@@ -335,7 +380,7 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
 
       case EVENT_SCALAR: {
         const { value, tag } = constructScalar(state, event)
-        storeAnchor(state, event, value, tag)
+        storeAnchor(state, event, value, tag, true)
         addValue(state, value, tag)
         break
       }
@@ -350,7 +395,7 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
           'sequence'
         )
         const value = definition.tag.create(definition.tagName)
-        storeAnchor(state, event, value, definition.tag)
+        const anchor = storeAnchor(state, event, value, definition.tag, definition.tag.carrierIsResult)
 
         // `<<: [...]` — the parent mapping is waiting on a merge key, so this
         // sequence is a list of merge sources: its elements must be mappings.
@@ -360,7 +405,7 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
           parent.hasKey && parent.key === MERGE_KEY
 
         state.frames.push({
-          kind: 'sequence', position: state.position, value, tag: definition.tag, index: 0, merge
+          kind: 'sequence', position: state.position, value, tag: definition.tag, anchor, index: 0, merge
         })
         break
       }
@@ -375,12 +420,13 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
           'mapping'
         )
         const value = definition.tag.create(definition.tagName)
-        storeAnchor(state, event, value, definition.tag)
+        const anchor = storeAnchor(state, event, value, definition.tag, definition.tag.carrierIsResult)
         state.frames.push({
           kind: 'mapping',
           position: state.position,
           value,
           tag: definition.tag,
+          anchor,
           key: undefined,
           keyPosition: state.position,
           hasKey: false,
@@ -395,6 +441,9 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
         if (!anchor) {
           throwError(state, `unidentified alias "${name}"`)
         }
+        if (!anchor.isValueFinal) {
+          throwError(state, `recursive alias "${name}" is not supported for tag ${anchor.tag.tagName} because it uses finalize()`)
+        }
         addValue(state, anchor.value, anchor.tag)
         break
       }
@@ -405,7 +454,14 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
         if (frame.kind === 'document') {
           state.documents.push(frame.value)
         } else {
-          addValue(state, frame.value, frame.tag)
+          const value = frame.tag.carrierIsResult
+            ? frame.value
+            : finalizeCollection(state, frame.position, frame.tag, frame.value)
+          if (frame.anchor) {
+            frame.anchor.value = value
+            frame.anchor.isValueFinal = true
+          }
+          addValue(state, value, frame.tag)
         }
         break
       }

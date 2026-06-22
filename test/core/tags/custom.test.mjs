@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import util from 'node:util'
-import { dump, load, CORE_SCHEMA, defineMappingTag, defineScalarTag } from 'js-yaml'
+import { dump, load, CORE_SCHEMA, YAMLException, defineMappingTag, defineScalarTag, defineSequenceTag } from 'js-yaml'
 
 function Tag1 (parameters) {
   this.x = parameters.x
@@ -166,5 +166,112 @@ describe('tags', () => {
       dump({ test: { tag: 'foo', value: 'bar' } }, { schema: dynamicSchema }),
       'test: !<foo> bar\n'
     )
+  })
+
+  it('finalizes a sequence carrier into an immutable value', () => {
+    class ImmutableSequence {
+      constructor (items) {
+        this.items = Object.freeze([...items])
+        Object.freeze(this)
+      }
+    }
+
+    const tag = defineSequenceTag('!immutable', {
+      create: () => [],
+      addItem: (carrier, item) => { carrier.push(item) },
+      finalize: carrier => new ImmutableSequence(carrier),
+      identify: value => value instanceof ImmutableSequence,
+      represent: value => value.items
+    })
+    const immutableSchema = CORE_SCHEMA.withTags(tag)
+    const value = load('{ original: &a !immutable [one, two], alias: *a }', { schema: immutableSchema })
+
+    assert.ok(value.original instanceof ImmutableSequence)
+    assert.deepStrictEqual(value.original.items, ['one', 'two'])
+    assert.strictEqual(value.alias, value.original)
+    assert.deepStrictEqual(load('!immutable', { schema: immutableSchema }), new ImmutableSequence([]))
+    assert.equal(dump(value.original, { schema: immutableSchema }), '!immutable\n- one\n- two\n')
+  })
+
+  it('finalizes a mapping carrier before exposing it as a value', () => {
+    class ImmutableMapping {
+      constructor (entries) {
+        this.entries = new Map(entries)
+        Object.freeze(this)
+      }
+    }
+
+    const immutableSchema = CORE_SCHEMA.withTags(defineMappingTag('!immutable', {
+      create: () => new Map(),
+      addPair: (carrier, key, value) => { carrier.set(key, value); return '' },
+      has: (carrier, key) => carrier.has(key),
+      keys: result => result.entries.keys(),
+      get: (result, key) => result.entries.get(key),
+      finalize: carrier => new ImmutableMapping(carrier),
+      identify: value => value instanceof ImmutableMapping,
+      represent: value => value.entries
+    }))
+    const value = load('!immutable { one: 1, two: 2 }', { schema: immutableSchema })
+
+    assert.ok(value instanceof ImmutableMapping)
+    assert.deepStrictEqual([...value.entries], [['one', 1], ['two', 2]])
+    assert.equal(dump(value, { schema: immutableSchema }), '!immutable\none: 1\ntwo: 2\n')
+  })
+
+  it('rejects recursive aliases when the carrier is not the result', () => {
+    const immutableSchema = CORE_SCHEMA.withTags(defineSequenceTag('!immutable', {
+      create: () => [],
+      addItem: (carrier, item) => { carrier.push(item) },
+      finalize: carrier => Object.freeze([...carrier]),
+      identify: Array.isArray,
+      represent: value => value
+    }))
+
+    assert.throws(
+      () => load('&a !immutable [*a]', { schema: immutableSchema }),
+      /recursive alias "a" is not supported for tag !immutable because it uses finalize\(\)/
+    )
+    assert.throws(
+      () => load('&a !immutable [&b [*a]]', { schema: immutableSchema }),
+      /recursive alias "a" is not supported for tag !immutable because it uses finalize\(\)/
+    )
+  })
+
+  it('reports finalize errors at the collection start', () => {
+    const immutableSchema = CORE_SCHEMA.withTags(defineSequenceTag('!immutable', {
+      create: () => [],
+      addItem: (carrier, item) => { carrier.push(item) },
+      finalize: () => { throw new Error('cannot create immutable value') },
+      identify: Array.isArray,
+      represent: value => value
+    }))
+
+    assert.throws(
+      () => load('root:\n  !immutable [one]', { schema: immutableSchema, filename: 'example.yml' }),
+      error => {
+        assert.ok(error instanceof YAMLException)
+        assert.equal(error.reason, 'cannot create immutable value')
+        assert.equal(error.mark.name, 'example.yml')
+        assert.equal(error.mark.line, 1)
+        assert.equal(error.mark.column, 2)
+        return true
+      }
+    )
+  })
+
+  it('keeps recursive aliases for tags whose carrier is the result', () => {
+    const value = load('&a [*a]')
+
+    assert.strictEqual(value[0], value)
+  })
+
+  it('does not call the placeholder finalizer when the carrier is the result', () => {
+    const tag = defineSequenceTag('!identity', {
+      create: () => [],
+      addItem: (carrier, item) => { carrier.push(item) }
+    })
+    tag.finalize = () => { throw new Error('placeholder finalizer was called') }
+
+    assert.deepStrictEqual(load('!identity [one]', { schema: CORE_SCHEMA.withTags(tag) }), ['one'])
   })
 })
