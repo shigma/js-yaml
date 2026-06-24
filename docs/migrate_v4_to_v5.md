@@ -39,6 +39,20 @@ CommonJS keeps working through destructuring:
 const { load, dump } = require('js-yaml')
 ```
 
+If you want to keep the old namespace-style calls, import the ESM namespace
+instead:
+
+```js
+import * as yaml from 'js-yaml'
+
+yaml.load(source)
+yaml.dump(data)
+```
+
+js-yaml v5 does not provide an ESM default export by design. Prefer named
+exports for new code, or use the namespace import above when migrating code that
+expects `yaml.load()` / `yaml.dump()`.
+
 Exports are now flat. The `types` namespace, the `Type` class and
 `DEFAULT_SCHEMA` are gone, and internal `js-yaml/lib/...` imports no longer
 resolve. If you used any of those, read on.
