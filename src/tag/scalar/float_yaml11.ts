@@ -57,11 +57,20 @@ const floatYaml11Tag = defineScalarTag('tag:yaml.org,2002:float', {
   // ('.inf'/'.nan' start with '.').
   implicitFirstChars: ['-', '+', '.', ...'0123456789'],
   resolve: resolveYamlFloat,
-  identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
-    // Also claim integer-valued numbers that stringify in exponential notation
-    // (>= 1e21), since their `!!int` text would be invalid; `represent` emits a
-    // valid float form for them.
-    (object % 1 !== 0 || Object.is(object, -0) || /e/i.test(object.toString(10))),
+  identify: (object) =>
+    // No ancient boxed numbers support
+    typeof object === 'number' &&
+    (
+      // We land here all numbers, not handled (declined) by !!int `.identify`
+      // The same condition as for !!int, but reversed.
+
+      // Filter out integers...
+      !Number.isInteger(object) ||
+      // but allow negative zero
+      Object.is(object, -0) ||
+      // and integers with exponential form
+      object.toString(10).indexOf('e') >= 0
+    ),
   represent: representYamlFloat
 })
 

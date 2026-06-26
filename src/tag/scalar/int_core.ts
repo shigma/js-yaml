@@ -53,10 +53,13 @@ const intCoreTag = defineScalarTag('tag:yaml.org,2002:int', {
   // Superset of source.charAt(0) over all matched inputs: optional sign + decimal digit.
   implicitFirstChars: ['-', '+', ...'0123456789'],
   resolve: resolveYamlInteger,
-  identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
-    // Large integers (>= 1e21) stringify in exponential notation, which is not
-    // valid `!!int` text. Reject them here so they fall through to the float tag.
-    (object % 1 === 0 && !Object.is(object, -0) && !/e/i.test(object.toString(10))),
+  identify: (object) =>
+    // No ancient boxed numbers support
+    Number.isInteger(object) &&
+    // Negative zero => !!float
+    !Object.is(object, -0) &&
+    // Exponential form => !!float, round-trip for !!int 1e21 will be broken
+    object.toString(10).indexOf('e') < 0,
   represent: (object: number) => object.toString(10)
 })
 

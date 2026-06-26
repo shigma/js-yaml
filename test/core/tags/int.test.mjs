@@ -43,11 +43,21 @@ describe('tags/int', () => {
         // Integers at or above 1e21 stringify in exponential notation
         // ('1e+21'), which is not valid `!!int` text. They must round-trip
         // through the float tag rather than being dumped as `!!int '1e+21'`.
-        const large = [1e21, 1.5e21, -1e21, 1e100, Number.MAX_VALUE]
 
-        for (const value of large) {
-          assert.strictEqual(load(dump(value, { schema }), { schema }), value)
-        }
+        // Should round-trip as !!int
+        assert.strictEqual(dump(1e20, { schema }), '100000000000000000000\n')
+        assert.strictEqual(load(dump(1e20, { schema }), { schema }), 1e20)
+        assert.strictEqual(dump(-1e20, { schema }), '-100000000000000000000\n')
+        assert.strictEqual(load(dump(-1e20, { schema }), { schema }), -1e20)
+
+        // Should round-trip as !!float
+        assert.strictEqual(dump(1e21, { schema }), '1.e+21\n')
+        assert.strictEqual(load(dump(1e21, { schema }), { schema }), 1e21)
+        assert.strictEqual(dump(-1e21, { schema }), '-1.e+21\n')
+        assert.strictEqual(load(dump(-1e21, { schema }), { schema }), -1e21)
+
+        assert.strictEqual(load(dump(Number.MAX_VALUE, { schema }), { schema }), Number.MAX_VALUE)
+        assert.strictEqual(load(dump(-Number.MAX_VALUE, { schema }), { schema }), -Number.MAX_VALUE)
       })
 
       it(`${name} fail explicit tag`, () => {
