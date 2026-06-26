@@ -49,7 +49,9 @@ const intJsonTag = defineScalarTag('tag:yaml.org,2002:int', {
   implicitFirstChars: ['-', ...'0123456789'],
   resolve: resolveYamlInteger,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
-    (object % 1 === 0 && !Object.is(object, -0)),
+    // Large integers (>= 1e21) stringify in exponential notation, which is not
+    // valid `!!int` text. Reject them here so they fall through to the float tag.
+    (object % 1 === 0 && !Object.is(object, -0) && !/e/i.test(object.toString(10))),
   represent: (object: number) => object.toString(10)
 })
 

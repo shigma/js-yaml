@@ -51,7 +51,10 @@ const floatCoreTag = defineScalarTag('tag:yaml.org,2002:float', {
   implicitFirstChars: ['-', '+', '.', ...'0123456789'],
   resolve: resolveYamlFloat,
   identify: (object) => Object.prototype.toString.call(object) === '[object Number]' &&
-    (object % 1 !== 0 || Object.is(object, -0)),
+    // Also claim integer-valued numbers that stringify in exponential notation
+    // (>= 1e21), since their `!!int` text would be invalid; `represent` emits a
+    // valid float form for them.
+    (object % 1 !== 0 || Object.is(object, -0) || /e/i.test(object.toString(10))),
   represent: representYamlFloat
 })
 

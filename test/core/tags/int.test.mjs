@@ -39,6 +39,17 @@ describe('tags/int', () => {
         assert.deepStrictEqual(load(dump(expected, { schema }), { schema }), expected)
       })
 
+      it(`${name} round-trip of large integers`, () => {
+        // Integers at or above 1e21 stringify in exponential notation
+        // ('1e+21'), which is not valid `!!int` text. They must round-trip
+        // through the float tag rather than being dumped as `!!int '1e+21'`.
+        const large = [1e21, 1.5e21, -1e21, 1e100, Number.MAX_VALUE]
+
+        for (const value of large) {
+          assert.strictEqual(load(dump(value, { schema }), { schema }), value)
+        }
+      })
+
       it(`${name} fail explicit tag`, () => {
         assert.throws(() => load('!!int 1.5', { schema }), /cannot resolve/)
       })
