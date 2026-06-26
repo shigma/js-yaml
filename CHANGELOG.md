@@ -6,17 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [5.2.0] - 2026-06-26
 ### Added
 - Added `maxTotalMergeKeys` (10000) loader option to limit the total number of
   keys processed by YAML merge (`<<`) across one `load()` / `loadAll()` call.
 - Added `maxAliases` (-1) loader option to limit the number of YAML aliases per
   document.
 
-### Changed
+### Removed
 - `maxMergeSeqLength` replaced with `maxTotalMergeKeys` for limiting YAML merge
   processing.
 
+### Fixed
+- Round-trip of integers with exponential form (>= `1e21`)
 
 ## [5.1.0] - 2026-06-23
 ### Added
