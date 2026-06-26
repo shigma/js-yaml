@@ -2,6 +2,17 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { load, loadAll, FAILSAFE_SCHEMA, YAML11_SCHEMA, YAMLException } from 'js-yaml'
 
+function createMergeChain (count) {
+  const lines = ['a0: &a0 { k0: 0 }']
+
+  for (let i = 1; i < count; i++) {
+    lines.push(`a${i}: &a${i} { <<: *a${i - 1}, k${i}: ${i} }`)
+  }
+
+  lines.push(`b: *a${count - 1}`)
+  return `${lines.join('\n')}\n`
+}
+
 describe('load options', () => {
   it('filename — included in error messages', () => {
     assert.throws(() => load('@', { filename: 'my.yml' }), /my\.yml/)
@@ -25,13 +36,31 @@ describe('load options', () => {
     assert.throws(() => load(nested, { maxDepth: 5 }), /maxDepth/)
   })
 
-  it('maxMergeSeqLength — caps merge sequence length', () => {
+  it('maxTotalMergeKeys — caps total merge keys', () => {
     const merge = (n) =>
       Array.from({ length: n }, (_, i) => `- &x${i} {a${i}: ${i}}`).join('\n') +
       '\n- <<: [' + Array.from({ length: n }, (_, i) => `*x${i}`).join(', ') + ']\n'
 
-    assert.doesNotThrow(() => load(merge(3), { schema: YAML11_SCHEMA, maxMergeSeqLength: 5 }))
-    assert.throws(() => load(merge(3), { schema: YAML11_SCHEMA, maxMergeSeqLength: 2 }), /maxMergeSeqLength/)
+    assert.doesNotThrow(() => load(merge(3), { schema: YAML11_SCHEMA, maxTotalMergeKeys: 5 }))
+    assert.throws(() => load(merge(3), { schema: YAML11_SCHEMA, maxTotalMergeKeys: 2 }), /maxTotalMergeKeys/)
+    assert.doesNotThrow(() => load(merge(3), { schema: YAML11_SCHEMA, maxTotalMergeKeys: -1 }))
+
+    const result = load(createMergeChain(150), { schema: YAML11_SCHEMA, maxTotalMergeKeys: -1 })
+    assert.equal(Object.keys(result.b).length, 150)
+  })
+
+  it('loadAll — maxTotalMergeKeys is shared across all documents', () => {
+    const src = `
+---
+a: &a { k1: 1, k2: 2 }
+b: { <<: *a }
+---
+a: &a { k1: 1, k2: 2 }
+b: { <<: *a }
+`
+
+    assert.doesNotThrow(() => loadAll(src, { schema: YAML11_SCHEMA, maxTotalMergeKeys: 4 }))
+    assert.throws(() => loadAll(src, { schema: YAML11_SCHEMA, maxTotalMergeKeys: 3 }), /maxTotalMergeKeys/)
   })
 
   it('loadAll — options reach every argument form', () => {

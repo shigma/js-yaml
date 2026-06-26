@@ -1,39 +1,31 @@
 import { describe, it } from 'node:test'
-import assert from 'node:assert'
 import { load, YAMLException, YAML11_SCHEMA } from 'js-yaml'
-import workerpool from 'workerpool'
-
-// Resolved in the main thread; passed into the worker since the worker's
-// eval scope has no `require`. `import()` is syntax, so it survives eval.
-const yamlUrl = import.meta.resolve('js-yaml')
-
-async function loadYamlInWorker (doc, url, options) {
-  const mod = await import(url)
-  mod.load(doc, options)
-}
 
 function assertYamlException (fn, pattern) {
   try {
     fn()
   } catch (error) {
-    assert(
-      error instanceof YAMLException,
-      `expected YAMLException, got ${error.name}`
-    )
-    if (pattern) assert.match(error.message, pattern)
+    if (!(error instanceof YAMLException)) {
+      throw new Error(`expected YAMLException, got ${error.name}`)
+    }
+    if (pattern && !pattern.test(error.message)) {
+      throw new Error(`expected ${error.message} to match ${pattern}`)
+    }
     return
   }
 
-  assert.fail('expected YAMLException')
+  throw new Error('expected YAMLException')
 }
 
-function createRepeatedMergeAliasPattern (repetitions, keys) {
-  const src = Array.from({ length: keys }, (_, i) => `k${i}: 0`).join(', ')
+function createMergeChain (count) {
+  const lines = ['a0: &a0 { k0: 0 }']
 
-  return `
-a: &a {${src}}
-b: { <<: [ ${'*a, '.repeat(repetitions - 1)}*a ] }
-`
+  for (let i = 1; i < count; i++) {
+    lines.push(`a${i}: &a${i} { <<: *a${i - 1}, k${i}: ${i} }`)
+  }
+
+  lines.push(`b: *a${count - 1}`)
+  return `${lines.join('\n')}\n`
 }
 
 describe('Pathological tests', () => {
@@ -50,24 +42,10 @@ describe('Pathological tests', () => {
   })
 
   describe('Merge aliases', () => {
-    it('loads repeated merge aliases with many keys', async () => {
-      const doc = createRepeatedMergeAliasPattern(100000, 100000)
-      const pool = workerpool.pool()
-      try {
-        await pool.exec(loadYamlInWorker, [doc, yamlUrl, { maxMergeSeqLength: 1000000 }])
-          .timeout(10 * 1000)
-      } finally {
-        await pool.terminate()
-      }
-    })
-
-    it('throws YAMLException on long merge sequence (over maxMergeSeqLength)', () => {
+    it('throws YAMLException when merge chain exceeds maxTotalMergeKeys', () => {
       assertYamlException(() => {
-        load(`
-a: &a { k: 0 }
-b: { <<: [ ${'*a, '.repeat(20)}*a ] }
-`, { schema: YAML11_SCHEMA })
-      }, /merge sequence length exceeded maxMergeSeqLength/)
+        load(createMergeChain(100000), { schema: YAML11_SCHEMA })
+      }, /merge keys exceeded maxTotalMergeKeys/)
     })
   })
 })

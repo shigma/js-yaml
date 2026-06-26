@@ -58,23 +58,6 @@ foo: bar
     )
   })
 
-  it('deduplicates repeated merge sequence sources', () => {
-    // This test is coverage only, to toggle optional deduplication branch
-    const src = `
-base: &b { x: 1 }
-merged: { <<: [*b, *b], y: 2 }
-`
-    const expected = {
-      base: { x: 1 },
-      merged: { x: 1, y: 2 }
-    }
-
-    assert.deepStrictEqual(
-      load(src, { schema: CORE_SCHEMA.withTags(mergeTag) }),
-      expected
-    )
-  })
-
   it('throws when the target mapping tag rejects a merged pair', () => {
     const src = `
 --- !!set

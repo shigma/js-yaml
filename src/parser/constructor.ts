@@ -80,7 +80,7 @@ interface ConstructorOptions {
   filename?: string
   schema?: Schema
   json?: boolean
-  maxMergeSeqLength?: number
+  maxTotalMergeKeys?: number
 }
 
 // `source` is input data, not config — so it has no default here.
@@ -88,7 +88,7 @@ const DEFAULT_CONSTRUCTOR_OPTIONS: Required<Omit<ConstructorOptions, 'source'>> 
   filename: '',
   schema: CORE_SCHEMA,
   json: false,
-  maxMergeSeqLength: 20
+  maxTotalMergeKeys: 10000
 }
 
 interface ConstructorState extends Required<ConstructorOptions> {
@@ -99,6 +99,7 @@ interface ConstructorState extends Required<ConstructorOptions> {
   frames: Frame[]
   anchors: Map<string, Anchor>
   tagHandlers: TagHandlers
+  totalMergeKeys: number
 }
 
 function eventPosition (event: Event) {
@@ -252,6 +253,10 @@ function isMappingTag (tag: AnyTag): tag is MappingTagDefinition<any, any> {
 // precedence: an already-present key (explicit or from an earlier source) wins.
 function mergeKeys (state: ConstructorState, frame: MappingFrame, source: unknown, sourceTag: MappingTagDefinition<any, any>) {
   for (const sourceKey of sourceTag.keys(source)) {
+    if (state.maxTotalMergeKeys !== -1 && ++state.totalMergeKeys > state.maxTotalMergeKeys) {
+      throwError(state, `merge keys exceeded maxTotalMergeKeys (${state.maxTotalMergeKeys})`)
+    }
+
     if (frame.tag.has(frame.value, sourceKey)) continue
 
     const err = frame.tag.addPair(frame.value, sourceKey, sourceTag.get(source, sourceKey))
@@ -270,11 +275,7 @@ function mergeSource (state: ConstructorState, frame: MappingFrame, source: unkn
   if (isMappingTag(sourceTag)) {
     mergeKeys(state, frame, source, sourceTag)
   } else if (sourceTag.nodeKind === 'sequence' && Array.isArray(source)) {
-    const seen = new Set<unknown>()
     for (const element of source) {
-      // Dedup identical sources (`<<: [*a, *a]`); the first one wins anyway.
-      if (seen.has(element)) continue
-      seen.add(element)
       mergeKeys(state, frame, element, frame.tag)
     }
   } else {
@@ -308,13 +309,10 @@ function addValue (state: ConstructorState, value: unknown, tag: AnyTag) {
     frame.hasValue = true
   } else if (frame.kind === 'sequence') {
     if (frame.merge) {
-      // Element of a `<<: [...]` list: validate it is a mapping and cap the
-      // length, then collect it like any other item for the target to fold in.
+      // Element of a `<<: [...]` list: validate it is a mapping, then collect
+      // it like any other item for the target to fold in.
       if (!isMappingTag(tag)) {
         throwError(state, 'cannot merge mappings; the provided source object is unacceptable')
-      }
-      if (frame.index >= state.maxMergeSeqLength) {
-        throwError(state, `merge sequence length exceeded maxMergeSeqLength (${state.maxMergeSeqLength})`)
       }
     }
     const err = frame.tag.addItem(frame.value, value, frame.index++)
@@ -361,7 +359,8 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
     position: 0,
     frames: [],
     anchors: new Map(),
-    tagHandlers: Object.create(null)
+    tagHandlers: Object.create(null),
+    totalMergeKeys: 0
   }
 
   while (state.eventIndex < state.events.length) {

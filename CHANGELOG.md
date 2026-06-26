@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased]
+### Added
+- Added `maxTotalMergeKeys` (10000) loader option to limit the total number of
+  keys processed by YAML merge (`<<`) across one `load()` / `loadAll()` call.
+
+### Changed
+- `maxMergeSeqLength` replaced with `maxTotalMergeKeys` for limiting YAML merge
+  processing.
+
+
 ## [5.1.0] - 2026-06-23
 ### Added
 - Collection tags can finalize an incrementally populated carrier into a
@@ -75,8 +85,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `docs/safety.md` with notes about processing untrusted YAML.
 - Added `maxDepth` (100) loader option. Not a problem, but gives a better
   exception instead of RangeError on stack overflow.
-- Added `maxMergeSeqLength` (20) loader option. Not a problem after `merge` fix,
-  but an additional restriction for safety.
+- Added a loader option limiting merge sequence length. Not a problem after
+  `merge` fix, but an additional restriction for safety.
 - Added sourcemaps to `dist/` builds.
 
 ### Changed

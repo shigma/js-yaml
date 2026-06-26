@@ -69,8 +69,9 @@ options:
   error.
 - `maxDepth` _(default: 100)_ - limits the nesting depth for collections (does
   not take aliases into account).
-- `maxMergeSeqLength` _(default: 20)_ - limits the number of items in merge
-  (`<<`) sequences.
+- `maxTotalMergeKeys` _(default: 10000)_ - limits the total number of keys
+  processed by merge (`<<`) across one `load()` / `loadAll()` call. Set to `-1`
+  to disable.
 
 > [!NOTE]
 >
