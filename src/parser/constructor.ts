@@ -81,6 +81,7 @@ interface ConstructorOptions {
   schema?: Schema
   json?: boolean
   maxTotalMergeKeys?: number
+  maxAliases?: number
 }
 
 // `source` is input data, not config — so it has no default here.
@@ -88,7 +89,8 @@ const DEFAULT_CONSTRUCTOR_OPTIONS: Required<Omit<ConstructorOptions, 'source'>> 
   filename: '',
   schema: CORE_SCHEMA,
   json: false,
-  maxTotalMergeKeys: 10000
+  maxTotalMergeKeys: 10000,
+  maxAliases: -1
 }
 
 interface ConstructorState extends Required<ConstructorOptions> {
@@ -100,6 +102,7 @@ interface ConstructorState extends Required<ConstructorOptions> {
   anchors: Map<string, Anchor>
   tagHandlers: TagHandlers
   totalMergeKeys: number
+  aliasCount: number
 }
 
 function eventPosition (event: Event) {
@@ -360,7 +363,8 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
     frames: [],
     anchors: new Map(),
     tagHandlers: Object.create(null),
-    totalMergeKeys: 0
+    totalMergeKeys: 0,
+    aliasCount: 0
   }
 
   while (state.eventIndex < state.events.length) {
@@ -370,6 +374,7 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
     switch (event.type) {
       case EVENT_DOCUMENT:
         state.anchors = new Map()
+        state.aliasCount = 0
         state.tagHandlers = Object.create(null)
         for (const directive of event.directives) {
           if (directive.kind === 'tag') state.tagHandlers[directive.handle] = directive.prefix
@@ -435,6 +440,10 @@ function constructFromEvents (events: Event[], options: ConstructorOptions): unk
       }
 
       case EVENT_ALIAS: {
+        if (state.maxAliases !== -1 && ++state.aliasCount > state.maxAliases) {
+          throwError(state, `aliases exceeded maxAliases (${state.maxAliases})`)
+        }
+
         const name = state.source.slice(event.anchorStart, event.anchorEnd)
         const anchor = state.anchors.get(name)
         if (!anchor) {

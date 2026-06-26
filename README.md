@@ -72,6 +72,8 @@ options:
 - `maxTotalMergeKeys` _(default: 10000)_ - limits the total number of keys
   processed by merge (`<<`) across one `load()` / `loadAll()` call. Set to `-1`
   to disable.
+- `maxAliases` _(default: -1)_ - limits the number of alias nodes (`*ref`) per
+  document. Set to `0` to reject all aliases, or to `-1` for no limit.
 
 > [!NOTE]
 >

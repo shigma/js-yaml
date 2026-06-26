@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `maxTotalMergeKeys` (10000) loader option to limit the total number of
   keys processed by YAML merge (`<<`) across one `load()` / `loadAll()` call.
+- Added `maxAliases` (-1) loader option to limit the number of YAML aliases per
+  document.
 
 ### Changed
 - `maxMergeSeqLength` replaced with `maxTotalMergeKeys` for limiting YAML merge

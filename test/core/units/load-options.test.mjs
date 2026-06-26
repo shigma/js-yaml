@@ -58,9 +58,34 @@ b: { <<: *a }
 a: &a { k1: 1, k2: 2 }
 b: { <<: *a }
 `
-
     assert.doesNotThrow(() => loadAll(src, { schema: YAML11_SCHEMA, maxTotalMergeKeys: 4 }))
     assert.throws(() => loadAll(src, { schema: YAML11_SCHEMA, maxTotalMergeKeys: 3 }), /maxTotalMergeKeys/)
+  })
+
+  it('maxAliases — caps alias count', () => {
+    const src = `
+base: &base { a: 1 }
+one: *base
+two: *base
+`
+    assert.deepEqual(load(src).one, { a: 1 })
+    assert.doesNotThrow(() => load(src, { maxAliases: 2 }))
+    assert.throws(() => load(src, { maxAliases: 1 }), /maxAliases/)
+    assert.throws(() => load(src, { maxAliases: 0 }), /maxAliases/)
+    assert.doesNotThrow(() => load(src, { maxAliases: -1 }))
+  })
+
+  it('loadAll — maxAliases is applied per document', () => {
+    const src = `
+---
+a: &a 1
+b: *a
+---
+a: &a 1
+b: *a
+`
+    assert.doesNotThrow(() => loadAll(src, { maxAliases: 1 }))
+    assert.throws(() => loadAll(src, { maxAliases: 0 }), /maxAliases/)
   })
 
   it('loadAll — options reach every argument form', () => {
