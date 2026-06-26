@@ -659,6 +659,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First public release
 
 
+[5.2.0]: https://github.com/nodeca/js-yaml/compare/5.1.0...5.2.0
 [5.1.0]: https://github.com/nodeca/js-yaml/compare/5.0.0...5.1.0
 [5.0.0]: https://github.com/nodeca/js-yaml/compare/4.2.0...5.0.0
 [4.2.0]: https://github.com/nodeca/js-yaml/compare/4.1.1...4.2.0
