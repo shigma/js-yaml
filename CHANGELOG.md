@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+- Add `Map` support to !!omap (should work when `realMapTag` used)
+
+### Security
+- Remove quadratic complexity from !!omap `addItem`. Regression from v5
+  (usually not critical, because YAML11_SCHEMA is not default anymore).
+
+
 ## 4.3.0, 3.15.0 - 2026-06-27
 ### Security
 - Backported `maxTotalMergeKeys` option.

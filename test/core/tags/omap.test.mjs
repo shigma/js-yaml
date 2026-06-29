@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { load, YAML11_SCHEMA } from 'js-yaml'
+import { load, YAML11_SCHEMA, realMapTag } from 'js-yaml'
+
+const REAL_MAP_SCHEMA = YAML11_SCHEMA.withTags(realMapTag)
 
 describe('tags', () => {
   it('omap', () => {
@@ -61,10 +63,28 @@ baz: bat
 - a: 1
 - a: 2
 `
-    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /cannot resolve an ordered map item/)
+    assert.throws(() => load(src, { schema: YAML11_SCHEMA }), /duplicate key in ordered map/)
   })
 
   it('Resolving explicit !!omap on empty node', () => {
     assert.deepStrictEqual(load('!!omap', { schema: YAML11_SCHEMA }), [])
+  })
+
+  it('omap with Map items (realMapTag)', () => {
+    const result = load('!!omap\n- a: 1\n- b: 2\n', { schema: REAL_MAP_SCHEMA })
+    assert.equal(result.length, 2)
+    assert.ok(result[0] instanceof Map)
+    assert.deepStrictEqual([...result[0].entries()], [['a', 1]])
+    assert.deepStrictEqual([...result[1].entries()], [['b', 2]])
+  })
+
+  it('omap with Map items throws on multiple keys', () => {
+    assert.throws(() => load('!!omap\n- a: 1\n  b: 2\n', { schema: REAL_MAP_SCHEMA }),
+      /cannot resolve an ordered map item/)
+  })
+
+  it('omap with Map items throws on duplicated keys', () => {
+    assert.throws(() => load('!!omap\n- a: 1\n- a: 2\n', { schema: REAL_MAP_SCHEMA }),
+      /duplicate key in ordered map/)
   })
 })
