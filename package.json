@@ -83,9 +83,9 @@
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14",
+    "vite": "^8.1.2",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vite-plugin-singlefile": "^2.3.3",
-    "workerpool": "^10.0.2"
+    "workerpool": "^10.0.3"
   }
 }
